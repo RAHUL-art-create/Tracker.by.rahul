@@ -289,12 +289,12 @@
         }
         .date-range {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-start;
             align-items: center;
             margin-bottom: 10px;
         }
         .date-range label {
-            flex: 0 0 auto;
+            flex: 0 0 60px;
             margin-right: 10px;
         }
         .date-range input {
@@ -323,6 +323,23 @@
         .editable-amount:focus {
             outline: none;
             border-bottom-color: var(--salary-color);
+        }
+        .milk-quantity-list {
+            margin-top: 20px;
+        }
+        .milk-quantity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .milk-quantity-item input {
+            width: 80px;
+            margin-right: 10px;
+        }
+        .milk-quantity-item button {
+            width: auto;
+            padding: 5px 10px;
         }
         @media (max-width: 768px) {
             .container {
@@ -360,7 +377,7 @@
                 <option value="Birthday">Birthday</option>
                 <option value="Wedding Anniversary">Wedding Anniversary</option>
             </select>
-            <input type="date" id="eventDate">
+            <input type="date" id="eventDate" name="eventDate">
             <button class="event-btn" onclick="addEvent()">Add Event</button>
             <ul id="eventList"></ul>
         </div>
@@ -418,6 +435,15 @@
                 <button class="milk-btn" onclick="analyzeMilkConsumption()">Analyze 📊</button>
                 <p id="analysisResult"></p>
             </div>
+            <div class="milk-quantity-list">
+                <h3>Milk Quantities and Prices</h3>
+                <div id="milkQuantityList"></div>
+                <div class="milk-quantity-item">
+                    <input type="number" id="newMilkQuantity" placeholder="Quantity (L)" step="0.1">
+                    <input type="number" id="newMilkPrice" placeholder="Price (₹)">
+                    <button class="milk-btn" onclick="addMilkQuantity()">Add</button>
+                </div>
+            </div>
         </div>
         
         <div class="card">
@@ -429,12 +455,7 @@
     <div id="quantityModal" class="quantity-modal">
         <div class="modal-content">
             <h3>Select Milk Quantity</h3>
-            <select id="milkQuantity">
-                <option value="0">Nil (₹0)</option>
-                <option value="1">1 liter (₹55)</option>
-                <option value="1.5">1½ liters (₹83)</option>
-                <option value="2">2 liters (₹110)</option>
-            </select>
+            <select id="milkQuantity"></select>
             <button class="milk-btn" onclick="confirmMilkQuantity()">Confirm 🥛</button>
         </div>
     </div>
@@ -445,6 +466,12 @@
         let events = JSON.parse(localStorage.getItem('events')) || [];
         let salaryData = JSON.parse(localStorage.getItem('salaryData')) || {};
         let milkData = JSON.parse(localStorage.getItem('milkData')) || {};
+        let milkQuantities = JSON.parse(localStorage.getItem('milkQuantities')) || [
+            { quantity: 0, price: 0 },
+            { quantity: 1, price: 55 },
+            { quantity: 1.5, price: 83 },
+            { quantity: 2, price: 110 }
+        ];
         let currentDate = new Date();
         let selectedDate = null;
 
@@ -460,6 +487,12 @@
 
         function saveMilkData() {
             localStorage.setItem('milkData', JSON.stringify(milkData));
+        }
+
+        function saveMilkQuantities() {
+            localStorage.setItem('milkQuantities', JSON.stringify(milkQuantities));
+            displayMilkQuantities();
+            updateMilkQuantitySelect();
         }
 
         function addEvent() {
@@ -733,8 +766,10 @@
         }
 
         function confirmMilkQuantity() {
-            const quantity = parseFloat(document.getElementById('milkQuantity').value);
-            const cost = quantity === 0 ? 0 : quantity === 1 ? 55 : quantity === 1.5 ? 83 : 110;
+            const quantitySelect = document.getElementById('milkQuantity');
+            const selectedOption = quantitySelect.options[quantitySelect.selectedIndex];
+            const quantity = parseFloat(selectedOption.value);
+            const cost = parseFloat(selectedOption.getAttribute('data-price'));
             milkData[selectedDate] = { quantity, cost };
             saveMilkData();
             renderCalendar();
@@ -788,9 +823,59 @@
             }, 1000);
         }
 
+        function displayMilkQuantities() {
+            const list = document.getElementById('milkQuantityList');
+            list.innerHTML = '';
+            milkQuantities.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'milk-quantity-item';
+                div.innerHTML = `
+                    <input type="number" value="${item.quantity}" step="0.1" onchange="updateMilkQuantity(${index}, 'quantity', this.value)">
+                    <input type="number" value="${item.price}" onchange="updateMilkQuantity(${index}, 'price', this.value)">
+                    <button class="remove-btn" onclick="removeMilkQuantity(${index})">Remove</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function updateMilkQuantity(index, field, value) {
+            milkQuantities[index][field] = parseFloat(value);
+            saveMilkQuantities();
+        }
+
+        function removeMilkQuantity(index) {
+            milkQuantities.splice(index, 1);
+            saveMilkQuantities();
+        }
+
+        function addMilkQuantity() {
+            const quantity = parseFloat(document.getElementById('newMilkQuantity').value);
+            const price = parseFloat(document.getElementById('newMilkPrice').value);
+            if (quantity && price) {
+                milkQuantities.push({ quantity, price });
+                saveMilkQuantities();
+                document.getElementById('newMilkQuantity').value = '';
+                document.getElementById('newMilkPrice').value = '';
+            }
+        }
+
+        function updateMilkQuantitySelect() {
+            const select = document.getElementById('milkQuantity');
+            select.innerHTML = '';
+            milkQuantities.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.quantity;
+                option.textContent = `${item.quantity} liter${item.quantity !== 1 ? 's' : ''} (₹${item.price})`;
+                option.setAttribute('data-price', item.price);
+                select.appendChild(option);
+            });
+        }
+
         displayEvents();
         displaySalaryData();
         renderCalendar();
+        displayMilkQuantities();
+        updateMilkQuantitySelect();
     </script>
 </body>
 </html>
