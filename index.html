@@ -88,7 +88,6 @@
             padding: 0;
         }
         li {
-            background-color: #f9f9f9;
             margin-bottom: 5px;
             padding: 10px;
             border-radius: 5px;
@@ -96,19 +95,39 @@
             justify-content: space-between;
             align-items: center;
         }
-        .event-today {
-            color: var(--event-color);
+        .event-item {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .event-details {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .event-name {
             font-weight: bold;
+        }
+        .event-type-date {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .event-checkbox {
+            margin-left: 10px;
+        }
+        .celebrated {
+            text-decoration: line-through;
+        }
+        .event-today {
             animation: blink 1s infinite;
         }
         @keyframes blink {
             0% { opacity: 1; }
             50% { opacity: 0.5; }
             100% { opacity: 1; }
-        }
-        .celebrated {
-            text-decoration: line-through;
-            opacity: 0.6;
         }
         table {
             width: 100%;
@@ -131,6 +150,8 @@
             padding: 5px 10px;
             cursor: pointer;
             border-radius: 15px;
+            font-size: 0.8em;
+            margin-left: 10px;
         }
         .remove-btn:hover {
             background-color: #c0392b;
@@ -164,10 +185,17 @@
         .calendar-controls {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
         .calendar-controls button {
             width: auto;
+        }
+        .current-month-year {
+            padding: 5px 10px;
+            background-color: var(--milk-color);
+            color: white;
+            border-radius: 5px;
         }
         .quantity-modal {
             display: none;
@@ -245,6 +273,57 @@
             color: rgba(0, 0, 0, 0.3);
             pointer-events: none;
         }
+        .event-message {
+            background-color: var(--event-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            animation: colorChange 5s infinite;
+        }
+        @keyframes colorChange {
+            0% { background-color: #e74c3c; color: white; }
+            33% { background-color: #f39c12; color: black; }
+            66% { background-color: #9b59b6; color: white; }
+            100% { background-color: #e74c3c; color: white; }
+        }
+        .date-range {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .date-range label {
+            flex: 0 0 auto;
+            margin-right: 10px;
+        }
+        .date-range input {
+            flex: 1;
+        }
+        .salary-month {
+            cursor: pointer;
+            padding: 10px;
+            background-color: var(--salary-color);
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .salary-month-data {
+            display: none;
+            margin-bottom: 10px;
+        }
+        .editable-amount {
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            font-size: inherit;
+            padding: 2px;
+            width: 80px;
+        }
+        .editable-amount:focus {
+            outline: none;
+            border-bottom-color: var(--salary-color);
+        }
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -257,11 +336,21 @@
                 font-size: 0.9em;
                 min-height: 50px;
             }
+            .calendar-controls {
+                flex-wrap: wrap;
+            }
+            .current-month-year {
+                order: -1;
+                width: 100%;
+                text-align: center;
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
 <body>
     <h1 style="text-align: center;">Personal Tracker</h1>
+    <div id="eventMessage" class="event-message" style="display: none;"></div>
     <div class="container">
         <div class="card">
             <h2>Events of the Day</h2>
@@ -301,9 +390,9 @@
 
         <div class="card milk-calendar">
             <h2>Milk Bill Calendar</h2>
-            <div class="calendar-header">
+            <div class="calendar-controls">
                 <button class="milk-btn" onclick="changeMonth(-1)">◀️ Previous</button>
-                <span id="currentMonth"></span>
+                <div class="current-month-year" id="currentMonth"></div>
                 <button class="milk-btn" onclick="changeMonth(1)">Next ▶️</button>
             </div>
             <div class="calendar-weekdays">
@@ -318,8 +407,14 @@
             <div class="calendar" id="milkCalendar"></div>
             <div style="margin-top: 20px;">
                 <h3>Milk Consumption Analysis</h3>
-                <input type="date" id="startDate">
-                <input type="date" id="endDate">
+                <div class="date-range">
+                    <label for="startDate">From:</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="date-range">
+                    <label for="endDate">To:</label>
+                    <input type="date" id="endDate">
+                </div>
                 <button class="milk-btn" onclick="analyzeMilkConsumption()">Analyze 📊</button>
                 <p id="analysisResult"></p>
             </div>
@@ -394,18 +489,18 @@
                 
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    <div>
-                        <input type="checkbox" ${event.celebrated ? 'checked' : ''} onchange="toggleCelebrated(${index})">
-                        <span class="${isEventToday ? 'event-today' : ''} ${event.celebrated ? 'celebrated' : ''}">
-                            ${event.name} - ${event.type} - ${new Date(event.date).toLocaleDateString()}
-                        </span>
+                    <div class="event-item ${isEventToday ? 'event-today' : ''}" style="background-color: ${getEventColor(event.type)}; color: ${getContrastColor(getEventColor(event.type))};">
+                        <div class="event-details ${event.celebrated ? 'celebrated' : ''}">
+                            <span class="event-name">${event.name}</span>
+                            <span class="event-type-date">${event.type} - ${new Date(event.date).toLocaleDateString()}</span>
+                        </div>
+                        <input type="checkbox" class="event-checkbox" ${event.celebrated ? 'checked' : ''} onchange="toggleCelebrated(${index})">
+                        <button class="remove-btn" onclick="removeEvent(${index})">X</button>
                     </div>
-                    <button class="remove-btn" onclick="removeEvent(${index})">Remove</button>
                 `;
 
                 if (isEventToday) {
                     todayEvents.push(li);
-                    showNotification(`Today is ${event.name}'s ${event.type}!`);
                 } else {
                     otherEvents.push(li);
                 }
@@ -413,6 +508,54 @@
 
             todayEvents.forEach(li => list.appendChild(li));
             otherEvents.forEach(li => list.appendChild(li));
+
+            displayEventMessage();
+        }
+
+        function getEventColor(eventType) {
+            switch(eventType) {
+                case 'Birthday':
+                    return '#FF6B6B';
+                case 'Wedding Anniversary':
+                    return '#4ECDC4';
+                default:
+                    return '#45B7D1';
+            }
+        }
+
+        function getContrastColor(hexcolor) {
+            hexcolor = hexcolor.replace("#", "");
+            var r = parseInt(hexcolor.substr(0,2),16);
+            var g = parseInt(hexcolor.substr(2,2),16);
+            var b = parseInt(hexcolor.substr(4,2),16);
+            var yiq = ((r*299)+(g*587)+(b*114))/1000;
+            return (yiq >= 128) ? 'black' : 'white';
+        }
+
+        function displayEventMessage() {
+            const today = new Date();
+            const todayEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                return today.getMonth() === eventDate.getMonth() && today.getDate() === eventDate.getDate();
+            });
+
+            const messageElement = document.getElementById('eventMessage');
+            if (todayEvents.length > 0) {
+                const messages = todayEvents.map(event => {
+                    if (event.celebrated) {
+                        const nextYear = new Date(event.date);
+                        nextYear.setFullYear(nextYear.getFullYear() + 1);
+                        const daysUntilNextYear = Math.ceil((nextYear - today) / (1000 * 60 * 60 * 24));
+                        return `${event.name}'s ${event.type} has ended today. ${daysUntilNextYear} days until next year's celebration!`;
+                    } else {
+                        return `Today is ${event.name}'s ${event.type}!`;
+                    }
+                });
+                messageElement.innerHTML = messages.join('<br>');
+                messageElement.style.display = 'block';
+            } else {
+                messageElement.style.display = 'none';
+            }
         }
 
         function toggleCelebrated(index) {
@@ -449,27 +592,50 @@
             container.innerHTML = '';
             for (const [month, students] of Object.entries(salaryData)) {
                 const monthDiv = document.createElement('div');
-                monthDiv.innerHTML = `<h3>${month}</h3>`;
-                const table = document.createElement('table');
-                table.innerHTML = `
-                    <tr>
-                        <th>Student</th>
-                        <th>Amount</th>
-                        <th>Action</th>
-                    </tr>
+                monthDiv.innerHTML = `
+                    <div class="salary-month" onclick="toggleSalaryMonth('${month}')">
+                        ${month} <span class="toggle-icon">▼</span>
+                    </div>
+                    <div id="salary-${month}" class="salary-month-data">
+                        <table>
+                            <tr>
+                                <th>Student</th>
+                                <th>Amount</th>
+                                <th>Action</th>
+                            </tr>
+                            ${Object.entries(students).map(([student, amount]) => `
+                                <tr>
+                                    <td>${student}</td>
+                                    <td>
+                                        ₹<input type="number" class="editable-amount" value="${amount}" 
+                                            onchange="updateSalary('${month}', '${student}', this.value)">
+                                    </td>
+                                    <td><button class="remove-btn" onclick="removeSalary('${month}', '${student}')">Remove</button></td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                        <button class="remove-btn" onclick="removeMonth('${month}')">Remove Month</button>
+                    </div>
                 `;
-                for (const [student, amount] of Object.entries(students)) {
-                    table.innerHTML += `
-                        <tr>
-                            <td>${student}</td>
-                            <td>₹${amount}</td>
-                            <td><button class="remove-btn" onclick="removeSalary('${month}', '${student}')">Remove</button></td>
-                        </tr>
-                    `;
-                }
-                monthDiv.appendChild(table);
                 container.appendChild(monthDiv);
             }
+        }
+
+        function toggleSalaryMonth(month) {
+            const monthData = document.getElementById(`salary-${month}`);
+            const toggleIcon = monthData.previousElementSibling.querySelector('.toggle-icon');
+            if (monthData.style.display === 'none' || monthData.style.display === '') {
+                monthData.style.display = 'block';
+                toggleIcon.textContent = '▲';
+            } else {
+                monthData.style.display = 'none';
+                toggleIcon.textContent = '▼';
+            }
+        }
+
+        function updateSalary(month, student, newAmount) {
+            salaryData[month][student] = Number(newAmount);
+            saveSalaryData();
         }
 
         function removeSalary(month, student) {
@@ -481,16 +647,10 @@
             showEmojiAnimation('🗑️', event.target);
         }
 
-        function showNotification(message) {
-            if (Notification.permission === "granted") {
-                new Notification(message);
-            } else if (Notification.permission !== "denied") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        new Notification(message);
-                    }
-                });
-            }
+        function removeMonth(month) {
+            delete salaryData[month];
+            saveSalaryData();
+            showEmojiAnimation('🗑️', event.target);
         }
 
         function exportToPDF() {
