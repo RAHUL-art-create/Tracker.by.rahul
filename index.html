@@ -42,7 +42,7 @@
             flex: 1;
             min-width: 300px;
         }
-        h1, h2 {
+        h1, h2, h3 {
             color: var(--primary-color);
         }
         input, select {
@@ -55,11 +55,10 @@
         }
         button {
             margin-bottom: 10px;
-            padding: 10px 15px;
-            width: 100%;
+            padding: 8px 12px;
             box-sizing: border-box;
             border: none;
-            border-radius: 25px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.1s;
             font-weight: bold;
@@ -149,9 +148,8 @@
             border: none;
             padding: 5px 10px;
             cursor: pointer;
-            border-radius: 15px;
+            border-radius: 5px;
             font-size: 0.8em;
-            margin-left: 10px;
         }
         .remove-btn:hover {
             background-color: #c0392b;
@@ -341,6 +339,72 @@
             width: auto;
             padding: 5px 10px;
         }
+        .collapsible {
+            background-color: var(--milk-color);
+            color: white;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+        .active:after {
+            content: "\2212";
+        }
+        .collapsible-content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: #f1f1f1;
+            border-radius: 0 0 5px 5px;
+        }
+        .data-buttons {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .data-buttons button {
+            padding: 8px 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .data-buttons button::after {
+            margin-left: 5px;
+            font-size: 18px;
+        }
+        .download-btn::after {
+            content: '↓';
+        }
+        .upload-btn::after {
+            content: '↑';
+        }
+        #countdown {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -362,10 +426,23 @@
                 text-align: center;
                 margin-bottom: 10px;
             }
+            .data-buttons {
+                flex-direction: column;
+                align-items: center;
+                top: 10px;
+            }
+            .data-buttons button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="data-buttons">
+        <button onclick="downloadData()" class="export-btn download-btn">Download Data</button>
+        <button onclick="uploadData()" class="export-btn upload-btn">Upload Data</button>
+    </div>
+    <div id="countdown"></div>
     <h1 style="text-align: center;">Personal Tracker</h1>
     <div id="eventMessage" class="event-message" style="display: none;"></div>
     <div class="container">
@@ -435,13 +512,15 @@
                 <button class="milk-btn" onclick="analyzeMilkConsumption()">Analyze 📊</button>
                 <p id="analysisResult"></p>
             </div>
-            <div class="milk-quantity-list">
-                <h3>Milk Quantities and Prices</h3>
-                <div id="milkQuantityList"></div>
-                <div class="milk-quantity-item">
-                    <input type="number" id="newMilkQuantity" placeholder="Quantity (L)" step="0.1">
-                    <input type="number" id="newMilkPrice" placeholder="Price (₹)">
-                    <button class="milk-btn" onclick="addMilkQuantity()">Add</button>
+            <button class="collapsible">Milk Quantities and Prices</button>
+            <div class="collapsible-content">
+                <div class="milk-quantity-list">
+                    <div id="milkQuantityList"></div>
+                    <div class="milk-quantity-item">
+                        <input type="number" id="newMilkQuantity" placeholder="Quantity (L)" step="0.1">
+                        <input type="number" id="newMilkPrice" placeholder="Price (₹)">
+                        <button class="milk-btn" onclick="addMilkQuantity()">Add</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -705,7 +784,7 @@
             let salaryTableData = [];
             Object.entries(salaryData).forEach(([month, students]) => {
                 Object.entries(students).forEach(([student, amount]) => {
-                    salaryTableData.push([month, student, `₹${amount}`]);
+                    salaryTableData.push([month, student, `Rs. ${amount}`]);
                 });
             });
             doc.autoTable({
@@ -717,7 +796,7 @@
             // Add milk consumption data
             doc.addPage();
             doc.text('Milk Consumption', 10, 10);
-            let milkTableData = Object.entries(milkData).map(([date, data]) => [date, `${data.quantity} liter(s)`, `₹${data.cost}`]);
+            let milkTableData = Object.entries(milkData).map(([date, data]) => [date, `${data.quantity} liter(s)`, `Rs. ${data.cost}`]);
             doc.autoTable({
                 head: [['Date', 'Quantity', 'Cost']],
                 body: milkTableData,
@@ -871,11 +950,81 @@
             });
         }
 
+        // Initialize collapsible functionality
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.maxHeight){
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        }
+
+        function downloadData() {
+            const data = {
+                events: events,
+                salaryData: salaryData,
+                milkData: milkData,
+                milkQuantities: milkQuantities
+            };
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "personal_tracker_data.json";
+            a.click();
+            showEmojiAnimation('💾', document.querySelector('.download-btn'));
+        }
+
+        function uploadData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = JSON.parse(e.target.result);
+                    events = data.events;
+                    salaryData = data.salaryData;
+                    milkData = data.milkData;
+                    milkQuantities = data.milkQuantities;
+                    saveEvents();
+                    saveSalaryData();
+                    saveMilkData();
+                    saveMilkQuantities();
+                    displayEvents();
+                    displaySalaryData();
+                    renderCalendar();
+                    displayMilkQuantities();
+                    updateMilkQuantitySelect();
+                    showEmojiAnimation('📂', document.querySelector('.upload-btn'));
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const dateString = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('countdown').innerHTML = `${dateString} ${hours}:${minutes}:${seconds}`;
+        }
+
+        setInterval(updateCountdown, 1000);
+
         displayEvents();
         displaySalaryData();
         renderCalendar();
         displayMilkQuantities();
         updateMilkQuantitySelect();
+        updateCountdown();
     </script>
 </body>
 </html>
