@@ -6,6 +6,11 @@
 
 **Personal Tracker** is a simple yet powerful web-based application that allows users to track events, salaries, and milk consumption. The app ensures user data persistence across sessions with local storage, and provides an option to export and import data to handle potential loss due to cache clearing.
 
+## Live Demo
+
+A demo of the app is available [here](https://rahul-art-create.github.io/Tracker.by.rahul/).
+
+
 ## Key Features
 
 1. **Event Tracker**
