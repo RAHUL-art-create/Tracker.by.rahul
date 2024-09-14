@@ -12,7 +12,9 @@ A web-based personal tracker designed to help you keep track of important events
 - **Salary Tracker**: Keep a record of salary details, categorized by month.
 - **Milk Consumption Calendar**: Monitor your daily milk consumption, view monthly records, and analyze the consumption pattern over a given period.
 - **PDF Export**: Export your tracked events, salary data, and milk consumption records to a PDF file.
-- **Real-Time Countdown** : Display real-time countdown with current date and time.
+- **5. Data Backup and Restore** :
+     - Download Data: Allows users to save their current data for backup purposes
+     - Upload Data: Enables users to restore previously saved data or import data from another source
 
 ## Live Demo
 
