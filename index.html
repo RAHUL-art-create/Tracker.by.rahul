@@ -402,6 +402,9 @@
         display: flex;
         justify-content: space-between;
     }
+    .event-reminder-actions button {
+        color: black;
+    }
     @media (max-width: 768px) {
         .container {
             flex-direction: column;
@@ -466,7 +469,9 @@
     <div class="card">
         <h2>Salary Tracker</h2>
         <input type="text" id="studentName" placeholder="Student Name">
-        <input type="number" id="salaryAmount" placeholder="Amount (₹)">
+        <input type="number" id="sal
+
+aryAmount" placeholder="Amount (₹)">
         <select id="salaryMonth">
             <option value="">Select Month</option>
             <option value="January">January</option>
@@ -543,7 +548,7 @@
     </div>
 </div>
 
-<div class="watermark">Made by @Rahul🎙️</div>
+<div class="watermark">Made by @Rahul 🎙️</div>
 
 <script>
     let events = JSON.parse(localStorage.getItem('events')) || [];
