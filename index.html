@@ -405,6 +405,30 @@
     .event-reminder-actions button {
         color: black;
     }
+    .milk-bill-type {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    .milk-bill-type label {
+        margin: 0 10px;
+    }
+    .modal-close {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        cursor: pointer;
+        font-size: 20px;
+    }
+    .milk-bill-section {
+        margin-top: 20px;
+    }
+    .milk-bill-section h3 {
+        margin-bottom: 10px;
+    }
+    .hidden {
+        display: none;
+    }
     @media (max-width: 768px) {
         .container {
             flex-direction: column;
@@ -469,9 +493,7 @@
     <div class="card">
         <h2>Salary Tracker</h2>
         <input type="text" id="studentName" placeholder="Student Name">
-        <input type="number" id="sal
-
-aryAmount" placeholder="Amount (₹)">
+        <input type="number" id="salaryAmount" placeholder="Amount (₹)">
         <select id="salaryMonth">
             <option value="">Select Month</option>
             <option value="January">January</option>
@@ -493,6 +515,14 @@ aryAmount" placeholder="Amount (₹)">
 
     <div class="card milk-calendar">
         <h2>Milk Bill Calendar</h2>
+        <div class="milk-bill-type">
+            <label>
+                <input type="radio" name="milkBillType" value="1~MB" checked onchange="changeMilkBillType()"> 1~MB
+            </label>
+            <label>
+                <input type="radio" name="milkBillType" value="2~MB" onchange="changeMilkBillType()"> 2~MB
+            </label>
+        </div>
         <div class="calendar-controls">
             <button class="milk-btn" onclick="changeMonth(-1)">◀️ Previous</button>
             <div class="current-month-year" id="currentMonth"></div>
@@ -508,27 +538,50 @@ aryAmount" placeholder="Amount (₹)">
             <div class="calendar-weekday">Sat</div>
         </div>
         <div class="calendar" id="milkCalendar"></div>
-        <div style="margin-top: 20px;">
-            <h3>Milk Consumption Analysis</h3>
+        <div class="milk-bill-section" id="milkBill1">
+            <h3>1st Milk Bill</h3>
             <div class="date-range">
-                <label for="startDate">From:</label>
-                <input type="date" id="startDate">
+                <label for="startDate1">From:</label>
+                <input type="date" id="startDate1">
             </div>
             <div class="date-range">
-                <label for="endDate">To:</label>
-                <input type="date" id="endDate">
+                <label for="endDate1">To:</label>
+                <input type="date" id="endDate1">
             </div>
-            <button class="milk-btn" onclick="analyzeMilkConsumption()">Analyze 📊</button>
-            <p id="analysisResult"></p>
+            <button class="milk-btn" onclick="analyzeMilkConsumption(1)">Analyze 📊</button>
+            <p id="analysisResult1"></p>
+        </div>
+        <div class="milk-bill-section hidden" id="milkBill2">
+            <h3>2nd Milk Bill</h3>
+            <div class="date-range">
+                <label for="startDate2">From:</label>
+                <input type="date" id="startDate2">
+            </div>
+            <div class="date-range">
+                <label for="endDate2">To:</label>
+                <input type="date" id="endDate2">
+            </div>
+            <button class="milk-btn" onclick="analyzeMilkConsumption(2)">Analyze 📊</button>
+            <p id="analysisResult2"></p>
         </div>
         <button class="collapsible">Milk Quantities and Prices</button>
         <div class="collapsible-content">
             <div class="milk-quantity-list">
-                <div id="milkQuantityList"></div>
+                <h4>1st Milk Bill</h4>
+                <div id="milkQuantityList1"></div>
                 <div class="milk-quantity-item">
-                    <input type="number" id="newMilkQuantity" placeholder="Quantity (L)" step="0.1">
-                    <input type="number" id="newMilkPrice" placeholder="Price (₹)">
-                    <button class="milk-btn" onclick="addMilkQuantity()">Add</button>
+                    <input type="number" id="newMilkQuantity1" placeholder="Quantity (L)" step="0.1">
+                    <input type="number" id="newMilkPrice1" placeholder="Price (₹)">
+                    <button class="milk-btn" onclick="addMilkQuantity(1)">Add</button>
+                </div>
+            </div>
+            <div class="milk-quantity-list hidden" id="milkQuantityList2Container">
+                <h4>2nd Milk Bill</h4>
+                <div id="milkQuantityList2"></div>
+                <div class="milk-quantity-item">
+                    <input type="number" id="newMilkQuantity2" placeholder="Quantity (L)" step="0.1">
+                    <input type="number" id="newMilkPrice2" placeholder="Price (₹)">
+                    <button class="milk-btn" onclick="addMilkQuantity(2)">Add</button>
                 </div>
             </div>
         </div>
@@ -542,8 +595,16 @@ aryAmount" placeholder="Amount (₹)">
 
 <div id="quantityModal" class="quantity-modal">
     <div class="modal-content">
+        <span class="modal-close" onclick="closeQuantityModal()">&times;</span>
         <h3>Select Milk Quantity</h3>
-        <select id="milkQuantity"></select>
+        <div id="milkQuantity1Container">
+            <h4>1st Milk Bill</h4>
+            <select id="milkQuantity1"></select>
+        </div>
+        <div id="milkQuantity2Container" class="hidden">
+            <h4>2nd Milk Bill</h4>
+            <select id="milkQuantity2"></select>
+        </div>
         <button class="milk-btn" onclick="confirmMilkQuantity()">Confirm 🥛</button>
     </div>
 </div>
@@ -560,8 +621,15 @@ aryAmount" placeholder="Amount (₹)">
         { quantity: 1.5, price: 83 },
         { quantity: 2, price: 110 }
     ];
+    let milkQuantities2 = JSON.parse(localStorage.getItem('milkQuantities2')) || [
+        { quantity: 0, price: 0 },
+        { quantity: 1, price: 60 },
+        { quantity: 1.5, price: 90 },
+        { quantity: 2, price: 120 }
+    ];
     let currentDate = new Date();
     let selectedDate = null;
+    let milkBillType = '1~MB';
 
     function saveEvents() {
         localStorage.setItem('events', JSON.stringify(events));
@@ -579,8 +647,12 @@ aryAmount" placeholder="Amount (₹)">
 
     function saveMilkQuantities() {
         localStorage.setItem('milkQuantities', JSON.stringify(milkQuantities));
+        localStorage.setItem('milkQuantities2', JSON.stringify(milkQuantities2));
         displayMilkQuantities();
-        updateMilkQuantitySelect();
+        updateMilkQuantitySelect(1);
+        if (milkBillType === '2~MB') {
+            updateMilkQuantitySelect(2);
+        }
     }
 
     function addEvent() {
@@ -810,9 +882,15 @@ aryAmount" placeholder="Amount (₹)">
         // Add milk consumption data
         doc.addPage();
         doc.text('Milk Consumption', 10, 10);
-        let milkTableData = Object.entries(milkData).map(([date, data]) => [date, `${data.quantity} liter(s)`, `Rs. ${data.cost}`]);
+        let milkTableData = Object.entries(milkData).map(([date, data]) => {
+            if (milkBillType === '1~MB') {
+                return [date, `${data.quantity} liter(s)`, `Rs. ${data.cost}`];
+            } else {
+                return [date, `1st: ${data.quantity1 || 0} liter(s)`, `Rs. ${data.cost1 || 0}`, `2nd: ${data.quantity2 || 0} liter(s)`, `Rs. ${data.cost2 || 0}`];
+            }
+        });
         doc.autoTable({
-            head: [['Date', 'Quantity', 'Cost']],
+            head: milkBillType === '1~MB' ? [['Date', 'Quantity', 'Cost']] : [['Date', 'Quantity 1', 'Cost 1', 'Quantity 2', 'Cost 2']],
             body: milkTableData,
             startY: 20,
         });
@@ -842,10 +920,19 @@ aryAmount" placeholder="Amount (₹)">
             const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             if (milkData[dateString]) {
                 dayElement.classList.add('active');
-                if (milkData[dateString].quantity > 0) {
-                    dayElement.innerHTML += `<br>🥛 ${milkData[dateString].quantity}L`;
+                if (milkBillType === '1~MB') {
+                    if (milkData[dateString].quantity > 0) {
+                        dayElement.innerHTML += `<br>🥛 ${milkData[dateString].quantity}L`;
+                    } else {
+                        dayElement.innerHTML += '<br>❌ Nil';
+                    }
                 } else {
-                    dayElement.innerHTML += '<br>❌ Nil';
+                    const total = (milkData[dateString].quantity1 || 0) + (milkData[dateString].quantity2 || 0);
+                    if (total > 0) {
+                        dayElement.innerHTML += `<br>🥛 ${total}L`;
+                    } else {
+                        dayElement.innerHTML += '<br>❌ Nil';
+                    }
                 }
             }
             dayElement.onclick = () => showQuantityModal(dateString);
@@ -856,18 +943,34 @@ aryAmount" placeholder="Amount (₹)">
     function showQuantityModal(date) {
         selectedDate = date;
         document.getElementById('quantityModal').style.display = 'block';
+        updateMilkQuantitySelect(1);
+        if (milkBillType === '2~MB') {
+            updateMilkQuantitySelect(2);
+        }
+    }
+
+    function closeQuantityModal() {
+        document.getElementById('quantityModal').style.display = 'none';
     }
 
     function confirmMilkQuantity() {
-        const quantitySelect = document.getElementById('milkQuantity');
-        const selectedOption = quantitySelect.options[quantitySelect.selectedIndex];
-        const quantity = parseFloat(selectedOption.value);
-        const cost = parseFloat(selectedOption.getAttribute('data-price'));
-        milkData[selectedDate] = { quantity, cost };
+        const quantity1 = parseFloat(document.getElementById('milkQuantity1').value);
+        const selectedOption1 = document.getElementById('milkQuantity1').options[document.getElementById('milkQuantity1').selectedIndex];
+        const cost1 = parseFloat(selectedOption1.getAttribute('data-price'));
+
+        if (milkBillType === '1~MB') {
+            milkData[selectedDate] = { quantity: quantity1, cost: cost1 };
+        } else {
+            const quantity2 = parseFloat(document.getElementById('milkQuantity2').value);
+            const selectedOption2 = document.getElementById('milkQuantity2').options[document.getElementById('milkQuantity2').selectedIndex];
+            const cost2 = parseFloat(selectedOption2.getAttribute('data-price'));
+            milkData[selectedDate] = { quantity1, cost1, quantity2, cost2 };
+        }
+
         saveMilkData();
         renderCalendar();
-        document.getElementById('quantityModal').style.display = 'none';
-        showEmojiAnimation(quantity > 0 ? '🥛' : '❌', document.querySelector('.calendar-day.active'));
+        closeQuantityModal();
+        showEmojiAnimation('🥛', document.querySelector('.calendar-day.active'));
     }
 
     function changeMonth(delta) {
@@ -876,9 +979,9 @@ aryAmount" placeholder="Amount (₹)">
         showEmojiAnimation(delta > 0 ? '▶️' : '◀️', event.target);
     }
 
-    function analyzeMilkConsumption() {
-        const startDate = new Date(document.getElementById('startDate').value);
-        const endDate = new Date(document.getElementById('endDate').value);
+    function analyzeMilkConsumption(billNumber) {
+        const startDate = new Date(document.getElementById(`startDate${billNumber}`).value);
+        const endDate = new Date(document.getElementById(`endDate${billNumber}`).value);
         let totalDays = 0;
         let milkTakenDays = 0;
         let totalQuantity = 0;
@@ -888,15 +991,21 @@ aryAmount" placeholder="Amount (₹)">
             totalDays++;
             const dateString = d.toISOString().split('T')[0];
             if (milkData[dateString]) {
-                if (milkData[dateString].quantity > 0) {
+                const quantity = milkBillType === '1~MB' ? 
+                    (milkData[dateString].quantity || 0) : 
+                    (milkData[dateString][`quantity${billNumber}`] || 0);
+                const cost = milkBillType === '1~MB' ? 
+                    (milkData[dateString].cost || 0) : 
+                    (milkData[dateString][`cost${billNumber}`] || 0);
+                if (quantity > 0) {
                     milkTakenDays++;
-                    totalQuantity += milkData[dateString].quantity;
-                    totalCost += milkData[dateString].cost;
+                    totalQuantity += quantity;
+                    totalCost += cost;
                 }
             }
         }
 
-        const resultElement = document.getElementById('analysisResult');
+        const resultElement = document.getElementById(`analysisResult${billNumber}`);
         resultElement.innerHTML = `
             From ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}:<br>
             Milk taken on ${milkTakenDays} out of ${totalDays} days.<br>
@@ -917,45 +1026,56 @@ aryAmount" placeholder="Amount (₹)">
     }
 
     function displayMilkQuantities() {
-        const list = document.getElementById('milkQuantityList');
+        displayMilkQuantitiesForBill(1, milkQuantities);
+        if (milkBillType === '2~MB') {
+            displayMilkQuantitiesForBill(2, milkQuantities2);
+        }
+    }
+
+    function displayMilkQuantitiesForBill(billNumber, quantities) {
+        const list = document.getElementById(`milkQuantityList${billNumber}`);
         list.innerHTML = '';
-        milkQuantities.forEach((item, index) => {
+        quantities.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'milk-quantity-item';
             div.innerHTML = `
-                <input type="number" value="${item.quantity}" step="0.1" onchange="updateMilkQuantity(${index}, 'quantity', this.value)">
-                <input type="number" value="${item.price}" onchange="updateMilkQuantity(${index}, 'price', this.value)">
-                <button class="remove-btn" onclick="removeMilkQuantity(${index})">Remove</button>
+                <input type="number" value="${item.quantity}" step="0.1" onchange="updateMilkQuantity(${billNumber}, ${index}, 'quantity', this.value)">
+                <input type="number" value="${item.price}" onchange="updateMilkQuantity(${billNumber}, ${index}, 'price', this.value)">
+                <button class="remove-btn" onclick="removeMilkQuantity(${billNumber}, ${index})">Remove</button>
             `;
             list.appendChild(div);
         });
     }
 
-    function updateMilkQuantity(index, field, value) {
-        milkQuantities[index][field] = parseFloat(value);
+    function updateMilkQuantity(billNumber, index, field, value) {
+        const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+        quantities[index][field] = parseFloat(value);
         saveMilkQuantities();
     }
 
-    function removeMilkQuantity(index) {
-        milkQuantities.splice(index, 1);
+    function removeMilkQuantity(billNumber, index) {
+        const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+        quantities.splice(index, 1);
         saveMilkQuantities();
     }
 
-    function addMilkQuantity() {
-        const quantity = parseFloat(document.getElementById('newMilkQuantity').value);
-        const price = parseFloat(document.getElementById('newMilkPrice').value);
+    function addMilkQuantity(billNumber) {
+        const quantity = parseFloat(document.getElementById(`newMilkQuantity${billNumber}`).value);
+        const price = parseFloat(document.getElementById(`newMilkPrice${billNumber}`).value);
         if (quantity && price) {
-            milkQuantities.push({ quantity, price });
+            const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+            quantities.push({ quantity, price });
             saveMilkQuantities();
-            document.getElementById('newMilkQuantity').value = '';
-            document.getElementById('newMilkPrice').value = '';
+            document.getElementById(`newMilkQuantity${billNumber}`).value = '';
+            document.getElementById(`newMilkPrice${billNumber}`).value = '';
         }
     }
 
-    function updateMilkQuantitySelect() {
-        const select = document.getElementById('milkQuantity');
+    function updateMilkQuantitySelect(billNumber) {
+        const select = document.getElementById(`milkQuantity${billNumber}`);
         select.innerHTML = '';
-        milkQuantities.forEach(item => {
+        const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+        quantities.forEach(item => {
             const option = document.createElement('option');
             option.value = item.quantity;
             option.textContent = `${item.quantity} liter${item.quantity !== 1 ? 's' : ''} (₹${item.price})`;
@@ -964,18 +1084,13 @@ aryAmount" placeholder="Amount (₹)">
         });
     }
 
-    // Initialize collapsible functionality
-    var coll = document.getElementsByClassName("collapsible");
-    for (var i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.maxHeight){
-                content.style.maxHeight = null;
-            } else {
-                content.style.maxHeight = content.scrollHeight + "px";
-            }
-        });
+    function changeMilkBillType() {
+        milkBillType = document.querySelector('input[name="milkBillType"]:checked').value;
+        document.getElementById('milkBill2').classList.toggle('hidden', milkBillType === '1~MB');
+        document.getElementById('milkQuantityList2Container').classList.toggle('hidden', milkBillType === '1~MB');
+        document.getElementById('milkQuantity2Container').classList.toggle('hidden', milkBillType === '1~MB');
+        renderCalendar();
+        displayMilkQuantities();
     }
 
     function downloadData() {
@@ -983,7 +1098,9 @@ aryAmount" placeholder="Amount (₹)">
             events: events,
             salaryData: salaryData,
             milkData: milkData,
-            milkQuantities: milkQuantities
+            milkQuantities: milkQuantities,
+            milkQuantities2: milkQuantities2,
+            milkBillType: milkBillType
         };
         const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
         const a = document.createElement("a");
@@ -1006,6 +1123,9 @@ aryAmount" placeholder="Amount (₹)">
                 salaryData = data.salaryData;
                 milkData = data.milkData;
                 milkQuantities = data.milkQuantities;
+                milkQuantities2 = data.milkQuantities2 || milkQuantities2;
+                milkBillType = data.milkBillType || '1~MB';
+                document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`).checked = true;
                 saveEvents();
                 saveSalaryData();
                 saveMilkData();
@@ -1014,7 +1134,11 @@ aryAmount" placeholder="Amount (₹)">
                 displaySalaryData();
                 renderCalendar();
                 displayMilkQuantities();
-                updateMilkQuantitySelect();
+                updateMilkQuantitySelect(1);
+                if (milkBillType === '2~MB') {
+                    updateMilkQuantitySelect(2);
+                }
+                changeMilkBillType();
                 showEmojiAnimation('📂', document.querySelector('.data-buttons button:last-child'));
             };
             reader.readAsText(file);
@@ -1022,12 +1146,27 @@ aryAmount" placeholder="Amount (₹)">
         input.click();
     }
 
+    // Initialize collapsible functionality
+    var coll = document.getElementsByClassName("collapsible");
+    for (var i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight){
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+            }
+        });
+    }
+
     displayEvents();
     displaySalaryData();
     renderCalendar();
     displayMilkQuantities();
-    updateMilkQuantitySelect();
+    updateMilkQuantitySelect(1);
     checkForEvents();
+    changeMilkBillType();
 </script>
 </body>
 </html>
