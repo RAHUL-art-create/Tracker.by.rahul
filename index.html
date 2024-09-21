@@ -214,6 +214,7 @@
         width: 300px;
         border-radius: 10px;
         animation: modalAppear 0.3s ease-out;
+        position: relative;
     }
     @keyframes modalAppear {
         from {
@@ -430,6 +431,9 @@
         display: none;
     }
     @media (max-width: 768px) {
+        body {
+            padding: 10px;
+        }
         .container {
             flex-direction: column;
         }
@@ -629,7 +633,7 @@
     ];
     let currentDate = new Date();
     let selectedDate = null;
-    let milkBillType = '1~MB';
+    let milkBillType = localStorage.getItem('milkBillType') || '1~MB';
 
     function saveEvents() {
         localStorage.setItem('events', JSON.stringify(events));
@@ -1086,6 +1090,7 @@
 
     function changeMilkBillType() {
         milkBillType = document.querySelector('input[name="milkBillType"]:checked').value;
+        localStorage.setItem('milkBillType', milkBillType);
         document.getElementById('milkBill2').classList.toggle('hidden', milkBillType === '1~MB');
         document.getElementById('milkQuantityList2Container').classList.toggle('hidden', milkBillType === '1~MB');
         document.getElementById('milkQuantity2Container').classList.toggle('hidden', milkBillType === '1~MB');
@@ -1160,13 +1165,21 @@
         });
     }
 
+    // Set initial milk bill type
+    document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`).checked = true;
+    changeMilkBillType();
+
     displayEvents();
-    displaySalaryData();
+    displaySalary
+
+Data();
     renderCalendar();
     displayMilkQuantities();
     updateMilkQuantitySelect(1);
+    if (milkBillType === '2~MB') {
+        updateMilkQuantitySelect(2);
+    }
     checkForEvents();
-    changeMilkBillType();
 </script>
 </body>
 </html>
