@@ -827,7 +827,9 @@
         const monthData = document.getElementById(`salary-${month}`);
         const toggleIcon = monthData.previousElementSibling.querySelector('.toggle-icon');
         if (monthData.style.display === 'none' || monthData.style.display === '') {
-            monthData.style.display = 'block';
+            monthData.style.display =
+
+ 'block';
             toggleIcon.textContent = '▲';
         } else {
             monthData.style.display = 'none';
@@ -1170,9 +1172,7 @@
     changeMilkBillType();
 
     displayEvents();
-    displaySalary
-
-Data();
+    displaySalaryData();
     renderCalendar();
     displayMilkQuantities();
     updateMilkQuantitySelect(1);
