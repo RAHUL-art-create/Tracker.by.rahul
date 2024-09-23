@@ -123,10 +123,18 @@
     .event-today {
         animation: blink 1s infinite;
     }
+    .event-tomorrow {
+        animation: pulse 2s infinite;
+    }
     @keyframes blink {
         0% { opacity: 1; }
         50% { opacity: 0.5; }
         100% { opacity: 1; }
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
     table {
         width: 100%;
@@ -677,16 +685,20 @@
         const list = document.getElementById('eventList');
         list.innerHTML = '';
         const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const todayEvents = [];
+        const tomorrowEvents = [];
         const otherEvents = [];
 
         events.forEach((event, index) => {
             const eventDate = new Date(event.date);
             const isEventToday = today.getMonth() === eventDate.getMonth() && today.getDate() === eventDate.getDate();
+            const isEventTomorrow = tomorrow.getMonth() === eventDate.getMonth() && tomorrow.getDate() === eventDate.getDate();
             
             const li = document.createElement('li');
             li.innerHTML = `
-                <div class="event-item ${isEventToday ? 'event-today' : ''}" style="background-color: ${getEventColor(event.type)}; color: ${getContrastColor(getEventColor(event.type))};">
+                <div class="event-item ${isEventToday ? 'event-today' : ''} ${isEventTomorrow ? 'event-tomorrow' : ''}" style="background-color: ${getEventColor(event.type)}; color: ${getContrastColor(getEventColor(event.type))};">
                     <div class="event-details ${event.celebrated ? 'celebrated' : ''}">
                         <span class="event-name">${event.name}</span>
                         <span class="event-type-date">${event.type} - ${new Date(event.date).toLocaleDateString()}</span>
@@ -698,12 +710,15 @@
 
             if (isEventToday) {
                 todayEvents.push(li);
+            } else if (isEventTomorrow) {
+                tomorrowEvents.push(li);
             } else {
                 otherEvents.push(li);
             }
         });
 
         todayEvents.forEach(li => list.appendChild(li));
+        tomorrowEvents.forEach(li => list.appendChild(li));
         otherEvents.forEach(li => list.appendChild(li));
 
         checkForEvents();
@@ -731,21 +746,36 @@
 
     function checkForEvents() {
         const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
         const todayEvents = events.filter(event => {
             const eventDate = new Date(event.date);
             return today.getMonth() === eventDate.getMonth() && today.getDate() === eventDate.getDate() && !event.celebrated;
         });
+        const tomorrowEvents = events.filter(event => {
+            const eventDate = new Date(event.date);
+            return tomorrow.getMonth() === eventDate.getMonth() && tomorrow.getDate() === eventDate.getDate() && !event.celebrated;
+        });
 
-        if (todayEvents.length > 0) {
-            showEventReminder(todayEvents);
+        if (todayEvents.length > 0 || tomorrowEvents.length > 0) {
+            showEventReminder(todayEvents, tomorrowEvents);
         }
     }
 
-    function showEventReminder(todayEvents) {
+    function showEventReminder(todayEvents, tomorrowEvents) {
         const reminderContent = document.getElementById('eventReminderContent');
-        reminderContent.innerHTML = todayEvents.map(event => `
-            <p>Today is ${event.name}'s ${event.type}!</p>
-        `).join('');
+        let content = '';
+        if (todayEvents.length > 0) {
+            content += todayEvents.map(event => `
+                <p>Today is ${event.name}'s ${event.type}!</p>
+            `).join('');
+        }
+        if (tomorrowEvents.length > 0) {
+            content += tomorrowEvents.map(event => `
+                <p>Tomorrow is ${event.name}'s ${event.type}!</p>
+            `).join('');
+        }
+        reminderContent.innerHTML = content;
         document.getElementById('eventReminder').style.display = 'block';
     }
 
@@ -827,9 +857,7 @@
         const monthData = document.getElementById(`salary-${month}`);
         const toggleIcon = monthData.previousElementSibling.querySelector('.toggle-icon');
         if (monthData.style.display === 'none' || monthData.style.display === '') {
-            monthData.style.display =
-
- 'block';
+            monthData.style.display = 'block';
             toggleIcon.textContent = '▲';
         } else {
             monthData.style.display = 'none';
@@ -1145,7 +1173,9 @@
                 if (milkBillType === '2~MB') {
                     updateMilkQuantitySelect(2);
                 }
-                changeMilkBillType();
+                changeMilkBill
+
+Type();
                 showEmojiAnimation('📂', document.querySelector('.data-buttons button:last-child'));
             };
             reader.readAsText(file);
