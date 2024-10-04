@@ -1,1219 +1,1363 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personal Tracker</title>
-<link rel="icon" type="image/png" sizes="16x16" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png">
-<link rel="icon" type="image/png" sizes="48x48" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png">
-<link rel="apple-touch-icon" sizes="180x180" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-<style>
-    :root {
-        --primary-color: #3498db;
-        --secondary-color: #2ecc71;
-        --background-color: #ecf0f1;
-        --text-color: #34495e;
-        --card-background: #ffffff;
-        --event-color: #e74c3c;
-        --salary-color: #f39c12;
-        --milk-color: #9b59b6;
-        --export-color: #1abc9c;
-    }
-    body {
-        font-family: Arial, sans-serif;
-        line-height: 1.6;
-        margin: 0;
-        padding: 20px;
-        background-color: var(--background-color);
-        color: var(--text-color);
-    }
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 20px;
-    }
-    .card {
-        background-color: var(--card-background);
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        flex: 1;
-        min-width: 300px;
-    }
-    h1, h2, h3 {
-        color: var(--primary-color);
-    }
-    input, select {
-        margin-bottom: 10px;
-        padding: 8px;
-        width: 100%;
-        box-sizing: border-box;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-    button {
-        margin-bottom: 10px;
-        padding: 8px 12px;
-        box-sizing: border-box;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s, transform 0.1s;
-        font-weight: bold;
-        color: white;
-    }
-    button:hover {
-        transform: translateY(-2px);
-    }
-    button:active {
-        transform: translateY(1px);
-    }
-    .event-btn {
-        background-color: var(--event-color);
-    }
-    .salary-btn {
-        background-color: var(--salary-color);
-    }
-    .milk-btn {
-        background-color: var(--milk-color);
-    }
-    .export-btn {
-        background-color: var(--export-color);
-    }
-    ul {
-        list-style-type: none;
-        padding: 0;
-    }
-    li {
-        margin-bottom: 5px;
-        padding: 10px;
-        border-radius: 5px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .event-item {
-        flex-grow: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 10px;
-        border-radius: 5px;
-    }
-    .event-details {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-    }
-    .event-name {
-        font-weight: bold;
-    }
-    .event-type-date {
-        font-size: 0.9em;
-        opacity: 0.8;
-    }
-    .event-checkbox {
-        margin-left: 10px;
-    }
-    .celebrated {
-        text-decoration: line-through;
-    }
-    .event-today {
-        animation: blink 1s infinite;
-    }
-    .event-tomorrow {
-        animation: pulse 2s infinite;
-    }
-    @keyframes blink {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
-    th {
-        background-color: var(--primary-color);
-        color: white;
-    }
-    .remove-btn {
-        background-color: #e74c3c;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        cursor: pointer;
-        border-radius: 5px;
-        font-size: 0.8em;
-    }
-    .remove-btn:hover {
-        background-color: #c0392b;
-    }
-    .calendar {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
-    }
-    .calendar-day {
-        padding: 10px;
-        text-align: center;
-        background-color: #f1f1f1;
-        cursor: pointer;
-        border-radius: 5px;
-        transition: all 0.3s ease;
-        min-height: 60px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-    .calendar-day:hover {
-        background-color: #e0e0e0;
-        transform: scale(1.05);
-    }
-    .calendar-day.active {
-        background-color: var(--milk-color);
-        color: white;
-    }
-    .calendar-controls {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .calendar-controls button {
-        width: auto;
-    }
-    .current-month-year {
-        padding: 5px 10px;
-        background-color: var(--milk-color);
-        color: white;
-        border-radius: 5px;
-    }
-    .quantity-modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 300px;
-        border-radius: 10px;
-        animation: modalAppear 0.3s ease-out;
-        position: relative;
-    }
-    @keyframes modalAppear {
-        from {
-            opacity: 0;
-            transform: translateY(-50px);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --background-color: #ecf0f1;
+            --text-color: #34495e;
+            --card-background: #ffffff;
+            --event-color: #e74c3c;
+            --salary-color: #f39c12;
+            --milk-color: #9b59b6;
+            --export-color: #1abc9c;
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    .emoji-animation {
-        display: inline-block;
-        animation: emojiPop 0.5s ease-out;
-    }
-    @keyframes emojiPop {
-        0% {
-            transform: scale(0);
-        }
-        50% {
-            transform: scale(1.2);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-    .milk-calendar {
-        background-color: #fff;
-        border-radius: 10px;
-        padding: 20px;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-    .calendar-weekdays {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
-        margin-bottom: 10px;
-    }
-    .calendar-weekday {
-        text-align: center;
-        font-weight: bold;
-        color: var(--primary-color);
-    }
-    .watermark {
-        position: fixed;
-        bottom: 10px;
-        right: 10px;
-        font-size: 14px;
-        color: rgba(0, 0, 0, 0.3);
-        pointer-events: none;
-    }
-    .event-message {
-        background-color: var(--event-color);
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-        animation: colorChange 5s infinite;
-    }
-    @keyframes colorChange {
-        0% { background-color: #e74c3c; color: white; }
-        33% { background-color: #f39c12; color: black; }
-        66% { background-color: #9b59b6; color: white; }
-        100% { background-color: #e74c3c; color: white; }
-    }
-    .date-range {
-        display: flex;
-        justify-content: flex-start;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .date-range label {
-        flex: 0 0 60px;
-        margin-right: 10px;
-    }
-    .date-range input {
-        flex: 1;
-    }
-    .salary-month {
-        cursor: pointer;
-        padding: 10px;
-        background-color: var(--salary-color);
-        color: white;
-        border-radius: 5px;
-        margin-bottom: 5px;
-    }
-    .salary-month-data {
-        display: none;
-        margin-bottom: 10px;
-    }
-    .editable-amount {
-        background-color: transparent;
-        border: none;
-        border-bottom: 1px solid #ddd;
-        font-size: inherit;
-        padding: 2px;
-        width: 80px;
-    }
-    .editable-amount:focus {
-        outline: none;
-        border-bottom-color: var(--salary-color);
-    }
-    .milk-quantity-list {
-        margin-top: 20px;
-    }
-    .milk-quantity-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-    .milk-quantity-item input {
-        width: 80px;
-        margin-right: 10px;
-    }
-    .milk-quantity-item button {
-        width: auto;
-        padding: 5px 10px;
-    }
-    .collapsible {
-        background-color: var(--milk-color);
-        color: white;
-        cursor: pointer;
-        padding: 18px;
-        width: 100%;
-        border: none;
-        text-align: left;
-        outline: none;
-        font-size: 15px;
-        border-radius: 5px;
-        margin-top: 20px;
-    }
-    .collapsible:after {
-        content: '\002B';
-        color: white;
-        font-weight: bold;
-        float: right;
-        margin-left: 5px;
-    }
-    .active:after {
-        content: "\2212";
-    }
-    .collapsible-content {
-        padding: 0 18px;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.2s ease-out;
-        background-color: #f1f1f1;
-        border-radius: 0 0 5px 5px;
-    }
-    .data-buttons {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        display: flex;
-        gap: 10px;
-        z-index: 1000;
-    }
-    .data-buttons button {
-        padding: 8px 12px;
-        font-size: 14px;
-    }
-    .event-reminder {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        background-color: var(--event-color);
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.2);
-        z-index: 1000;
-        max-width: 300px;
-        display: none;
-    }
-    .event-reminder-content {
-        margin-bottom: 10px;
-    }
-    .event-reminder-actions {
-        display: flex;
-        justify-content: space-between;
-    }
-    .event-reminder-actions button {
-        color: black;
-    }
-    .milk-bill-type {
-        display: flex;
-        justify-content: center;
-        margin-bottom: 15px;
-    }
-    .milk-bill-type label {
-        margin: 0 10px;
-    }
-    .modal-close {
-        position: absolute;
-        right: 10px;
-        top: 10px;
-        cursor: pointer;
-        font-size: 20px;
-    }
-    .milk-bill-section {
-        margin-top: 20px;
-    }
-    .milk-bill-section h3 {
-        margin-bottom: 10px;
-    }
-    .hidden {
-        display: none;
-    }
-    @media (max-width: 768px) {
         body {
-            padding: 10px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
         .container {
-            flex-direction: column;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
         }
         .card {
-            min-width: 100%;
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+        input, select {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            box-sizing: border-box;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            font-weight: bold;
+            color: white;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(1px);
+        }
+        .event-btn {
+            background-color: var(--event-color);
+        }
+        .salary-btn {
+            background-color: var(--salary-color);
+        }
+        .milk-btn {
+            background-color: var(--milk-color);
+        }
+        .export-btn {
+            background-color: var(--export-color);
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 5px;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .event-item {
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .event-details {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .event-name {
+            font-weight: bold;
+        }
+        .event-type-date {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+        .event-checkbox {
+            margin-left: 10px;
+        }
+        .celebrated {
+            text-decoration: line-through;
+        }
+        .event-today {
+            animation: blink 1s infinite;
+        }
+        .event-tomorrow {
+            animation: pulse 2s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .remove-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.8em;
+        }
+        .remove-btn:hover {
+            background-color: #c0392b;
+        }
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
         }
         .calendar-day {
-            padding: 5px;
-            font-size: 0.9em;
-            min-height: 50px;
+            padding: 10px;
+            text-align: center;
+            background-color: #f1f1f1;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .calendar-day:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.05);
+        }
+        .calendar-day.active {
+            background-color: var(--milk-color);
+            color: white;
         }
         .calendar-controls {
-            flex-wrap: wrap;
-        }
-        .current-month-year {
-            order: -1;
-            width: 100%;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
         }
+        .calendar-controls button {
+            width: auto;
+        }
+        .current-month-year {
+            padding: 5px 10px;
+            background-color: var(--milk-color);
+            color: white;
+            border-radius: 5px;
+        }
+        .quantity-modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 10px;
+            animation: modalAppear 0.3s ease-out;
+            position: relative;
+        }
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .emoji-animation {
+            display: inline-block;
+            animation: emojiPop 0.5s ease-out;
+        }
+        @keyframes emojiPop {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .milk-calendar {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .calendar-weekday {
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            font-size: 14px;
+            color: rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+        .event-message {
+            background-color: var(--event-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            animation: colorChange 5s infinite;
+        }
+        @keyframes colorChange {
+            0% { background-color: #e74c3c; color: white; }
+            33% { background-color: #f39c12; color: black; }
+            66% { background-color: #9b59b6; color: white; }
+            100% { background-color: #e74c3c; color: white; }
+        }
+        .date-range {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .date-range label {
+            flex: 0 0 60px;
+            margin-right: 10px;
+        }
+        .date-range input {
+            flex: 1;
+        }
+        .salary-month {
+            cursor: pointer;
+            padding: 10px;
+            background-color: var(--salary-color);
+            color: white;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .salary-month-data {
+            display: none;
+            margin-bottom: 10px;
+        }
+        .editable-amount {
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            font-size: inherit;
+            padding: 2px;
+            width: 80px;
+        }
+        .editable-amount:focus {
+            outline: none;
+            border-bottom-color: var(--salary-color);
+        }
+        .milk-quantity-list {
+            margin-top: 20px;
+        }
+        .milk-quantity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .milk-quantity-item input {
+            width: 80px;
+            margin-right: 10px;
+        }
+        .milk-quantity-item button {
+            width: auto;
+            padding: 5px 10px;
+        }
+        .collapsible {
+            background-color: var(--milk-color);
+            color: white;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .collapsible:after {
+            content: '\002B';
+            color: white;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+        .active:after {
+            content: "\2212";
+        }
+        .collapsible-content {
+            padding: 0 18px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            background-color: #f1f1f1;
+            border-radius: 0 0 5px 5px;
+        }
         .data-buttons {
-            position: static;
-            justify-content: center;
-            margin-bottom: 20px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .data-buttons button {
+            padding: 8px 12px;
+            font-size: 14px;
         }
         .event-reminder {
-            left: 10px;
-            right: 10px;
-            max-width: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: var(--event-color);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 300px;
+            display: none;
         }
-    }
-</style>
+        .event-reminder-content {
+            margin-bottom: 10px;
+        }
+        .event-reminder-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+        .event-reminder-actions button {
+            color: black;
+        }
+        .milk-bill-type {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .milk-bill-type label {
+            margin: 0 10px;
+        }
+        .modal-close {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .milk-bill-section {
+            margin-top: 20px;
+        }
+        .milk-bill-section h3 {
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+        .customization-icon {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .customization-modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .customization-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 300px;
+            border-radius: 10px;
+        }
+        .customization-content h2 {
+            text-align: center;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+        .customization-content div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .customization-content label {
+            display: block;
+            text-align: center;
+            margin-top: 5px;
+        }
+        .customization-content input[type="checkbox"] {
+            margin: 0;
+        }
+        .customization-content input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+        .customization-content button {
+            width: 100%;
+            padding: 10px;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .customization-content button:hover {
+            background-color: #333;
+        }
+        #eventsCheck + label {
+            color: var(--event-color);
+        }
+        #salaryCheck + label {
+            color: var(--salary-color);
+        }
+        #milkCheck + label {
+            color: var(--milk-color);
+        }
+        .user-name {
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientAnimation 5s ease infinite;
+        }
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                flex-direction: column;
+            }
+            .card {
+                min-width: 100%;
+            }
+            .calendar-day {
+                padding: 5px;
+                font-size: 0.9em;
+                min-height: 50px;
+            }
+            .calendar-controls {
+                flex-wrap: wrap;
+            }
+            .current-month-year {
+                order: -1;
+                width: 100%;
+                text-align: center;
+                margin-bottom: 10px;
+            }
+            .data-buttons {
+                position: static;
+                justify-content: center;
+                margin-bottom: 20px;
+            }
+            .event-reminder {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="data-buttons">
-    <button onclick="downloadData()" class="export-btn">Download Data</button>
-    <button onclick="uploadData()" class="export-btn">Upload Data</button>
-</div>
-<h1 style="text-align: center;">Personal Tracker</h1>
-<div id="eventReminder" class="event-reminder">
-    <div id="eventReminderContent" class="event-reminder-content"></div>
-    <div class="event-reminder-actions">
-        <button onclick="dismissReminder()">Dismiss</button>
-        <button onclick="snoozeReminder()">Snooze (1 hour)</button>
-    </div>
-</div>
-<div class="container">
-    <div class="card">
-        <h2>Events of the Day</h2>
-        <input type="text" id="eventName" placeholder="Name">
-        <select id="eventType">
-            <option value="">Select Event Type</option>
-            <option value="Birthday">Birthday</option>
-            <option value="Wedding Anniversary">Wedding Anniversary</option>
-        </select>
-        <input type="date" id="eventDate" name="eventDate">
-        <button class="event-btn" onclick="addEvent()">Add Event</button>
-        <ul id="eventList"></ul>
-    </div>
-    
-    <div class="card">
-        <h2>Salary Tracker</h2>
-        <input type="text" id="studentName" placeholder="Student Name">
-        <input type="number" id="salaryAmount" placeholder="Amount (₹)">
-        <select id="salaryMonth">
-            <option value="">Select Month</option>
-            <option value="January">January</option>
-            <option value="February">February</option>
-            <option value="March">March</option>
-            <option value="April">April</option>
-            <option value="May">May</option>
-            <option value="June">June</option>
-            <option value="July">July</option>
-            <option value="August">August</option>
-            <option value="September">September</option>
-            <option value="October">October</option>
-            <option value="November">November</option>
-            <option value="December">December</option>
-        </select>
-        <button class="salary-btn" onclick="addSalary()">Add Salary</button>
-        <div id="salaryData"></div>
+    <div class="customization-icon" onclick="showCustomizationModal()">⚙️</div>
+    <div id="customizationModal" class="customization-modal">
+        <div class="customization-content">
+            <h2>Customize Your Tracker</h2>
+            <div>
+                <input type="checkbox" id="eventsCheck" checked>
+                <label for="eventsCheck">Events of the Day</label>
+            </div>
+            <div>
+                <input type="checkbox" id="salaryCheck" checked>
+                <label for="salaryCheck">Salary Tracker</label>
+            </div>
+            <div>
+                <input type="checkbox" id="milkCheck" checked>
+                <label for="milkCheck">Milk Bill Calendar</label>
+            </div>
+            <div>
+                <input type="text" id="userName" placeholder="Enter your name">
+            </div>
+            <button onclick="applyCustomization()">Confirm</button>
+        </div>
     </div>
 
-    <div class="card milk-calendar">
-        <h2>Milk Bill Calendar</h2>
-        <div class="milk-bill-type">
-            <label>
-                <input type="radio" name="milkBillType" value="1~MB" checked onchange="changeMilkBillType()"> 1~MB
-            </label>
-            <label>
-                <input type="radio" name="milkBillType" value="2~MB" onchange="changeMilkBillType()"> 2~MB
-            </label>
+    <div id="userNameDisplay" class="user-name"></div>
+    <h1 style="text-align: center;"><span id="userNameTitle"></span>Personal Tracker</h1>
+
+    <div class="data-buttons">
+        <button onclick="downloadData()" class="export-btn">Download Data</button>
+        <button onclick="uploadData()" class="export-btn">Upload Data</button>
+    </div>
+    <div id="eventReminder" class="event-reminder">
+        <div id="eventReminderContent" class="event-reminder-content"></div>
+        <div class="event-reminder-actions">
+            <button onclick="dismissReminder()">Dismiss</button>
+            <button onclick="snoozeReminder()">Snooze (1 hour)</button>
         </div>
-        <div class="calendar-controls">
-            <button class="milk-btn" onclick="changeMonth(-1)">◀️ Previous</button>
-            <div class="current-month-year" id="currentMonth"></div>
-            <button class="milk-btn" onclick="changeMonth(1)">Next ▶️</button>
+    </div>
+    <div class="container">
+        <div class="card" id="eventsCard">
+            <h2>Events of the Day</h2>
+            <input type="text" id="eventName" placeholder="Name">
+            <select id="eventType">
+                <option value="">Select Event Type</option>
+                <option value="Birthday">Birthday</option>
+                <option value="Wedding Anniversary">Wedding Anniversary</option>
+            </select>
+            <input type="date" id="eventDate" name="eventDate">
+            <button class="event-btn" onclick="addEvent()">Add Event</button>
+            <ul id="eventList"></ul>
         </div>
-        <div class="calendar-weekdays">
-            <div class="calendar-weekday">Sun</div>
-            <div class="calendar-weekday">Mon</div>
-            <div class="calendar-weekday">Tue</div>
-            <div class="calendar-weekday">Wed</div>
-            <div class="calendar-weekday">Thu</div>
-            <div class="calendar-weekday">Fri</div>
-            <div class="calendar-weekday">Sat</div>
+        
+        <div class="card" id="salaryCard">
+            <h2>Salary Tracker</h2>
+            <input type="text" id="studentName" placeholder="Student Name">
+            <input type="number" id="salaryAmount" placeholder="Amount (₹)">
+            <select id="salaryMonth">
+                <option value="">Select Month</option>
+                <option value="January">January</option>
+                <option value="February">February</option>
+                <option value="March">March</option>
+                <option value="April">April</option>
+                <option value="May">May</option>
+                <option value="June">June</option>
+                <option value="July">July</option>
+                <option value="August">August</option>
+                <option value="September">September</option>
+                <option value="October">October</option>
+                <option value="November">November</option>
+                <option value="December">December</option>
+            </select>
+            <button class="salary-btn" onclick="addSalary()">Add Salary</button>
+            <div id="salaryData"></div>
         </div>
-        <div class="calendar" id="milkCalendar"></div>
-        <div class="milk-bill-section" id="milkBill1">
-            <h3>1st Milk Bill</h3>
-            <div class="date-range">
-                <label for="startDate1">From:</label>
-                <input type="date" id="startDate1">
+
+        <div class="card milk-calendar" id="milkCard">
+            <h2>Milk Bill Calendar</h2>
+            <div class="milk-bill-type">
+                <label>
+                    <input type="radio" name="milkBillType" value="1~MB" checked onchange="changeMilkBillType()"> 1~MB
+                </label>
+                <label>
+                    <input type="radio" name="milkBillType" value="2~MB" onchange="changeMilkBillType()"> 2~MB
+                </label>
             </div>
-            <div class="date-range">
-                <label for="endDate1">To:</label>
-                <input type="date" id="endDate1">
+            <div class="calendar-controls">
+                <button class="milk-btn" onclick="changeMonth(-1)">◀️ Previous</button>
+                <div class="current-month-year" id="currentMonth"></div>
+                <button class="milk-btn" onclick="changeMonth(1)">Next ▶️</button>
             </div>
-            <button class="milk-btn" onclick="analyzeMilkConsumption(1)">Analyze 📊</button>
-            <p id="analysisResult1"></p>
-        </div>
-        <div class="milk-bill-section hidden" id="milkBill2">
-            <h3>2nd Milk Bill</h3>
-            <div class="date-range">
-                <label for="startDate2">From:</label>
-                <input type="date" id="startDate2">
+            <div class="calendar-weekdays">
+                <div class="calendar-weekday">Sun</div>
+                <div class="calendar-weekday">Mon</div>
+                <div class="calendar-weekday">Tue</div>
+                <div class="calendar-weekday">Wed</div>
+                <div class="calendar-weekday">Thu</div>
+                <div class="calendar-weekday">Fri</div>
+                <div class="calendar-weekday">Sat</div>
             </div>
-            <div class="date-range">
-                <label for="endDate2">To:</label>
-                <input type="date" id="endDate2">
-            </div>
-            <button class="milk-btn" onclick="analyzeMilkConsumption(2)">Analyze 📊</button>
-            <p id="analysisResult2"></p>
-        </div>
-        <button class="collapsible">Milk Quantities and Prices</button>
-        <div class="collapsible-content">
-            <div class="milk-quantity-list">
-                <h4>1st Milk Bill</h4>
-                <div id="milkQuantityList1"></div>
-                <div class="milk-quantity-item">
-                    <input type="number" id="newMilkQuantity1" placeholder="Quantity (L)" step="0.1">
-                    <input type="number" id="newMilkPrice1" placeholder="Price (₹)">
-                    <button class="milk-btn" onclick="addMilkQuantity(1)">Add</button>
+            <div class="calendar" id="milkCalendar"></div>
+            <div class="milk-bill-section" id="milkBill1">
+                <h3>1st Milk Bill</h3>
+                <div class="date-range">
+                    <label for="startDate1">From:</label>
+                    <input type="date" id="startDate1">
                 </div>
-            </div>
-            <div class="milk-quantity-list hidden" id="milkQuantityList2Container">
-                <h4>2nd Milk Bill</h4>
-                <div id="milkQuantityList2"></div>
-                <div class="milk-quantity-item">
-                    <input type="number" id="newMilkQuantity2" placeholder="Quantity (L)" step="0.1">
-                    <input type="number" id="newMilkPrice2" placeholder="Price (₹)">
-                    <button class="milk-btn" onclick="addMilkQuantity(2)">Add</button>
+                <div class="date-range">
+                    <label for="endDate1">To:</label>
+                    <input type="date" id="endDate1">
                 </div>
+                <button class="milk-btn" onclick="analyzeMilkConsumption(1)">Analyze 📊</button>
+                <p id="analysisResult1"></p>
             </div>
-        </div>
-    </div>
-    
-    <div class="card">
-        <h2>Export Data</h2>
-        <button class="export-btn" onclick="exportToPDF()">Export to PDF 📄</button>
-    </div>
-</div>
-
-<div id="quantityModal" class="quantity-modal">
-    <div class="modal-content">
-        <span class="modal-close" onclick="closeQuantityModal()">&times;</span>
-        <h3>Select Milk Quantity</h3>
-        <div id="milkQuantity1Container">
-            <h4>1st Milk Bill</h4>
-            <select id="milkQuantity1"></select>
-        </div>
-        <div id="milkQuantity2Container" class="hidden">
-            <h4>2nd Milk Bill</h4>
-            <select id="milkQuantity2"></select>
-        </div>
-        <button class="milk-btn" onclick="confirmMilkQuantity()">Confirm 🥛</button>
-    </div>
-</div>
-
-<div class="watermark">Made by @Rahul 🎙️</div>
-
-<script>
-    let events = JSON.parse(localStorage.getItem('events')) || [];
-    let salaryData = JSON.parse(localStorage.getItem('salaryData')) || {};
-    let milkData = JSON.parse(localStorage.getItem('milkData')) || {};
-    let milkQuantities = JSON.parse(localStorage.getItem('milkQuantities')) || [
-        { quantity: 0, price: 0 },
-        { quantity: 1, price: 55 },
-        { quantity: 1.5, price: 83 },
-        { quantity: 2, price: 110 }
-    ];
-    let milkQuantities2 = JSON.parse(localStorage.getItem('milkQuantities2')) || [
-        { quantity: 0, price: 0 },
-        { quantity: 1, price: 60 },
-        { quantity: 1.5, price: 90 },
-        { quantity: 2, price: 120 }
-    ];
-    let currentDate = new Date();
-    let selectedDate = null;
-    let milkBillType = localStorage.getItem('milkBillType') || '1~MB';
-
-    function saveEvents() {
-        localStorage.setItem('events', JSON.stringify(events));
-        displayEvents();
-    }
-
-    function saveSalaryData() {
-        localStorage.setItem('salaryData', JSON.stringify(salaryData));
-        displaySalaryData();
-    }
-
-    function saveMilkData() {
-        localStorage.setItem('milkData', JSON.stringify(milkData));
-    }
-
-    function saveMilkQuantities() {
-        localStorage.setItem('milkQuantities', JSON.stringify(milkQuantities));
-        localStorage.setItem('milkQuantities2', JSON.stringify(milkQuantities2));
-        displayMilkQuantities();
-        updateMilkQuantitySelect(1);
-        if (milkBillType === '2~MB') {
-            updateMilkQuantitySelect(2);
-        }
-    }
-
-    function addEvent() {
-        const name = document.getElementById('eventName').value;
-        const type = document.getElementById('eventType').value;
-        const date = document.getElementById('eventDate').value;
-        if (name && type && date) {
-            events.push({ name, type, date, celebrated: false });
-            saveEvents();
-            document.getElementById('eventName').value = '';
-            document.getElementById('eventType').value = '';
-            document.getElementById('eventDate').value = '';
-            showEmojiAnimation('🎉', document.querySelector('.event-btn'));
-        }
-    }
-
-    function displayEvents() {
-        const list = document.getElementById('eventList');
-        list.innerHTML = '';
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const todayEvents = [];
-        const tomorrowEvents = [];
-        const otherEvents = [];
-
-        events.forEach((event, index) => {
-            const eventDate = new Date(event.date);
-            const isEventToday = today.getMonth() === eventDate.getMonth() && today.getDate() === eventDate.getDate();
-            const isEventTomorrow = tomorrow.getMonth() === eventDate.getMonth() && tomorrow.getDate() === eventDate.getDate();
-            
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <div class="event-item ${isEventToday ? 'event-today' : ''} ${isEventTomorrow ? 'event-tomorrow' : ''}" style="background-color: ${getEventColor(event.type)}; color: ${getContrastColor(getEventColor(event.type))};">
-                    <div class="event-details ${event.celebrated ? 'celebrated' : ''}">
-                        <span class="event-name">${event.name}</span>
-                        <span class="event-type-date">${event.type} - ${new Date(event.date).toLocaleDateString()}</span>
+            <div class="milk-bill-section hidden" id="milkBill2">
+                <h3>2nd Milk Bill</h3>
+                <div class="date-range">
+                    <label for="startDate2">From:</label>
+                    <input type="date" id="startDate2">
+                </div>
+                <div class="date-range">
+                    <label for="endDate2">To:</label>
+                    <input type="date" id="endDate2">
+                </div>
+                <button class="milk-btn" onclick="analyzeMilkConsumption(2)">Analyze 📊</button>
+                <p id="analysisResult2"></p>
+            </div>
+            <button class="collapsible">Milk Quantities and Prices</button>
+            <div class="collapsible-content">
+                <div class="milk-quantity-list">
+                    <h4>1st Milk Bill</h4>
+                    <div id="milkQuantityList1"></div>
+                    <div class="milk-quantity-item">
+                        <input type="number" id="newMilkQuantity1" placeholder="Quantity (L)" step="0.1">
+                        <input type="number" id="newMilkPrice1" placeholder="Price (₹)">
+                        <button class="milk-btn" onclick="addMilkQuantity(1)">Add</button>
                     </div>
-                    <input type="checkbox" class="event-checkbox" ${event.celebrated ? 'checked' : ''} onchange="toggleCelebrated(${index})">
-                    <button class="remove-btn" onclick="removeEvent(${index})">X</button>
                 </div>
-            `;
+                <div class="milk-quantity-list hidden" id="milkQuantityList2Container">
+                    <h4>2nd Milk Bill</h4>
+                    <div id="milkQuantityList2"></div>
+                    <div class="milk-quantity-item">
+                        <input type="number" id="newMilkQuantity2" placeholder="Quantity (L)" step="0.1">
+                        <input type="number" id="newMilkPrice2" placeholder="Price (₹)">
+                        <button class="milk-btn" onclick="addMilkQuantity(2)">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Export Data</h2>
+            <button class="export-btn" onclick="exportToPDF()">Export to PDF 📄</button>
+        </div>
+    </div>
 
-            if (isEventToday) {
-                todayEvents.push(li);
-            } else if (isEventTomorrow) {
-                tomorrowEvents.push(li);
-            } else {
-                otherEvents.push(li);
+    <div id="quantityModal" class="quantity-modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeQuantityModal()">&times;</span>
+            <h3>Select Milk Quantity</h3>
+            <div id="milkQuantity1Container">
+                <h4>1st Milk Bill</h4>
+                <select id="milkQuantity1"></select>
+            </div>
+            <div id="milkQuantity2Container" class="hidden">
+                <h4>2nd Milk Bill</h4>
+                <select id="milkQuantity2"></select>
+            </div>
+            <button class="milk-btn" onclick="confirmMilkQuantity()">Confirm 🥛</button>
+        </div>
+    </div>
+
+    <div class="watermark">Made by @Rahul 🎙️</div>
+
+    <script>
+        let events = JSON.parse(localStorage.getItem('events')) || [];
+        let salaryData = JSON.parse(localStorage.getItem('salaryData')) || {};
+        let milkData = JSON.parse(localStorage.getItem('milkData')) || {};
+        let milkQuantities = JSON.parse(localStorage.getItem('milkQuantities')) || [
+            { quantity: 0, price: 0 },
+            { quantity: 1, price: 55 },
+            { quantity: 1.5, price: 83 },
+            { quantity: 2, price: 110 }
+        ];
+        let milkQuantities2 = JSON.parse(localStorage.getItem('milkQuantities2')) || [
+            { quantity: 0, price: 0 },
+            { quantity: 1, price: 60 },
+            { quantity: 1.5, price: 90 },
+            { quantity: 2, price: 120 }
+        ];
+        let currentDate = new Date();
+        let selectedDate = null;
+        let milkBillType = localStorage.getItem('milkBillType') || '1~MB';
+        let userName = localStorage.getItem('userName') || '';
+        let selectedCategories = JSON.parse(localStorage.getItem('selectedCategories')) || ['events', 'salary', 'milk'];
+
+        function saveEvents() {
+            localStorage.setItem('events', JSON.stringify(events));
+            displayEvents();
+        }
+
+        function saveSalaryData() {
+            localStorage.setItem('salaryData', JSON.stringify(salaryData));
+            displaySalaryData();
+        }
+
+        function saveMilkData() {
+            localStorage.setItem('milkData', JSON.stringify(milkData));
+        }
+
+        function saveMilkQuantities() {
+            localStorage.setItem('milkQuantities', JSON.stringify(milkQuantities));
+            localStorage.setItem('milkQuantities2', JSON.stringify(milkQuantities2));
+            displayMilkQuantities();
+            updateMilkQuantitySelect(1);
+            if (milkBillType === '2~MB') {
+                updateMilkQuantitySelect(2);
             }
-        });
-
-        todayEvents.forEach(li => list.appendChild(li));
-        tomorrowEvents.forEach(li => list.appendChild(li));
-        otherEvents.forEach(li => list.appendChild(li));
-
-        checkForEvents();
-    }
-
-    function getEventColor(eventType) {
-        switch(eventType) {
-            case 'Birthday':
-                return '#FF6B6B';
-            case 'Wedding Anniversary':
-                return '#4ECDC4';
-            default:
-                return '#45B7D1';
         }
-    }
 
-    function getContrastColor(hexcolor) {
-        hexcolor = hexcolor.replace("#", "");
-        var r = parseInt(hexcolor.substr(0,2),16);
-        var g = parseInt(hexcolor.substr(2,2),16);
-        var b = parseInt(hexcolor.substr(4,2),16);
-        var yiq = ((r*299)+(g*587)+(b*114))/1000;
-        return (yiq >= 128) ? 'black' : 'white';
-    }
-
-    function checkForEvents() {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const todayEvents = events.filter(event => {
-            const eventDate = new Date(event.date);
-            return today.getMonth() === eventDate.getMonth() && today.getDate() === eventDate.getDate() && !event.celebrated;
-        });
-        const tomorrowEvents = events.filter(event => {
-            const eventDate = new Date(event.date);
-            return tomorrow.getMonth() === eventDate.getMonth() && tomorrow.getDate() === eventDate.getDate() && !event.celebrated;
-        });
-
-        if (todayEvents.length > 0 || tomorrowEvents.length > 0) {
-            showEventReminder(todayEvents, tomorrowEvents);
+        function addEvent() {
+            const name = document.getElementById('eventName').value;
+            const type = document.getElementById('eventType').value;
+            const date = document.getElementById('eventDate').value;
+            if (name && type && date) {
+                events.push({ name, type, date, celebrated: false });
+                saveEvents();
+                document.getElementById('eventName').value = '';
+                document.getElementById('eventType').value = '';
+                document.getElementById('eventDate').value = '';
+                showEmojiAnimation('🎉', document.querySelector('.event-btn'));
+            }
         }
-    }
 
-    function showEventReminder(todayEvents, tomorrowEvents) {
-        const reminderContent = document.getElementById('eventReminderContent');
-        let content = '';
-        if (todayEvents.length > 0) {
-            content += todayEvents.map(event => `
+        function displayEvents() {
+            const list = document.getElementById('eventList');
+            list.innerHTML = '';
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const todayEvents = [];
+            const tomorrowEvents = [];
+            const otherEvents = [];
+
+            events.forEach((event, index) => {
+                const eventDate = new Date(event.date);
+                const isEventToday = today.getMonth() === eventDate.getMonth() && today.getDate() === eventDate.getDate();
+                const isEventTomorrow = tomorrow.getMonth() === eventDate.getMonth() && tomorrow.getDate() === eventDate.getDate();
+                
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="event-item ${isEventToday ? 'event-today' : ''} ${isEventTomorrow ? 'event-tomorrow' : ''}" style="background-color: ${getEventColor(event.type)}; color: ${getContrastColor(getEventColor(event.type))};">
+                        <div class="event-details ${event.celebrated ? 'celebrated' : ''}">
+                            <span class="event-name">${event.name}</span>
+                            <span class="event-type-date">${event.type} - ${new Date(event.date).toLocaleDateString()}</span>
+                        </div>
+                        <input type="checkbox" class="event-checkbox" ${event.celebrated ? 'checked' : ''} onchange="toggleCelebrated(${index})">
+                        <button class="remove-btn" onclick="removeEvent(${index})">X</button>
+                    </div>
+                `;
+
+                if (isEventToday) {
+                    todayEvents.push(li);
+                } else if (isEventTomorrow) {
+                    tomorrowEvents.push(li);
+                } else {
+                    otherEvents.push(li);
+                }
+            });
+
+            todayEvents.forEach(li => list.appendChild(li));
+            tomorrowEvents.forEach(li => list.appendChild(li));
+            otherEvents.forEach(li => list.appendChild(li));
+
+            checkForEvents();
+        }
+
+        function getEventColor(eventType) {
+            switch(eventType) {
+                case 'Birthday':
+                    return '#FF6B6B';
+                case 'Wedding Anniversary':
+                    return '#4ECDC4';
+                default:
+                    return '#45B7D1';
+            }
+        }
+
+        function getContrastColor(hexcolor) {
+            hexcolor = hexcolor.replace("#", "");
+            var r = parseInt(hexcolor.substr(0,2),16);
+            var g = parseInt(hexcolor.substr(2,2),16);
+            var b = parseInt(hexcolor.substr(4,2),16);
+            var yiq = ((r*299)+(g*587)+(b*114))/1000;
+            return (yiq >= 128) ? 'black' : 'white';
+        }
+
+        function checkForEvents() {
+            const today = new Date();
+            const todayEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                return today.getMonth() === eventDate.getMonth() && today.getDate() === eventDate.getDate() && !event.celebrated;
+            });
+
+            if (todayEvents.length > 0) {
+                showEventReminder(todayEvents);
+            }
+        }
+
+        function showEventReminder(todayEvents) {
+            const reminderContent = document.getElementById('eventReminderContent');
+            reminderContent.innerHTML = todayEvents.map(event => `
                 <p>Today is ${event.name}'s ${event.type}!</p>
             `).join('');
+            document.getElementById('eventReminder').style.display = 'block';
         }
-        if (tomorrowEvents.length > 0) {
-            content += tomorrowEvents.map(event => `
-                <p>Tomorrow is ${event.name}'s ${event.type}!</p>
-            `).join('');
+
+        function dismissReminder() {
+            document.getElementById('eventReminder').style.display = 'none';
         }
-        reminderContent.innerHTML = content;
-        document.getElementById('eventReminder').style.display = 'block';
-    }
 
-    function dismissReminder() {
-        document.getElementById('eventReminder').style.display = 'none';
-    }
+        function snoozeReminder() {
+            dismissReminder();
+            setTimeout(() => {
+                checkForEvents();
+            }, 3600000); // 1 hour
+        }
 
-    function snoozeReminder() {
-        dismissReminder();
-        setTimeout(() => {
-            checkForEvents();
-        }, 3600000); // 1 hour
-    }
+        function toggleCelebrated(index) {
+            events[index].celebrated = !events[index].celebrated;
+            saveEvents();
+            showEmojiAnimation('🎈', document.querySelectorAll('li')[index]);
+        }
 
-    function toggleCelebrated(index) {
-        events[index].celebrated = !events[index].celebrated;
-        saveEvents();
-        showEmojiAnimation('🎈', document.querySelectorAll('li')[index]);
-    }
+        function removeEvent(index) {
+            events.splice(index, 1);
+            saveEvents();
+            showEmojiAnimation('🗑️', document.querySelectorAll('li')[index]);
+        }
 
-    function removeEvent(index) {
-        events.splice(index, 1);
-        saveEvents();
-        showEmojiAnimation('🗑️', document.querySelectorAll('li')[index]);
-    }
-
-    function addSalary() {
-        const student = document.getElementById('studentName').value;
-        const amount = document.getElementById('salaryAmount').value;
-        const month = document.getElementById('salaryMonth').value;
-        if (student && amount && month) {
-            if (!salaryData[month]) {
-                salaryData[month] = {};
+        function addSalary() {
+            const student = document.getElementById('studentName').value;
+            const amount = document.getElementById('salaryAmount').value;
+            const month = document.getElementById('salaryMonth').value;
+            if (student && amount && month) {
+                if (!salaryData[month]) {
+                    salaryData[month] = {};
+                }
+                salaryData[month][student] = (salaryData[month][student] || 0) + Number(amount);
+                saveSalaryData();
+                document.getElementById('studentName').value = '';
+                document.getElementById('salaryAmount').value = '';
+                document.getElementById('salaryMonth').value = '';
+                showEmojiAnimation('💰', document.querySelector('.salary-btn'));
             }
-            salaryData[month][student] = (salaryData[month][student] || 0) + Number(amount);
-            saveSalaryData();
-            document.getElementById('studentName').value = '';
-            document.getElementById('salaryAmount').value = '';
-            document.getElementById('salaryMonth').value = '';
-            showEmojiAnimation('💰', document.querySelector('.salary-btn'));
         }
-    }
 
-    function displaySalaryData() {
-        const container = document.getElementById('salaryData');
-        container.innerHTML = '';
-        for (const [month, students] of Object.entries(salaryData)) {
-            const monthDiv = document.createElement('div');
-            monthDiv.innerHTML = `
-                <div class="salary-month" onclick="toggleSalaryMonth('${month}')">
-                    ${month} <span class="toggle-icon">▼</span>
-                </div>
-                <div id="salary-${month}" class="salary-month-data">
-                    <table>
-                        <tr>
-                            <th>Student</th>
-                            <th>Amount</th>
-                            <th>Action</th>
-                        </tr>
-                        ${Object.entries(students).map(([student, amount]) => `
+        function displaySalaryData() {
+            const container = document.getElementById('salaryData');
+            container.innerHTML = '';
+            for (const [month, students] of Object.entries(salaryData)) {
+                const monthDiv = document.createElement('div');
+                monthDiv.innerHTML = `
+                    <div class="salary-month" onclick="toggleSalaryMonth('${month}')">
+                        ${month} <span class="toggle-icon">▼</span>
+                    </div>
+                    <div id="salary-${month}" class="salary-month-data">
+                        <table>
                             <tr>
-                                <td>${student}</td>
-                                <td>
-                                    ₹<input type="number" class="editable-amount" value="${amount}" 
-                                        onchange="updateSalary('${month}', '${student}', this.value)">
-                                </td>
-                                <td><button class="remove-btn" onclick="removeSalary('${month}', '${student}')">Remove</button></td>
+                                <th>Student</th>
+                                <th>Amount</th>
+                                <th>Action</th>
                             </tr>
-                        `).join('')}
-                    </table>
-                    <button class="remove-btn" onclick="removeMonth('${month}')">Remove Month</button>
-                </div>
-            `;
-            container.appendChild(monthDiv);
-        }
-    }
-
-    function toggleSalaryMonth(month) {
-        const monthData = document.getElementById(`salary-${month}`);
-        const toggleIcon = monthData.previousElementSibling.querySelector('.toggle-icon');
-        if (monthData.style.display === 'none' || monthData.style.display === '') {
-            monthData.style.display = 'block';
-            toggleIcon.textContent = '▲';
-        } else {
-            monthData.style.display = 'none';
-            toggleIcon.textContent = '▼';
-        }
-    }
-
-    function updateSalary(month, student, newAmount) {
-        salaryData[month][student] = Number(newAmount);
-        saveSalaryData();
-    }
-
-    function removeSalary(month, student) {
-        delete salaryData[month][student];
-        if (Object.keys(salaryData[month]).length === 0) {
-            delete salaryData[month];
-        }
-        saveSalaryData();
-        showEmojiAnimation('🗑️', event.target);
-    }
-
-    function removeMonth(month) {
-        delete salaryData[month];
-        saveSalaryData();
-        showEmojiAnimation('🗑️', event.target);
-    }
-
-    function exportToPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-
-        // Add events
-        doc.text('Events of the Day', 10, 10);
-        const eventData = events.map(e => [e.name, e.type, new Date(e.date).toLocaleDateString(), e.celebrated ? 'Yes' : 'No']);
-        doc.autoTable({
-            head: [['Name', 'Event Type', 'Date', 'Celebrated']],
-            body: eventData,
-            startY: 20,
-        });
-
-        // Add salary data
-        doc.addPage();
-        doc.text('Salary Tracker', 10, 10);
-        let salaryTableData = [];
-        Object.entries(salaryData).forEach(([month, students]) => {
-            Object.entries(students).forEach(([student, amount]) => {
-                salaryTableData.push([month, student, `Rs. ${amount}`]);
-            });
-        });
-        doc.autoTable({
-            head: [['Month', 'Student', 'Amount']],
-            body: salaryTableData,
-            startY: 20,
-        });
-
-        // Add milk consumption data
-        doc.addPage();
-        doc.text('Milk Consumption', 10, 10);
-        let milkTableData = Object.entries(milkData).map(([date, data]) => {
-            if (milkBillType === '1~MB') {
-                return [date, `${data.quantity} liter(s)`, `Rs. ${data.cost}`];
-            } else {
-                return [date, `1st: ${data.quantity1 || 0} liter(s)`, `Rs. ${data.cost1 || 0}`, `2nd: ${data.quantity2 || 0} liter(s)`, `Rs. ${data.cost2 || 0}`];
+                            ${Object.entries(students).map(([student, amount]) => `
+                                <tr>
+                                    <td>${student}</td>
+                                    <td>
+                                        ₹<input type="number" class="editable-amount" value="${amount}" 
+                                            onchange="updateSalary('${month}', '${student}', this.value)">
+                                    </td>
+                                    <td><button class="remove-btn" onclick="removeSalary('${month}', '${student}')">Remove</button></td>
+                                </tr>
+                            `).join('')}
+                        </table>
+                        <button class="remove-btn" onclick="removeMonth('${month}')">Remove Month</button>
+                    </div>
+                `;
+                container.appendChild(monthDiv);
             }
-        });
-        doc.autoTable({
-            head: milkBillType === '1~MB' ? [['Date', 'Quantity', 'Cost']] : [['Date', 'Quantity 1', 'Cost 1', 'Quantity 2', 'Cost 2']],
-            body: milkTableData,
-            startY: 20,
-        });
-
-        doc.save('personal_data.pdf');
-        showEmojiAnimation('📄', document.querySelector('.export-btn'));
-    }
-
-    function renderCalendar() {
-        const calendar = document.getElementById('milkCalendar');
-        calendar.innerHTML = '';
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-        
-        document.getElementById('currentMonth').textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
-
-        for (let i = 0; i < firstDay.getDay(); i++) {
-            calendar.appendChild(document.createElement('div'));
         }
 
-        for (let day = 1; day <= lastDay.getDate(); day++) {
-            const dayElement = document.createElement('div');
-            dayElement.classList.add('calendar-day');
-            dayElement.textContent = day;
-            const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            if (milkData[dateString]) {
-                dayElement.classList.add('active');
+        function toggleSalaryMonth(month) {
+            const monthData = document.getElementById(`salary-${month}`);
+            const toggleIcon = monthData.previousElementSibling.querySelector('.toggle-icon');
+            if (monthData.style.display === 'none' || monthData.style.display === '') {
+                monthData.style.display = 'block';
+                toggleIcon.textContent = '▲';
+            } else {
+                monthData.style.display = 'none';
+                toggleIcon.textContent = '▼';
+            }
+        }
+
+        function updateSalary(month, student, newAmount) {
+            salaryData[month][student] = Number(newAmount);
+            saveSalaryData();
+        }
+
+        function removeSalary(month, student) {
+            delete salaryData[month][student];
+            if (Object.keys(salaryData[month]).length === 0) {
+                delete salaryData[month];
+            }
+            saveSalaryData();
+            showEmojiAnimation('🗑️', event.target);
+        }
+
+        function removeMonth(month) {
+            delete salaryData[month];
+            saveSalaryData();
+            showEmojiAnimation('🗑️', event.target);
+        }
+
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Add events
+            doc.text('Events of the Day', 10, 10);
+            const eventData = events.map(e => [e.name, e.type, new Date(e.date).toLocaleDateString(), e.celebrated ? 'Yes' : 'No']);
+            doc.autoTable({
+                head: [['Name', 'Event Type', 'Date', 'Celebrated']],
+                body: eventData,
+                startY: 20,
+            });
+
+            // Add salary data
+            doc.addPage();
+            doc.text('Salary Tracker', 10, 10);
+            let salaryTableData = [];
+            Object.entries(salaryData).forEach(([month, students]) => {
+                Object.entries(students).forEach(([student, amount]) => {
+                    salaryTableData.push([month, student, `Rs. ${amount}`]);
+                });
+            });
+            doc.autoTable({
+                head: [['Month', 'Student', 'Amount']],
+                body: salaryTableData,
+                startY: 20,
+            });
+
+            // Add milk consumption data
+            doc.addPage();
+            doc.text('Milk Consumption', 10, 10);
+            let milkTableData = Object.entries(milkData).map(([date, data]) => {
                 if (milkBillType === '1~MB') {
-                    if (milkData[dateString].quantity > 0) {
-                        dayElement.innerHTML += `<br>🥛 ${milkData[dateString].quantity}L`;
-                    } else {
-                        dayElement.innerHTML += '<br>❌ Nil';
-                    }
+                    return [date, `${data.quantity} liter(s)`, `Rs. ${data.cost}`];
                 } else {
-                    const total = (milkData[dateString].quantity1 || 0) + (milkData[dateString].quantity2 || 0);
-                    if (total > 0) {
-                        dayElement.innerHTML += `<br>🥛 ${total}L`;
+                    return [date, `1st: ${data.quantity1 || 0} liter(s)`, `Rs. ${data.cost1 || 0}`, `2nd: ${data.quantity2 || 0} liter(s)`, `Rs. ${data.cost2 || 0}`];
+                }
+            });
+            doc.autoTable({
+                head: milkBillType === '1~MB' ? [['Date', 'Quantity', 'Cost']] : [['Date', 'Quantity 1', 'Cost 1', 'Quantity 2', 'Cost 2']],
+                body: milkTableData,
+                startY: 20,
+            });
+
+            doc.save('personal_data.pdf');
+            showEmojiAnimation('📄', document.querySelector('.export-btn'));
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('milkCalendar');
+            calendar.innerHTML = '';
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            document.getElementById('currentMonth').textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+
+            for (let i = 0; i < firstDay.getDay(); i++) {
+                calendar.appendChild(document.createElement('div'));
+            }
+
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dayElement = document.createElement('div');
+                dayElement.classList.add('calendar-day');
+                dayElement.textContent = day;
+                const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                if (milkData[dateString]) {
+                    dayElement.classList.add('active');
+                    if (milkBillType === '1~MB') {
+                        if (milkData[dateString].quantity > 0) {
+                            dayElement.innerHTML += `<br>🥛 ${milkData[dateString].quantity}L`;
+                        } else {
+                            dayElement.innerHTML += '<br>❌ Nil';
+                        }
                     } else {
-                        dayElement.innerHTML += '<br>❌ Nil';
+                        const total = (milkData[dateString].quantity1 || 0) + (milkData[dateString].quantity2 || 0);
+                        if (total > 0) {
+                            dayElement.innerHTML += `<br>🥛 ${total}L`;
+                        } else {
+                            dayElement.innerHTML += '<br>❌ Nil';
+                        }
+                    }
+                }
+                dayElement.onclick = () => showQuantityModal(dateString);
+                calendar.appendChild(dayElement);
+            }
+        }
+
+        function showQuantityModal(date) {
+            selectedDate = date;
+            document.getElementById('quantityModal').style.display = 'block';
+            updateMilkQuantitySelect(1);
+            if (milkBillType === '2~MB') {
+                updateMilkQuantitySelect(2);
+            }
+        }
+
+        function closeQuantityModal() {
+            document.getElementById('quantityModal').style.display = 'none';
+        }
+
+        function confirmMilkQuantity() {
+            const quantity1 = parseFloat(document.getElementById('milkQuantity1').value);
+            const selectedOption1 = document.getElementById('milkQuantity1').options[document.getElementById('milkQuantity1').selectedIndex];
+            const cost1 = parseFloat(selectedOption1.getAttribute('data-price'));
+
+            if (milkBillType === '1~MB') {
+                milkData[selectedDate] = { quantity: quantity1, cost: cost1 };
+            } else {
+                const quantity2 = parseFloat(document.getElementById('milkQuantity2').value);
+                const selectedOption2 = document.getElementById('milkQuantity2').options[document.getElementById('milkQuantity2').selectedIndex];
+                const cost2 = parseFloat(selectedOption2.getAttribute('data-price'));
+                milkData[selectedDate] = { quantity1, cost1, quantity2, cost2 };
+            }
+
+            saveMilkData();
+            renderCalendar();
+            closeQuantityModal();
+            showEmojiAnimation('🥛', document.querySelector('.calendar-day.active'));
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+            showEmojiAnimation(delta > 0 ? '▶️' : '◀️', event.target);
+        }
+
+        function analyzeMilkConsumption(billNumber) {
+            const startDate = new Date(document.getElementById(`startDate${billNumber}`).value);
+            const endDate = new Date(document.getElementById(`endDate${billNumber}`).value);
+            let totalDays = 0;
+            let milkTakenDays = 0;
+            let totalQuantity = 0;
+            let totalCost = 0;
+
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                totalDays++;
+                const dateString = d.toISOString().split('T')[0];
+                if (milkData[dateString]) {
+                    const quantity = milkBillType === '1~MB' ? 
+                        (milkData[dateString].quantity || 0) : 
+                        (milkData[dateString][`quantity${billNumber}`] || 0);
+                    const cost = milkBillType === '1~MB' ? 
+                        (milkData[dateString].cost || 0) : 
+                        (milkData[dateString][`cost${billNumber}`] || 0);
+                    if (quantity > 0) {
+                        milkTakenDays++;
+                        totalQuantity += quantity;
+                        totalCost += cost;
                     }
                 }
             }
-            dayElement.onclick = () => showQuantityModal(dateString);
-            calendar.appendChild(dayElement);
-        }
-    }
 
-    function showQuantityModal(date) {
-        selectedDate = date;
-        document.getElementById('quantityModal').style.display = 'block';
+            const resultElement = document.getElementById(`analysisResult${billNumber}`);
+            resultElement.innerHTML = `
+                From ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}:<br>
+                Milk taken on ${milkTakenDays} out of ${totalDays} days.<br>
+                Total quantity: ${totalQuantity.toFixed(1)} liters<br>
+                Total cost: ₹${totalCost.toFixed(2)}
+            `;
+            showEmojiAnimation('📊', document.querySelector('.milk-btn'));
+        }
+
+        function showEmojiAnimation(emoji, element) {
+            const animatedEmoji = document.createElement('span');
+            animatedEmoji.textContent = emoji;
+            animatedEmoji.classList.add('emoji-animation');
+            element.appendChild(animatedEmoji);
+            setTimeout(() => {
+                animatedEmoji.remove();
+            }, 1000);
+        }
+
+        function displayMilkQuantities() {
+            displayMilkQuantitiesForBill(1, milkQuantities);
+            if (milkBillType === '2~MB') {
+                displayMilkQuantitiesForBill(2, milkQuantities2);
+            }
+        }
+
+        function displayMilkQuantitiesForBill(billNumber, quantities) {
+            const list = document.getElementById(`milkQuantityList${billNumber}`);
+            list.innerHTML = '';
+            quantities.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'milk-quantity-item';
+                div.innerHTML = `
+                    <input type="number" value="${item.quantity}" step="0.1" onchange="updateMilkQuantity(${billNumber}, ${index}, 'quantity', this.value)">
+                    <input type="number" value="${item.price}" onchange="updateMilkQuantity(${billNumber}, ${index}, 'price', this.value)">
+                    <button class="remove-btn" onclick="removeMilkQuantity(${billNumber}, ${index})">Remove</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function updateMilkQuantity(billNumber, index, field, value) {
+            const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+            quantities[index][field] = parseFloat(value);
+            saveMilkQuantities();
+        }
+
+        function removeMilkQuantity(billNumber, index) {
+            const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+            quantities.splice(index, 1);
+            saveMilkQuantities();
+        }
+
+        function addMilkQuantity(billNumber) {
+            const quantity = parseFloat(document.getElementById(`newMilkQuantity${billNumber}`).value);
+            const price = parseFloat(document.getElementById(`newMilkPrice${billNumber}`).value);
+            if (quantity && price) {
+                const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+                quantities.push({ quantity, price });
+                saveMilkQuantities();
+                document.getElementById(`newMilkQuantity${billNumber}`).value = '';
+                document.getElementById(`newMilkPrice${billNumber}`).value = '';
+            }
+        }
+
+        function updateMilkQuantitySelect(billNumber) {
+            const select = document.getElementById(`milkQuantity${billNumber}`);
+            select.innerHTML = '';
+            const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+            quantities.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.quantity;
+                option.textContent = `${item.quantity} liter${item.quantity !== 1 ? 's' : ''} (₹${item.price})`;
+                option.setAttribute('data-price', item.price);
+                select.appendChild(option);
+            });
+        }
+
+        function changeMilkBillType() {
+            milkBillType = document.querySelector('input[name="milkBillType"]:checked').value;
+            localStorage.setItem('milkBillType', milkBillType);
+            document.getElementById('milkBill2').classList.toggle('hidden', milkBillType === '1~MB');
+            document.getElementById('milkQuantityList2Container').classList.toggle('hidden', milkBillType === '1~MB');
+            document.getElementById('milkQuantity2Container').classList.toggle('hidden', milkBillType === '1~MB');
+            renderCalendar();
+            displayMilkQuantities();
+        }
+
+        function downloadData() {
+            const data = {
+                events: events,
+                salaryData: salaryData,
+                milkData: milkData,
+                milkQuantities: milkQuantities,
+                milkQuantities2: milkQuantities2,
+                milkBillType: milkBillType,
+                userName: userName,
+                selectedCategories: selectedCategories
+            };
+            const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "personal_tracker_data.json";
+            a.click();
+            showEmojiAnimation('💾', document.querySelector('.data-buttons button:first-child'));
+        }
+
+        function uploadData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = JSON.parse(e.target.result);
+                    events = data.events;
+                    salaryData = data.salaryData;
+                    milkData = data.milkData;
+                    milkQuantities = data.milkQuantities;
+                    milkQuantities2 = data.milkQuantities2 || milkQuantities2;
+                    milkBillType = data.milkBillType || '1~MB';
+                    userName = data.userName || '';
+                    selectedCategories = data.selectedCategories || ['events', 'salary', 'milk'];
+                    document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`).checked = true;
+                    saveEvents();
+                    saveSalaryData();
+                    saveMilkData();
+                    saveMilkQuantities();
+                    displayEvents();
+                    displaySalaryData();
+                    renderCalendar();
+                    displayMilkQuantities();
+                    updateMilkQuantitySelect(1);
+                    if (milkBillType === '2~MB') {
+                        updateMilkQuantitySelect(2);
+                    }
+                    changeMilkBillType();
+                    updateUserName();
+                    updateSelectedCategories();
+                    showEmojiAnimation('📂', document.querySelector('.data-buttons button:last-child'));
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Initialize collapsible functionality
+        var coll = document.getElementsByClassName("collapsible");
+        for (var i = 0; i < coll.length; i++) {
+            coll[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var content = this.nextElementSibling;
+                if (content.style.maxHeight){
+                    content.style.maxHeight = null;
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                }
+            });
+        }
+
+        function showCustomizationModal() {
+            document.getElementById('customizationModal').style.display = 'block';
+            document.getElementById('eventsCheck').checked = selectedCategories.includes('events');
+            document.getElementById('salaryCheck').checked = selectedCategories.includes('salary');
+            document.getElementById('milkCheck').checked = selectedCategories.includes('milk');
+            document.getElementById('userName').value = userName;
+        }
+
+        function applyCustomization() {
+            selectedCategories = [];
+            if (document.getElementById('eventsCheck').checked) selectedCategories.push('events');
+            if (document.getElementById('salaryCheck').checked) selectedCategories.push('salary');
+            if (document.getElementById('milkCheck').checked) selectedCategories.push('milk');
+            userName = document.getElementById('userName').value;
+            localStorage.setItem('selectedCategories', JSON.stringify(selectedCategories));
+            localStorage.setItem('userName', userName);
+            updateSelectedCategories();
+            updateUserName();
+            document.getElementById('customizationModal').style.display = 'none';
+        }
+
+        function updateSelectedCategories() {
+            document.getElementById('eventsCard').style.display = selectedCategories.includes('events') ? 'block' : 'none';
+            document.getElementById('salaryCard').style.display = selectedCategories.includes('salary') ? 'block' : 'none';
+            document.getElementById('milkCard').style.display = selectedCategories.includes('milk') ? 'block' : 'none';
+        }
+
+        function updateUserName() {
+            document.getElementById('userNameDisplay').textContent = userName ? `Welcome, ${userName}!` : '';
+            document.getElementById('userNameTitle').textContent = userName ? `${userName}'s ` : '';
+        }
+
+        // Set initial milk bill type
+        document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`).checked = true;
+        changeMilkBillType();
+
+        displayEvents();
+        displaySalaryData();
+        renderCalendar();
+        displayMilkQuantities();
         updateMilkQuantitySelect(1);
         if (milkBillType === '2~MB') {
             updateMilkQuantitySelect(2);
         }
-    }
+        checkForEvents();
+        updateSelectedCategories();
+        updateUserName();
 
-    function closeQuantityModal() {
-        document.getElementById('quantityModal').style.display = 'none';
-    }
-
-    function confirmMilkQuantity() {
-        const quantity1 = parseFloat(document.getElementById('milkQuantity1').value);
-        const selectedOption1 = document.getElementById('milkQuantity1').options[document.getElementById('milkQuantity1').selectedIndex];
-        const cost1 = parseFloat(selectedOption1.getAttribute('data-price'));
-
-        if (milkBillType === '1~MB') {
-            milkData[selectedDate] = { quantity: quantity1, cost: cost1 };
-        } else {
-            const quantity2 = parseFloat(document.getElementById('milkQuantity2').value);
-            const selectedOption2 = document.getElementById('milkQuantity2').options[document.getElementById('milkQuantity2').selectedIndex];
-            const cost2 = parseFloat(selectedOption2.getAttribute('data-price'));
-            milkData[selectedDate] = { quantity1, cost1, quantity2, cost2 };
-        }
-
-        saveMilkData();
-        renderCalendar();
-        closeQuantityModal();
-        showEmojiAnimation('🥛', document.querySelector('.calendar-day.active'));
-    }
-
-    function changeMonth(delta) {
-        currentDate.setMonth(currentDate.getMonth() + delta);
-        renderCalendar();
-        showEmojiAnimation(delta > 0 ? '▶️' : '◀️', event.target);
-    }
-
-    function analyzeMilkConsumption(billNumber) {
-        const startDate = new Date(document.getElementById(`startDate${billNumber}`).value);
-        const endDate = new Date(document.getElementById(`endDate${billNumber}`).value);
-        let totalDays = 0;
-        let milkTakenDays = 0;
-        let totalQuantity = 0;
-        let totalCost = 0;
-
-        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-            totalDays++;
-            const dateString = d.toISOString().split('T')[0];
-            if (milkData[dateString]) {
-                const quantity = milkBillType === '1~MB' ? 
-                    (milkData[dateString].quantity || 0) : 
-                    (milkData[dateString][`quantity${billNumber}`] || 0);
-                const cost = milkBillType === '1~MB' ? 
-                    (milkData[dateString].cost || 0) : 
-                    (milkData[dateString][`cost${billNumber}`] || 0);
-                if (quantity > 0) {
-                    milkTakenDays++;
-                    totalQuantity += quantity;
-                    totalCost += cost;
-                }
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('customizationModal')) {
+                document.getElementById('customizationModal').style.display = "none";
+            }
+            if (event.target == document.getElementById('quantityModal')) {
+                closeQuantityModal();
             }
         }
-
-        const resultElement = document.getElementById(`analysisResult${billNumber}`);
-        resultElement.innerHTML = `
-            From ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}:<br>
-            Milk taken on ${milkTakenDays} out of ${totalDays} days.<br>
-            Total quantity: ${totalQuantity.toFixed(1)} liters<br>
-            Total cost: ₹${totalCost.toFixed(2)}
-        `;
-        showEmojiAnimation('📊', document.querySelector('.milk-btn'));
-    }
-
-    function showEmojiAnimation(emoji, element) {
-        const animatedEmoji = document.createElement('span');
-        animatedEmoji.textContent = emoji;
-        animatedEmoji.classList.add('emoji-animation');
-        element.appendChild(animatedEmoji);
-        setTimeout(() => {
-            animatedEmoji.remove();
-        }, 1000);
-    }
-
-    function displayMilkQuantities() {
-        displayMilkQuantitiesForBill(1, milkQuantities);
-        if (milkBillType === '2~MB') {
-            displayMilkQuantitiesForBill(2, milkQuantities2);
-        }
-    }
-
-    function displayMilkQuantitiesForBill(billNumber, quantities) {
-        const list = document.getElementById(`milkQuantityList${billNumber}`);
-        list.innerHTML = '';
-        quantities.forEach((item, index) => {
-            const div = document.createElement('div');
-            div.className = 'milk-quantity-item';
-            div.innerHTML = `
-                <input type="number" value="${item.quantity}" step="0.1" onchange="updateMilkQuantity(${billNumber}, ${index}, 'quantity', this.value)">
-                <input type="number" value="${item.price}" onchange="updateMilkQuantity(${billNumber}, ${index}, 'price', this.value)">
-                <button class="remove-btn" onclick="removeMilkQuantity(${billNumber}, ${index})">Remove</button>
-            `;
-            list.appendChild(div);
-        });
-    }
-
-    function updateMilkQuantity(billNumber, index, field, value) {
-        const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
-        quantities[index][field] = parseFloat(value);
-        saveMilkQuantities();
-    }
-
-    function removeMilkQuantity(billNumber, index) {
-        const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
-        quantities.splice(index, 1);
-        saveMilkQuantities();
-    }
-
-    function addMilkQuantity(billNumber) {
-        const quantity = parseFloat(document.getElementById(`newMilkQuantity${billNumber}`).value);
-        const price = parseFloat(document.getElementById(`newMilkPrice${billNumber}`).value);
-        if (quantity && price) {
-            const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
-            quantities.push({ quantity, price });
-            saveMilkQuantities();
-            document.getElementById(`newMilkQuantity${billNumber}`).value = '';
-            document.getElementById(`newMilkPrice${billNumber}`).value = '';
-        }
-    }
-
-    function updateMilkQuantitySelect(billNumber) {
-        const select = document.getElementById(`milkQuantity${billNumber}`);
-        select.innerHTML = '';
-        const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
-        quantities.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.quantity;
-            option.textContent = `${item.quantity} liter${item.quantity !== 1 ? 's' : ''} (₹${item.price})`;
-            option.setAttribute('data-price', item.price);
-            select.appendChild(option);
-        });
-    }
-
-    function changeMilkBillType() {
-        milkBillType = document.querySelector('input[name="milkBillType"]:checked').value;
-        localStorage.setItem('milkBillType', milkBillType);
-        document.getElementById('milkBill2').classList.toggle('hidden', milkBillType === '1~MB');
-        document.getElementById('milkQuantityList2Container').classList.toggle('hidden', milkBillType === '1~MB');
-        document.getElementById('milkQuantity2Container').classList.toggle('hidden', milkBillType === '1~MB');
-        renderCalendar();
-        displayMilkQuantities();
-    }
-
-    function downloadData() {
-        const data = {
-            events: events,
-            salaryData: salaryData,
-            milkData: milkData,
-            milkQuantities: milkQuantities,
-            milkQuantities2: milkQuantities2,
-            milkBillType: milkBillType
-        };
-        const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "personal_tracker_data.json";
-        a.click();
-        showEmojiAnimation('💾', document.querySelector('.data-buttons button:first-child'));
-    }
-
-    function uploadData() {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = '.json';
-        input.onchange = function(event) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = JSON.parse(e.target.result);
-                events = data.events;
-                salaryData = data.salaryData;
-                milkData = data.milkData;
-                milkQuantities = data.milkQuantities;
-                milkQuantities2 = data.milkQuantities2 || milkQuantities2;
-                milkBillType = data.milkBillType || '1~MB';
-                document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`).checked = true;
-                saveEvents();
-                saveSalaryData();
-                saveMilkData();
-                saveMilkQuantities();
-                displayEvents();
-                displaySalaryData();
-                renderCalendar();
-                displayMilkQuantities();
-                updateMilkQuantitySelect(1);
-                if (milkBillType === '2~MB') {
-                    updateMilkQuantitySelect(2);
-                }
-                changeMilkBill
-
-Type();
-                showEmojiAnimation('📂', document.querySelector('.data-buttons button:last-child'));
-            };
-            reader.readAsText(file);
-        };
-        input.click();
-    }
-
-    // Initialize collapsible functionality
-    var coll = document.getElementsByClassName("collapsible");
-    for (var i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function() {
-            this.classList.toggle("active");
-            var content = this.nextElementSibling;
-            if (content.style.maxHeight){
-                content.style.maxHeight = null;
-            } else {
-                content.style.maxHeight = content.scrollHeight + "px";
-            }
-        });
-    }
-
-    // Set initial milk bill type
-    document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`).checked = true;
-    changeMilkBillType();
-
-    displayEvents();
-    displaySalaryData();
-    renderCalendar();
-    displayMilkQuantities();
-    updateMilkQuantitySelect(1);
-    if (milkBillType === '2~MB') {
-        updateMilkQuantitySelect(2);
-    }
-    checkForEvents();
-</script>
+    </script>
 </body>
 </html>
