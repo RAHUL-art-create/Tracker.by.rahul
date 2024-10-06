@@ -950,12 +950,8 @@
 
         events.forEach((event, index) => {
           const eventDate = new Date(event.date);
-          const isEventToday =
-            today.getMonth() === eventDate.getMonth() &&
-            today.getDate() === eventDate.getDate();
-          const isEventTomorrow =
-            tomorrow.getMonth() === eventDate.getMonth() &&
-            tomorrow.getDate() === eventDate.getDate();
+          const isEventToday = today.toDateString() === eventDate.toDateString();
+          const isEventTomorrow = tomorrow.toDateString() === eventDate.toDateString();
 
           const li = document.createElement("li");
           li.innerHTML = `
@@ -1020,32 +1016,35 @@
       }
 
       function checkForEvents() {
-        const today = new Date();
-        const todayEvents = events.filter((event) => {
-          const eventDate = new Date(event.date);
-          return (
-            today.getMonth() === eventDate.getMonth() &&
-            today.getDate() === eventDate.getDate() &&
-            !event.celebrated
-          );
-        });
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const todayEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                return today.toDateString() === eventDate.toDateString() && !event.celebrated;
+            });
+
+            const tomorrowEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                return tomorrow.toDateString() === eventDate.toDateString();
+            });
 
         if (todayEvents.length > 0) {
-          showEventReminder(todayEvents);
+          showEventReminder(todayEvents, "Today");
         }
+        if (tomorrowEvents.length > 0) {
+                showEventReminder(tomorrowEvents, "Tomorrow");
+            }
       }
 
-      function showEventReminder(todayEvents) {
-        const reminderContent = document.getElementById("eventReminderContent");
-        reminderContent.innerHTML = todayEvents
-          .map(
-            (event) => `
-                <p>Today is ${event.name}'s ${event.type}!</p>
-            `
-          )
-          .join("");
-        document.getElementById("eventReminder").style.display = "block";
-      }
+      function showEventReminder(events, day) {
+            const reminderContent = document.getElementById('eventReminderContent');
+            reminderContent.innerHTML = events.map(event => `
+                <p>${day} is ${event.name}'s ${event.type}!</p>
+            `).join('');
+            document.getElementById('eventReminder').style.display = 'block';
+        }
 
       function dismissReminder() {
         document.getElementById("eventReminder").style.display = "none";
@@ -1314,10 +1313,10 @@
         saveMilkData();
         renderCalendar();
         closeQuantityModal();
-        showEmojiAnimation(
-          "🥛",
-          document.querySelector(".calendar-day.active")
-        );
+        const selectedDayElement = document.querySelector(`.calendar-day[data-date="${selectedDate}"]`);
+        if (selectedDayElement) {
+            showEmojiAnimation('🥛', selectedDayElement);
+        }
       }
 
       function changeMonth(delta) {
