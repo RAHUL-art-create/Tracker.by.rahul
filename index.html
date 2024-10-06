@@ -503,6 +503,16 @@
       .event-reminder-actions button {
         color: black;
       }
+      .event-reminder h3 {
+    	color: black;
+    	margin-bottom: 10px;
+      }
+      .event-reminder p {
+        margin: 5px 0;
+      }
+      .event-reminder strong {
+        font-weight: bold;
+      }    
       .milk-bill-type {
         display: flex;
         justify-content: center;
@@ -1041,12 +1051,12 @@
 
             if (todayEvents.length > 0) {
                 reminderHTML += '<h3>Today\'s Events:</h3>';
-                reminderHTML += todayEvents.map(event => `<p>${event.name}'s ${event.type}</p>`).join('');
+                reminderHTML += todayEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
             }
 
             if (tomorrowEvents.length > 0) {
                 reminderHTML += '<h3>Tomorrow\'s Events:</h3>';
-                reminderHTML += tomorrowEvents.map(event => `<p>${event.name}'s ${event.type}</p>`).join('');
+                reminderHTML += tomorrowEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
             }
 
             reminderContent.innerHTML = reminderHTML;
