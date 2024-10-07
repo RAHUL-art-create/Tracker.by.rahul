@@ -512,7 +512,7 @@
       }
       .event-reminder strong {
         font-weight: bold;
-      }    
+      }
       .milk-bill-type {
         display: flex;
         justify-content: center;
@@ -1032,12 +1032,19 @@
 
             const todayEvents = events.filter(event => {
                 const eventDate = new Date(event.date);
-                return today.toDateString() === eventDate.toDateString() && !event.celebrated;
+                return (
+                    today.getDate() === eventDate.getDate() &&
+                    today.getMonth() === eventDate.getMonth() &&
+                    !event.celebrated
+                );
             });
 
             const tomorrowEvents = events.filter(event => {
                 const eventDate = new Date(event.date);
-                return tomorrow.toDateString() === eventDate.toDateString();
+                return (
+                    tomorrow.getDate() === eventDate.getDate() &&
+                    tomorrow.getMonth() === eventDate.getMonth()
+                );
             });
 
             if (todayEvents.length > 0 || tomorrowEvents.length > 0) {
