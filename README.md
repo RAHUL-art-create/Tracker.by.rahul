@@ -74,14 +74,6 @@ This mechanism provides users with control over their data, ensuring that import
   - [jsPDF AutoTable Plugin](https://github.com/simonbengtsson/jsPDF-AutoTable) for table generation in PDFs
 - **LocalStorage**: Used for persistent data storage.
 
-## Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/personal-tracker.git
-   ```
-2. Open the `index.html` file in your web browser.
-
 ---
 
 This README file explains the primary goal of data protection via upload/download options, ensuring users have a backup before clearing cache or switching devices.
