@@ -789,24 +789,6 @@
           display: block;
         }
       }
-      .event-actions {
-        display: flex;
-        gap: 5px;
-        align-items: center;
-      }
-
-      .calendar-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2em;
-        padding: 5px;
-        transition: transform 0.2s;
-      }
-
-      .calendar-btn:hover {
-        transform: scale(1.2);
-      }
     </style>
   </head>
   <body>
@@ -1124,7 +1106,6 @@
           document.getElementById("eventType").value = "";
           document.getElementById("eventDate").value = "";
           showEmojiAnimation("🎉", document.querySelector(".event-btn"));
-          checkAndSendNotifications();
         }
       }
 
@@ -1159,13 +1140,10 @@
                     <span class="event-name">${event.name}</span>
                     <span class="event-type-date">${event.type} - ${new Date(event.date).toLocaleDateString()}</span>
                 </div>
-                <div class="event-actions">
-                    <input type="checkbox" class="event-checkbox" 
-                        ${event.celebrated ? "checked" : ""} 
-                        onchange="toggleCelebrated(${index})">
-                    <button class="calendar-btn" onclick="createCalendarEvent(${JSON.stringify(event)})">📅</button>
-                    <button class="remove-btn" onclick="removeEvent(${index})">X</button>
-                </div>
+                <input type="checkbox" class="event-checkbox" 
+                    ${event.celebrated ? "checked" : ""} 
+                    onchange="toggleCelebrated(${index})">
+                <button class="remove-btn" onclick="removeEvent(${index})">X</button>
             </div>
         `;
 
@@ -1934,67 +1912,6 @@
 
       // Initialize quick amount buttons
       updateQuickAmountButtons();
-
-      // Add this function after the checkForEvents function:
-      function requestNotificationPermission() {
-        if (!("Notification" in window)) {
-          alert("This browser does not support notifications");
-          return;
-        }
-        
-        Notification.requestPermission().then(function(permission) {
-          if (permission === "granted") {
-            checkAndSendNotifications();
-          }
-        });
-      }
-
-      function checkAndSendNotifications() {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        events.forEach(event => {
-          const eventDate = new Date(event.date);
-          
-          // Check if event is today
-          if (today.getDate() === eventDate.getDate() && 
-            today.getMonth() === eventDate.getMonth() && 
-            !event.celebrated) {
-            new Notification("Event Today! 🎉", {
-              body: `${event.name}'s ${event.type} is today!`,
-              icon: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png"
-            });
-          }
-          
-          // Check if event is tomorrow
-          if (tomorrow.getDate() === eventDate.getDate() && 
-            tomorrow.getMonth() === eventDate.getMonth()) {
-            new Notification("Event Tomorrow! 📅", {
-              body: `${event.name}'s ${event.type} is tomorrow!`,
-              icon: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png"
-            });
-          }
-        });
-      }
-
-      // Add this to initialize notifications when the page loads
-      document.addEventListener('DOMContentLoaded', function() {
-        requestNotificationPermission();
-        
-        // Check for events every hour
-        setInterval(checkAndSendNotifications, 3600000);
-      });
-
-      function createCalendarEvent(event) {
-        const eventDate = new Date(event.date);
-        const endDate = new Date(eventDate);
-        endDate.setDate(endDate.getDate() + 1);
-        
-        const calendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(event.name + "'s " + event.type)}&dates=${eventDate.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${endDate.toISOString().replace(/-|:|\.\d\d\d/g, '')}&details=${encodeURIComponent('Event from Personal Tracker')}`;
-        
-        window.open(calendarUrl);
-      }
     </script>
   </body>
 </html>
