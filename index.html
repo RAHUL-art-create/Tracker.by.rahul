@@ -1270,7 +1270,7 @@
           document.getElementById("salaryAmount").value = "";
           document.getElementById("salaryDate").value = "";
           document.getElementById("salaryMonth").value = "";
-          showEmojiAnimation("💰", document.querySelector(".salary-btn"));
+          showEmojiAnimation("", document.querySelector(".salary-btn"));
         }
       }
 
@@ -1408,12 +1408,19 @@
         doc.text("Salary Tracker", 10, 10);
         let salaryTableData = [];
         Object.entries(salaryData).forEach(([month, students]) => {
-          Object.entries(students).forEach(([student, amount]) => {
-            salaryTableData.push([month, student, `Rs. ${amount}`]);
+          Object.entries(students).forEach(([student, data]) => {
+            const amount = typeof data === 'object' ? data.amount : data;
+            const date = typeof data === 'object' ? data.date : '-';
+            salaryTableData.push([
+              month,
+              student,
+              date,
+              `Rs. ${amount}`
+            ]);
           });
         });
         doc.autoTable({
-          head: [["Month", "Student", "Amount"]],
+          head: [["Month", "Student", "Date", "Amount"]],
           body: salaryTableData,
           startY: 20,
         });
