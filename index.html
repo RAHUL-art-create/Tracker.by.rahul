@@ -772,6 +772,23 @@
         gap: 10px;
         justify-content: center;
       }
+      .input-group {
+        position: relative;
+        margin-bottom: 10px;
+      }
+
+      .input-group label {
+        display: none;
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 4px;
+      }
+
+      @media (max-width: 768px) {
+        .input-group label {
+          display: block;
+        }
+      }
     </style>
   </head>
   <body>
@@ -817,41 +834,62 @@
     <div class="container">
       <div class="card" id="eventsCard">
         <h2>Events of the Day</h2>
-        <input type="text" id="eventName" placeholder="Name" />
-        <select id="eventType">
-          <option value="">Select Event Type</option>
-          <option value="Birthday">Birthday</option>
-          <option value="Wedding Anniversary">Wedding Anniversary</option>
-        </select>
-        <input type="date" id="eventDate" name="eventDate" />
+        <div class="input-group">
+          <label for="eventName">Name</label>
+          <input type="text" id="eventName" placeholder="Name" />
+        </div>
+        <div class="input-group">
+          <label for="eventType">Event Type</label>
+          <select id="eventType">
+            <option value="">Select Event Type</option>
+            <option value="Birthday">Birthday</option>
+            <option value="Wedding Anniversary">Wedding Anniversary</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label for="eventDate">Event Date</label>
+          <input type="date" id="eventDate" name="eventDate" />
+        </div>
         <button class="event-btn" onclick="addEvent()">Add Event</button>
         <ul id="eventList"></ul>
       </div>
 
       <div class="card" id="salaryCard">
         <h2>Salary Tracker</h2>
-        <input type="text" id="studentName" placeholder="Student Name" />
-        <input type="number" id="salaryAmount" placeholder="Amount (₹)" />
+        <div class="input-group">
+          <label for="studentName">Student Name</label>
+          <input type="text" id="studentName" placeholder="Student Name" />
+        </div>
+        <div class="input-group">
+          <label for="salaryAmount">Amount</label>
+          <input type="number" id="salaryAmount" placeholder="Amount (₹)" />
+        </div>
         <div class="quick-amounts">
           <button class="quick-amount-btn" onclick="setQuickAmount(500)">₹500</button>
           <button class="quick-amount-btn" onclick="setQuickAmount(1000)">₹1000</button>
         </div>
-        <input type="date" id="salaryDate" />
-        <select id="salaryMonth">
-          <option value="">Select Month</option>
-          <option value="January">January</option>
-          <option value="February">February</option>
-          <option value="March">March</option>
-          <option value="April">April</option>
-          <option value="May">May</option>
-          <option value="June">June</option>
-          <option value="July">July</option>
-          <option value="August">August</option>
-          <option value="September">September</option>
-          <option value="October">October</option>
-          <option value="November">November</option>
-          <option value="December">December</option>
-        </select>
+        <div class="input-group">
+          <label for="salaryDate">Payment Date</label>
+          <input type="date" id="salaryDate" />
+        </div>
+        <div class="input-group">
+          <label for="salaryMonth">Month</label>
+          <select id="salaryMonth">
+            <option value="">Select Month</option>
+            <option value="January">January</option>
+            <option value="February">February</option>
+            <option value="March">March</option>
+            <option value="April">April</option>
+            <option value="May">May</option>
+            <option value="June">June</option>
+            <option value="July">July</option>
+            <option value="August">August</option>
+            <option value="September">September</option>
+            <option value="October">October</option>
+            <option value="November">November</option>
+            <option value="December">December</option>
+          </select>
+        </div>
         <button class="salary-btn" onclick="addSalary()">Add Salary</button>
         <div id="salaryData"></div>
       </div>
@@ -898,12 +936,12 @@
         <div class="calendar" id="milkCalendar"></div>
         <div class="milk-bill-section" id="milkBill1">
           <h3>1st Milk Bill</h3>
-          <div class="date-range">
-            <label for="startDate1">From:</label>
+          <div class="input-group">
+            <label for="startDate1">From Date</label>
             <input type="date" id="startDate1" />
           </div>
-          <div class="date-range">
-            <label for="endDate1">To:</label>
+          <div class="input-group">
+            <label for="endDate1">To Date</label>
             <input type="date" id="endDate1" />
           </div>
           <button class="milk-btn" onclick="analyzeMilkConsumption(1)">
@@ -913,12 +951,12 @@
         </div>
         <div class="milk-bill-section hidden" id="milkBill2">
           <h3>2nd Milk Bill</h3>
-          <div class="date-range">
-            <label for="startDate2">From:</label>
+          <div class="input-group">
+            <label for="startDate2">From Date</label>
             <input type="date" id="startDate2" />
           </div>
-          <div class="date-range">
-            <label for="endDate2">To:</label>
+          <div class="input-group">
+            <label for="endDate2">To Date</label>
             <input type="date" id="endDate2" />
           </div>
           <button class="milk-btn" onclick="analyzeMilkConsumption(2)">
