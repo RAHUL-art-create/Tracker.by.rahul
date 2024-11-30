@@ -486,29 +486,45 @@
         left: 20px;
         background-color: var(--event-color);
         color: white;
-        padding: 10px;
-        border-radius: 5px;
+        padding: 15px;
+        border-radius: 10px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         z-index: 1000;
-        max-width: 300px;
+        max-width: 350px;
         display: none;
       }
       .event-reminder-content {
-        margin-bottom: 10px;
+        margin-bottom: 15px;
       }
       .event-reminder-actions {
         display: flex;
-        justify-content: space-between;
+        gap: 10px;
+        justify-content: flex-end;
       }
       .event-reminder-actions button {
+        background-color: white;
+        color: black;
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        min-width: 100px;
+        transition: background-color 0.3s;
+        font-weight: bold;
+      }
+      .event-reminder-actions button:hover {
+        background-color: #f0f0f0;
         color: black;
       }
       .event-reminder h3 {
-    	color: black;
-    	margin-bottom: 10px;
+        color: white;
+        margin-bottom: 10px;
+        font-size: 16px;
       }
       .event-reminder p {
-        margin: 5px 0;
+        margin: 8px 0;
+        font-size: 14px;
       }
       .event-reminder strong {
         font-weight: bold;
@@ -663,8 +679,98 @@
         .event-reminder {
           left: 10px;
           right: 10px;
-          max-width: none;
+          max-width: calc(100% - 20px);
         }
+        .event-reminder-actions {
+          flex-direction: row;
+          justify-content: space-between;
+        }
+        .event-reminder-actions button {
+          min-width: 45%;
+        }
+      }
+      .editable-date {
+        border: none;
+        border-bottom: 1px solid #ddd;
+        padding: 2px;
+        font-size: inherit;
+        cursor: pointer;
+      }
+      .editable-date:focus {
+        outline: none;
+        border-bottom-color: var(--salary-color);
+      }
+      .total-row {
+        background-color: #f8f9fa;
+      }
+      .total-row td {
+        padding: 10px;
+        border-top: 2px solid #ddd;
+      }
+      .amount-container {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .amount-row {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+      }
+      .editable-amount {
+        width: 80px;
+        border: none;
+        border-bottom: 1px solid #ddd;
+        padding: 2px;
+        margin-left: 2px;
+      }
+      .editable-amount:focus {
+        outline: none;
+        border-bottom-color: var(--salary-color);
+      }
+      .quick-amounts {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .quick-amount-btn {
+        background-color: var(--salary-color);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 5px 15px;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s;
+        margin: 0;
+      }
+      .quick-amount-btn:hover {
+        background-color: #e67e22;
+        transform: translateY(-2px);
+      }
+      .quick-amount-edit {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        display: none;
+      }
+
+      .quick-amount-edit input {
+        width: 100px;
+        margin-bottom: 10px;
+      }
+
+      .quick-amount-edit-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
       }
     </style>
   </head>
@@ -726,6 +832,11 @@
         <h2>Salary Tracker</h2>
         <input type="text" id="studentName" placeholder="Student Name" />
         <input type="number" id="salaryAmount" placeholder="Amount (₹)" />
+        <div class="quick-amounts">
+          <button class="quick-amount-btn" onclick="setQuickAmount(500)">₹500</button>
+          <button class="quick-amount-btn" onclick="setQuickAmount(1000)">₹1000</button>
+        </div>
+        <input type="date" id="salaryDate" />
         <select id="salaryMonth">
           <option value="">Select Month</option>
           <option value="January">January</option>
@@ -879,6 +990,14 @@
 
     <div class="watermark">Made by @Rahul 🎙️</div>
 
+    <div class="quick-amount-edit" id="quickAmountEdit">
+      <input type="number" id="newQuickAmount" placeholder="Enter amount">
+      <div class="quick-amount-edit-buttons">
+        <button class="salary-btn" onclick="saveQuickAmount()">Save</button>
+        <button class="remove-btn" onclick="closeQuickAmountEdit()">Cancel</button>
+      </div>
+    </div>
+
     <script>
       let events = JSON.parse(localStorage.getItem("events")) || [];
       let salaryData = JSON.parse(localStorage.getItem("salaryData")) || {};
@@ -906,6 +1025,10 @@
       let selectedCategories = JSON.parse(
         localStorage.getItem("selectedCategories")
       ) || ["events", "salary", "milk"];
+
+      let quickAmounts = JSON.parse(localStorage.getItem("quickAmounts")) || [500, 1000];
+      let editingButtonIndex = null;
+      let longPressTimer;
 
       function saveEvents() {
         localStorage.setItem("events", JSON.stringify(events));
@@ -960,34 +1083,31 @@
 
         events.forEach((event, index) => {
           const eventDate = new Date(event.date);
-          const isEventToday = today.toDateString() === eventDate.toDateString();
-          const isEventTomorrow = tomorrow.toDateString() === eventDate.toDateString();
+          const isEventToday = (
+            today.getDate() === eventDate.getDate() && 
+            today.getMonth() === eventDate.getMonth()
+          );
+          const isEventTomorrow = (
+            tomorrow.getDate() === eventDate.getDate() && 
+            tomorrow.getMonth() === eventDate.getMonth()
+          );
 
           const li = document.createElement("li");
           li.innerHTML = `
-                    <div class="event-item ${
-                      isEventToday ? "event-today" : ""
-                    } ${
-            isEventTomorrow ? "event-tomorrow" : ""
-          }" style="background-color: ${getEventColor(
-            event.type
-          )}; color: ${getContrastColor(getEventColor(event.type))};">
-                        <div class="event-details ${
-                          event.celebrated ? "celebrated" : ""
-                        }">
-                            <span class="event-name">${event.name}</span>
-                            <span class="event-type-date">${
-                              event.type
-                            } - ${new Date(
-            event.date
-          ).toLocaleDateString()}</span>
-                        </div>
-                        <input type="checkbox" class="event-checkbox" ${
-                          event.celebrated ? "checked" : ""
-                        } onchange="toggleCelebrated(${index})">
-                        <button class="remove-btn" onclick="removeEvent(${index})">X</button>
-                    </div>
-                `;
+            <div class="event-item ${isEventToday ? "event-today" : ""} 
+                ${isEventTomorrow ? "event-tomorrow" : ""}" 
+                style="background-color: ${getEventColor(event.type)}; 
+                color: ${getContrastColor(getEventColor(event.type))};">
+                <div class="event-details ${event.celebrated ? "celebrated" : ""}">
+                    <span class="event-name">${event.name}</span>
+                    <span class="event-type-date">${event.type} - ${new Date(event.date).toLocaleDateString()}</span>
+                </div>
+                <input type="checkbox" class="event-checkbox" 
+                    ${event.celebrated ? "checked" : ""} 
+                    onchange="toggleCelebrated(${index})">
+                <button class="remove-btn" onclick="removeEvent(${index})">X</button>
+            </div>
+        `;
 
           if (isEventToday) {
             todayEvents.push(li);
@@ -1026,49 +1146,49 @@
       }
 
       function checkForEvents() {
-            const today = new Date();
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
-            const todayEvents = events.filter(event => {
-                const eventDate = new Date(event.date);
-                return (
-                    today.getDate() === eventDate.getDate() &&
-                    today.getMonth() === eventDate.getMonth() &&
-                    !event.celebrated
-                );
-            });
+        const todayEvents = events.filter(event => {
+          const eventDate = new Date(event.date);
+          return (
+            today.getDate() === eventDate.getDate() &&
+            today.getMonth() === eventDate.getMonth() &&
+            !event.celebrated
+          );
+        });
 
-            const tomorrowEvents = events.filter(event => {
-                const eventDate = new Date(event.date);
-                return (
-                    tomorrow.getDate() === eventDate.getDate() &&
-                    tomorrow.getMonth() === eventDate.getMonth()
-                );
-            });
+        const tomorrowEvents = events.filter(event => {
+          const eventDate = new Date(event.date);
+          return (
+            tomorrow.getDate() === eventDate.getDate() &&
+            tomorrow.getMonth() === eventDate.getMonth()
+          );
+        });
 
-            if (todayEvents.length > 0 || tomorrowEvents.length > 0) {
-                showEventReminder(todayEvents, tomorrowEvents);
-            }
+        if (todayEvents.length > 0 || tomorrowEvents.length > 0) {
+          showEventReminder(todayEvents, tomorrowEvents);
         }
+      }
 
       function showEventReminder(todayEvents, tomorrowEvents) {
-            const reminderContent = document.getElementById('eventReminderContent');
-            let reminderHTML = '';
+        const reminderContent = document.getElementById('eventReminderContent');
+        let reminderHTML = '';
 
-            if (todayEvents.length > 0) {
-                reminderHTML += '<h3>Today\'s Events:</h3>';
-                reminderHTML += todayEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
-            }
-
-            if (tomorrowEvents.length > 0) {
-                reminderHTML += '<h3>Tomorrow\'s Events:</h3>';
-                reminderHTML += tomorrowEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
-            }
-
-            reminderContent.innerHTML = reminderHTML;
-            document.getElementById('eventReminder').style.display = 'block';
+        if (todayEvents.length > 0) {
+          reminderHTML += '<h3>Today\'s Events:</h3>';
+          reminderHTML += todayEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
         }
+
+        if (tomorrowEvents.length > 0) {
+          reminderHTML += '<h3>Tomorrow\'s Events:</h3>';
+          reminderHTML += tomorrowEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
+        }
+
+        reminderContent.innerHTML = reminderHTML;
+        document.getElementById('eventReminder').style.display = 'block';
+      }
 
       function dismissReminder() {
         document.getElementById("eventReminder").style.display = "none";
@@ -1096,16 +1216,21 @@
       function addSalary() {
         const student = document.getElementById("studentName").value;
         const amount = document.getElementById("salaryAmount").value;
+        const date = document.getElementById("salaryDate").value;
         const month = document.getElementById("salaryMonth").value;
+        
         if (student && amount && month) {
           if (!salaryData[month]) {
             salaryData[month] = {};
           }
-          salaryData[month][student] =
-            (salaryData[month][student] || 0) + Number(amount);
+          salaryData[month][student] = {
+            amount: Number(amount),
+            date: date
+          };
           saveSalaryData();
           document.getElementById("studentName").value = "";
           document.getElementById("salaryAmount").value = "";
+          document.getElementById("salaryDate").value = "";
           document.getElementById("salaryMonth").value = "";
           showEmojiAnimation("💰", document.querySelector(".salary-btn"));
         }
@@ -1114,37 +1239,54 @@
       function displaySalaryData() {
         const container = document.getElementById("salaryData");
         container.innerHTML = "";
+        
         for (const [month, students] of Object.entries(salaryData)) {
           const monthDiv = document.createElement("div");
+          let monthTotal = 0;
+          
+          const studentRows = Object.entries(students).map(([student, data]) => {
+            const amount = typeof data === 'object' ? data.amount : data;
+            const date = typeof data === 'object' ? data.date : '';
+            monthTotal += Number(amount);
+            
+            return `
+              <tr>
+                <td>${student}</td>
+                <td>
+                  <div class="amount-container">
+                    <div class="amount-row">
+                      ₹<input type="number" class="editable-amount" value="${amount}" 
+                          onchange="updateSalary('${month}', '${student}', this.value)">
+                    </div>
+                    <input type="date" class="editable-date" value="${date}" 
+                      onchange="updateSalaryDate('${month}', '${student}', this.value)">
+                  </div>
+                </td>
+                <td><button class="remove-btn" onclick="removeSalary('${month}', '${student}')">Remove</button></td>
+              </tr>
+            `;
+          }).join("");
+
           monthDiv.innerHTML = `
-                    <div class="salary-month" onclick="toggleSalaryMonth('${month}')">
-                        ${month} <span class="toggle-icon">▼</span>
-                    </div>
-                    <div id="salary-${month}" class="salary-month-data">
-                        <table>
-                            <tr>
-                                <th>Student</th>
-                                <th>Amount</th>
-                                <th>Action</th>
-                            </tr>
-                            ${Object.entries(students)
-                              .map(
-                                ([student, amount]) => `
-                                <tr>
-                                    <td>${student}</td>
-                                    <td>
-                                        ₹<input type="number" class="editable-amount" value="${amount}" 
-                                            onchange="updateSalary('${month}', '${student}', this.value)">
-                                    </td>
-                                    <td><button class="remove-btn" onclick="removeSalary('${month}', '${student}')">Remove</button></td>
-                                </tr>
-                            `
-                              )
-                              .join("")}
-                        </table>
-                        <button class="remove-btn" onclick="removeMonth('${month}')">Remove Month</button>
-                    </div>
-                `;
+            <div class="salary-month" onclick="toggleSalaryMonth('${month}')">
+              ${month} <span class="toggle-icon">▼</span>
+            </div>
+            <div id="salary-${month}" class="salary-month-data">
+              <table>
+                <tr>
+                  <th>Student</th>
+                  <th>Amount</th>
+                  <th>Action</th>
+                </tr>
+                ${studentRows}
+                <tr class="total-row">
+                  <td><strong>Total</strong></td>
+                  <td colspan="2"><strong>₹${monthTotal}</strong></td>
+                </tr>
+              </table>
+              <button class="remove-btn" onclick="removeMonth('${month}')">Remove Month</button>
+            </div>
+          `;
           container.appendChild(monthDiv);
         }
       }
@@ -1166,7 +1308,27 @@
       }
 
       function updateSalary(month, student, newAmount) {
-        salaryData[month][student] = Number(newAmount);
+        if (typeof salaryData[month][student] === 'object') {
+          salaryData[month][student].amount = Number(newAmount);
+        } else {
+          salaryData[month][student] = {
+            amount: Number(newAmount),
+            date: ''
+          };
+        }
+        saveSalaryData();
+      }
+
+      function updateSalaryDate(month, student, newDate) {
+        if (typeof salaryData[month][student] === 'object') {
+          salaryData[month][student].date = newDate;
+        } else {
+          const amount = salaryData[month][student];
+          salaryData[month][student] = {
+            amount: amount,
+            date: newDate
+          };
+        }
         saveSalaryData();
       }
 
@@ -1339,7 +1501,7 @@
         closeQuantityModal();
         const selectedDayElement = document.querySelector(`.calendar-day[data-date="${selectedDate}"]`);
         if (selectedDayElement) {
-            showEmojiAnimation('🥛', selectedDayElement);
+          showEmojiAnimation('🥛', selectedDayElement);
         }
       }
 
@@ -1421,10 +1583,10 @@
           const div = document.createElement("div");
           div.className = "milk-quantity-item";
           div.innerHTML = `
-                    <input type="number" value="${item.quantity}" step="0.1" onchange="updateMilkQuantity(${billNumber}, ${index}, 'quantity', this.value)">
-                    <input type="number" value="${item.price}" onchange="updateMilkQuantity(${billNumber}, ${index}, 'price', this.value)">
-                    <button class="remove-btn" onclick="removeMilkQuantity(${billNumber}, ${index})">Remove</button>
-                `;
+            <input type="number" value="${item.quantity}" step="0.1" onchange="updateMilkQuantity(${billNumber}, ${index}, 'quantity', this.value)">
+            <input type="number" value="${item.price}" onchange="updateMilkQuantity(${billNumber}, ${index}, 'price', this.value)">
+            <button class="remove-btn" onclick="removeMilkQuantity(${billNumber}, ${index})">Remove</button>
+          `;
           list.appendChild(div);
         });
       }
@@ -1501,6 +1663,7 @@
           milkBillType: milkBillType,
           userName: userName,
           selectedCategories: selectedCategories,
+          quickAmounts: quickAmounts,
         };
         const blob = new Blob([JSON.stringify(data)], {
           type: "application/json",
@@ -1652,7 +1815,65 @@
         if (event.target == document.getElementById("quantityModal")) {
           closeQuantityModal();
         }
+        if (event.target == document.getElementById("quickAmountEdit")) {
+          closeQuickAmountEdit();
+        }
       };
+
+      function setQuickAmount(amount) {
+        document.getElementById("salaryAmount").value = amount;
+        showEmojiAnimation("💰", event.target);
+      }
+
+      function updateQuickAmountButtons() {
+        const quickAmountsContainer = document.querySelector('.quick-amounts');
+        quickAmountsContainer.innerHTML = quickAmounts.map((amount, index) => `
+          <button class="quick-amount-btn" 
+            onclick="setQuickAmount(${amount})"
+            onmousedown="startLongPress(${index})"
+            onmouseup="clearLongPress()"
+            ontouchstart="startLongPress(${index})"
+            ontouchend="clearLongPress()"
+            ontouchcancel="clearLongPress()"
+          >₹${amount}</button>
+        `).join('');
+      }
+
+      function startLongPress(index) {
+        clearLongPress();
+        longPressTimer = setTimeout(() => {
+          editingButtonIndex = index;
+          const editModal = document.getElementById('quickAmountEdit');
+          document.getElementById('newQuickAmount').value = quickAmounts[index];
+          editModal.style.display = 'block';
+        }, 2000); // 2 seconds
+      }
+
+      function clearLongPress() {
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      }
+
+      function saveQuickAmount() {
+        const newAmount = parseInt(document.getElementById('newQuickAmount').value);
+        if (newAmount && editingButtonIndex !== null) {
+          quickAmounts[editingButtonIndex] = newAmount;
+          localStorage.setItem("quickAmounts", JSON.stringify(quickAmounts));
+          updateQuickAmountButtons();
+          closeQuickAmountEdit();
+          showEmojiAnimation("💰", document.querySelector('.quick-amounts'));
+        }
+      }
+
+      function closeQuickAmountEdit() {
+        document.getElementById('quickAmountEdit').style.display = 'none';
+        editingButtonIndex = null;
+      }
+
+      // Initialize quick amount buttons
+      updateQuickAmountButtons();
     </script>
   </body>
 </html>
