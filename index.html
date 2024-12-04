@@ -256,6 +256,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        position: relative;
       }
       .calendar-day:hover {
         background-color: #e0e0e0;
@@ -818,6 +819,88 @@
         border-radius: 3px;
         font-size: 12px;
       }
+      .quick-quantities {
+        display: flex;
+        gap: 8px;
+        margin: 10px 0;
+        flex-wrap: wrap;
+      }
+
+      .quick-quantity-btn {
+        background-color: var(--milk-color);
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 5px 15px;
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s;
+        margin: 0;
+      }
+
+      .quick-quantity-btn:hover {
+        background-color: #8e44ad;
+        transform: translateY(-2px);
+      }
+
+      .quantity-edit-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        z-index: 1001;
+        display: none;
+      }
+
+      .quantity-edit-modal input {
+        width: 100px;
+        margin-bottom: 10px;
+      }
+
+      .quantity-edit-modal .edit-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .date-preview {
+        position: absolute;
+        background-color: var(--milk-color);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 50%;
+        font-size: 18px;
+        font-weight: bold;
+        pointer-events: none;
+        animation: fadeIn 0.3s ease-in;
+        z-index: 1000;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+          transform: scale(1);
+        }
+        to {
+          opacity: 0;
+          transform: scale(0.8);
+        }
+      }
     </style>
   </head>
   <body>
@@ -1028,10 +1111,12 @@
         <div id="milkQuantity1Container">
           <h4>1st Milk Bill</h4>
           <select id="milkQuantity1"></select>
+          <div class="quick-quantities" id="quickQuantities1"></div>
         </div>
         <div id="milkQuantity2Container" class="hidden">
           <h4>2nd Milk Bill</h4>
           <select id="milkQuantity2"></select>
+          <div class="quick-quantities" id="quickQuantities2"></div>
         </div>
         <button class="milk-btn" onclick="confirmMilkQuantity()">
           Confirm 🥛
@@ -1046,6 +1131,14 @@
       <div class="quick-amount-edit-buttons">
         <button class="salary-btn" onclick="saveQuickAmount()">Save</button>
         <button class="remove-btn" onclick="closeQuickAmountEdit()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="quantity-edit-modal" id="quantityEditModal">
+      <input type="number" id="newQuantityValue" step="0.5" placeholder="Enter quantity">
+      <div class="edit-buttons">
+        <button class="milk-btn" onclick="saveQuickQuantity()">Save</button>
+        <button class="remove-btn" onclick="closeQuantityEdit()">Cancel</button>
       </div>
     </div>
 
@@ -1083,6 +1176,15 @@
 
       let previousQuantity = null;
       let autoToggleTimeout = null;
+
+      let quickQuantities = JSON.parse(localStorage.getItem("quickQuantities")) || [0.5, 1];
+      let editingQuantityIndex = null;
+      let editingQuantityBillNumber = null;
+      let quantityLongPressTimer;
+
+      // Add these variables with other global variables
+      let datePreviewTimer = null;
+      let datePreviewElement = null;
 
       function saveEvents() {
         localStorage.setItem("events", JSON.stringify(events));
@@ -1497,6 +1599,27 @@
             2,
             "0"
           )}-${String(day).padStart(2, "0")}`;
+          
+          // Only add preview events if the date is marked in milkData
+          if (milkData[dateString]) {
+            dayElement.addEventListener('mousedown', (e) => showDatePreview(e, day));
+            dayElement.addEventListener('touchstart', (e) => showDatePreview(e, day));
+            dayElement.addEventListener('mouseup', clearDatePreview);
+            dayElement.addEventListener('mouseleave', clearDatePreview);
+            dayElement.addEventListener('touchend', clearDatePreview);
+            dayElement.addEventListener('touchcancel', clearDatePreview);
+          }
+          
+          // Keep the existing click handler for all dates
+          dayElement.addEventListener('click', (e) => {
+            if (!datePreviewTimer || !milkData[dateString]) {
+              showQuantityModal(dateString);
+            } else {
+              clearTimeout(datePreviewTimer);
+              datePreviewTimer = null;
+            }
+          });
+
           if (milkData[dateString]) {
             dayElement.classList.add("active");
             if (milkBillType === "1~MB") {
@@ -1516,7 +1639,6 @@
               }
             }
           }
-          dayElement.onclick = () => showQuantityModal(dateString);
           calendar.appendChild(dayElement);
         }
       }
@@ -1535,6 +1657,12 @@
         document.getElementById("milkQuantity1").value = milkData[date]?.quantity || "";
         if (milkBillType === "2~MB") {
           document.getElementById("milkQuantity2").value = milkData[date]?.quantity2 || "";
+        }
+        
+        // Initialize quick quantity buttons
+        updateQuickQuantityButtons(1);
+        if (milkBillType === "2~MB") {
+          updateQuickQuantityButtons(2);
         }
       }
 
@@ -1896,6 +2024,9 @@
         if (event.target == document.getElementById("quickAmountEdit")) {
           closeQuickAmountEdit();
         }
+        if (event.target == document.getElementById("quantityEditModal")) {
+          closeQuantityEdit();
+        }
       };
 
       function setQuickAmount(amount) {
@@ -2009,6 +2140,110 @@
           if (autoToggleTimeout) {
             clearTimeout(autoToggleTimeout);
           }
+        }
+      }
+
+      function updateQuickQuantityButtons(billNumber) {
+        const container = document.getElementById(`quickQuantities${billNumber}`);
+        container.innerHTML = quickQuantities.map((quantity, index) => `
+          <button class="quick-quantity-btn" 
+            onclick="setQuickQuantity(${billNumber}, ${quantity})"
+            onmousedown="startQuantityLongPress(${index}, ${billNumber})"
+            onmouseup="clearQuantityLongPress()"
+            ontouchstart="startQuantityLongPress(${index}, ${billNumber})"
+            ontouchend="clearQuantityLongPress()"
+            ontouchcancel="clearQuantityLongPress()"
+          >${quantity}L</button>
+        `).join('');
+      }
+
+      function setQuickQuantity(billNumber, quantity) {
+        const selectElement = document.getElementById(`milkQuantity${billNumber}`);
+        const options = selectElement.options;
+        
+        // Find and select the matching option
+        for (let i = 0; i < options.length; i++) {
+          if (parseFloat(options[i].value) === quantity) {
+            selectElement.selectedIndex = i;
+            break;
+          }
+        }
+        
+        showEmojiAnimation("🥛", event.target);
+      }
+
+      function startQuantityLongPress(index, billNumber) {
+        clearQuantityLongPress();
+        quantityLongPressTimer = setTimeout(() => {
+          editingQuantityIndex = index;
+          editingQuantityBillNumber = billNumber;
+          const editModal = document.getElementById('quantityEditModal');
+          document.getElementById('newQuantityValue').value = quickQuantities[index];
+          editModal.style.display = 'block';
+        }, 2000);
+      }
+
+      function clearQuantityLongPress() {
+        if (quantityLongPressTimer) {
+          clearTimeout(quantityLongPressTimer);
+          quantityLongPressTimer = null;
+        }
+      }
+
+      function saveQuickQuantity() {
+        const newQuantity = parseFloat(document.getElementById('newQuantityValue').value);
+        if (newQuantity && editingQuantityIndex !== null) {
+          quickQuantities[editingQuantityIndex] = newQuantity;
+          localStorage.setItem("quickQuantities", JSON.stringify(quickQuantities));
+          updateQuickQuantityButtons(1);
+          updateQuickQuantityButtons(2);
+          closeQuantityEdit();
+          showEmojiAnimation("🥛", document.querySelector('.quick-quantities'));
+        }
+      }
+
+      function closeQuantityEdit() {
+        document.getElementById('quantityEditModal').style.display = 'none';
+        editingQuantityIndex = null;
+        editingQuantityBillNumber = null;
+      }
+
+      // Add these functions before the closing script tag
+      function showDatePreview(event, day) {
+        // Clear any existing preview
+        clearDatePreview();
+        
+        // Don't show preview if it's a quick tap/click
+        datePreviewTimer = setTimeout(() => {
+          const target = event.currentTarget;
+          const rect = target.getBoundingClientRect();
+          
+          // Create preview element
+          datePreviewElement = document.createElement('div');
+          datePreviewElement.className = 'date-preview';
+          datePreviewElement.textContent = day;
+          
+          // Position the preview centered above the cell
+          datePreviewElement.style.position = 'fixed';
+          datePreviewElement.style.left = `${rect.left + (rect.width / 2) - 20}px`;
+          datePreviewElement.style.top = `${rect.top - 40}px`;
+          
+          document.body.appendChild(datePreviewElement);
+        }, 1000); // 1 second delay
+      }
+
+      function clearDatePreview() {
+        if (datePreviewTimer) {
+          clearTimeout(datePreviewTimer);
+          datePreviewTimer = null;
+        }
+        
+        if (datePreviewElement) {
+          datePreviewElement.style.animation = 'fadeOut 0.3s ease-out';
+          datePreviewElement.addEventListener('animationend', () => {
+            datePreviewElement.remove();
+            datePreviewElement = null;
+          });
         }
       }
     </script>
