@@ -1961,12 +1961,20 @@
           const markedDates = [];
           const nilDates = [];
           
+          // Get current month and year being displayed
+          const currentMonth = currentDate.getMonth();
+          const currentYear = currentDate.getFullYear();
+          
           for (const [date, data] of Object.entries(milkData)) {
-            const dayOfMonth = new Date(date).getDate();
-            if (data.quantity === 0 || (milkBillType === "2~MB" && data.quantity2 === 0)) {
-              nilDates.push(dayOfMonth);
-            } else {
-              markedDates.push(dayOfMonth);
+            const dateObj = new Date(date);
+            // Only process dates from current month and year
+            if (dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear) {
+              const dayOfMonth = dateObj.getDate();
+              if (data.quantity === 0 || (milkBillType === "2~MB" && data.quantity2 === 0)) {
+                nilDates.push(dayOfMonth);
+              } else {
+                markedDates.push(dayOfMonth);
+              }
             }
           }
           
@@ -1974,13 +1982,15 @@
           markedDates.sort((a, b) => a - b);
           nilDates.sort((a, b) => a - b);
           
+          const monthName = currentDate.toLocaleString('default', { month: 'long' });
+          
           summary.innerHTML = `
             <div>
-              <strong>Marked Dates (${markedDates.length}):</strong>
+              <strong>${monthName} - Marked Dates (${markedDates.length}):</strong>
               ${markedDates.map(date => `<span class="marked-date">${date}</span>`).join("")}
             </div>
             <div style="margin-top: 8px">
-              <strong>Nil Dates (${nilDates.length}):</strong>
+              <strong>${monthName} - Nil Dates (${nilDates.length}):</strong>
               ${nilDates.map(date => `<span class="marked-date">${date}</span>`).join("")}
             </div>
           `;
