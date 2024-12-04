@@ -789,6 +789,35 @@
           display: block;
         }
       }
+      .milk-dates-summary {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: var(--card-background);
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        display: none;
+      }
+      .show-dates-btn {
+        background-color: var(--milk-color);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+      .show-dates-btn:hover {
+        opacity: 0.9;
+      }
+      .marked-date {
+        display: inline-block;
+        margin: 2px 4px;
+        padding: 2px 6px;
+        background-color: #f0f0f0;
+        border-radius: 3px;
+        font-size: 12px;
+      }
     </style>
   </head>
   <body>
@@ -870,25 +899,7 @@
         </div>
         <div class="input-group">
           <label for="salaryDate">Payment Date</label>
-          <input type="date" id="salaryDate" />
-        </div>
-        <div class="input-group">
-          <label for="salaryMonth">Month</label>
-          <select id="salaryMonth">
-            <option value="">Select Month</option>
-            <option value="January">January</option>
-            <option value="February">February</option>
-            <option value="March">March</option>
-            <option value="April">April</option>
-            <option value="May">May</option>
-            <option value="June">June</option>
-            <option value="July">July</option>
-            <option value="August">August</option>
-            <option value="September">September</option>
-            <option value="October">October</option>
-            <option value="November">November</option>
-            <option value="December">December</option>
-          </select>
+          <input type="date" id="salaryDate" required />
         </div>
         <button class="salary-btn" onclick="addSalary()">Add Salary</button>
         <div id="salaryData"></div>
@@ -934,6 +945,8 @@
           <div class="calendar-weekday">Sat</div>
         </div>
         <div class="calendar" id="milkCalendar"></div>
+        <button class="show-dates-btn" onclick="toggleMarkedDates()">Show Marked Dates</button>
+        <div class="milk-dates-summary" id="markedDatesSummary"></div>
         <div class="milk-bill-section" id="milkBill1">
           <h3>1st Milk Bill</h3>
           <div class="input-group">
@@ -1067,6 +1080,9 @@
       let quickAmounts = JSON.parse(localStorage.getItem("quickAmounts")) || [500, 1000];
       let editingButtonIndex = null;
       let longPressTimer;
+
+      let previousQuantity = null;
+      let autoToggleTimeout = null;
 
       function saveEvents() {
         localStorage.setItem("events", JSON.stringify(events));
@@ -1255,9 +1271,11 @@
         const student = document.getElementById("studentName").value;
         const amount = document.getElementById("salaryAmount").value;
         const date = document.getElementById("salaryDate").value;
-        const month = document.getElementById("salaryMonth").value;
         
-        if (student && amount && month) {
+        if (student && amount && date) {
+          const dateObj = new Date(date);
+          const month = dateObj.toLocaleString('default', { month: 'long' });
+          
           if (!salaryData[month]) {
             salaryData[month] = {};
           }
@@ -1269,7 +1287,6 @@
           document.getElementById("studentName").value = "";
           document.getElementById("salaryAmount").value = "";
           document.getElementById("salaryDate").value = "";
-          document.getElementById("salaryMonth").value = "";
           showEmojiAnimation("", document.querySelector(".salary-btn"));
         }
       }
@@ -1506,15 +1523,31 @@
 
       function showQuantityModal(date) {
         selectedDate = date;
-        document.getElementById("quantityModal").style.display = "block";
-        updateMilkQuantitySelect(1);
+        const modal = document.getElementById("quantityModal");
+        modal.style.display = "block";
+        
+        // Store previous quantity if exists
+        if (milkData[date]) {
+          previousQuantity = JSON.parse(JSON.stringify(milkData[date]));
+        }
+        
+        // Reset form
+        document.getElementById("milkQuantity1").value = milkData[date]?.quantity || "";
         if (milkBillType === "2~MB") {
-          updateMilkQuantitySelect(2);
+          document.getElementById("milkQuantity2").value = milkData[date]?.quantity2 || "";
         }
       }
 
       function closeQuantityModal() {
-        document.getElementById("quantityModal").style.display = "none";
+        const modal = document.getElementById("quantityModal");
+        modal.style.display = "none";
+        
+        // Restore previous quantity if exists
+        if (previousQuantity) {
+          milkData[selectedDate] = previousQuantity;
+          previousQuantity = null;
+          renderCalendar();
+        }
       }
 
       function confirmMilkQuantity() {
@@ -1919,6 +1952,55 @@
 
       // Initialize quick amount buttons
       updateQuickAmountButtons();
+
+      function toggleMarkedDates() {
+        const summary = document.getElementById("markedDatesSummary");
+        const btn = document.querySelector(".show-dates-btn");
+        
+        if (summary.style.display === "none" || !summary.style.display) {
+          const markedDates = [];
+          const nilDates = [];
+          
+          for (const [date, data] of Object.entries(milkData)) {
+            const dayOfMonth = new Date(date).getDate();
+            if (data.quantity === 0 || (milkBillType === "2~MB" && data.quantity2 === 0)) {
+              nilDates.push(dayOfMonth);
+            } else {
+              markedDates.push(dayOfMonth);
+            }
+          }
+          
+          // Sort dates numerically
+          markedDates.sort((a, b) => a - b);
+          nilDates.sort((a, b) => a - b);
+          
+          summary.innerHTML = `
+            <div>
+              <strong>Marked Dates (${markedDates.length}):</strong>
+              ${markedDates.map(date => `<span class="marked-date">${date}</span>`).join("")}
+            </div>
+            <div style="margin-top: 8px">
+              <strong>Nil Dates (${nilDates.length}):</strong>
+              ${nilDates.map(date => `<span class="marked-date">${date}</span>`).join("")}
+            </div>
+          `;
+          
+          summary.style.display = "block";
+          btn.textContent = "Hide Marked Dates";
+          
+          // Auto-toggle after 2 seconds
+          autoToggleTimeout = setTimeout(() => {
+            summary.style.display = "none";
+            btn.textContent = "Show Marked Dates";
+          }, 2000);
+        } else {
+          summary.style.display = "none";
+          btn.textContent = "Show Marked Dates";
+          if (autoToggleTimeout) {
+            clearTimeout(autoToggleTimeout);
+          }
+        }
+      }
     </script>
   </body>
 </html>
