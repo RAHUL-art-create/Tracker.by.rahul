@@ -63,21 +63,23 @@
       }
 
       .calendar {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center; /* Center content within the container */
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
         padding: 10px;
-        box-sizing: border-box; /* Include padding in element's total width */
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       }
       @media (max-width: 767px) {
         .calendar-day {
-          width: 30px; /* Make the boxes smaller */
-          height: 30px;
-          margin: 4px;
+          min-height: 60px;
+          padding: 4px;
+          font-size: 0.9em;
         }
-
-        .calendar-container {
-          padding: 0 10px; /* Ensure padding is adjusted for mobile */
+        
+        .calendar {
+          gap: 2px;
         }
       }
       .large-element {
@@ -239,32 +241,54 @@
       .remove-btn:hover {
         background-color: #c0392b;
       }
-      .calendar {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
-      }
       .calendar-day {
-        padding: 10px;
+        padding: 4px;
         text-align: center;
         background-color: #f1f1f1;
         cursor: pointer;
-        border-radius: 5px;
+        border-radius: 8px;
         transition: all 0.3s ease;
-        min-height: 60px;
+        min-height: 55px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: space-evenly;
         align-items: center;
         position: relative;
+        margin: 2px;
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        line-height: 1.2;
+      }
+
+      .calendar-day br {
+        display: none;
+      }
+
+      .calendar-day span {
+        display: block;
+        margin-top: 2px;
+      }
+
+      @media (max-width: 767px) {
+        .calendar-day {
+          min-height: 45px;
+          padding: 2px;
+          font-size: 0.85em;
+        }
       }
       .calendar-day:hover {
         background-color: #e0e0e0;
-        transform: scale(1.05);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
       }
       .calendar-day.active {
         background-color: var(--milk-color);
         color: white;
+        border: none;
+        box-shadow: 0 4px 8px rgba(155, 89, 182, 0.3);
+      }
+      .calendar-day.active:hover {
+        background-color: #8e44ad;
       }
       .calendar-controls {
         display: flex;
@@ -342,13 +366,15 @@
       .calendar-weekdays {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 5px;
-        margin-bottom: 10px;
+        gap: 4px;
+        margin-bottom: 8px;
+        padding: 0 10px;
       }
       .calendar-weekday {
         text-align: center;
         font-weight: bold;
         color: var(--primary-color);
+        padding: 8px 0;
       }
       .watermark {
         position: fixed;
@@ -1600,7 +1626,6 @@
             "0"
           )}-${String(day).padStart(2, "0")}`;
           
-          // Only add preview events if the date is marked in milkData
           if (milkData[dateString]) {
             dayElement.addEventListener('mousedown', (e) => showDatePreview(e, day));
             dayElement.addEventListener('touchstart', (e) => showDatePreview(e, day));
@@ -1610,7 +1635,6 @@
             dayElement.addEventListener('touchcancel', clearDatePreview);
           }
           
-          // Keep the existing click handler for all dates
           dayElement.addEventListener('click', (e) => {
             if (!datePreviewTimer || !milkData[dateString]) {
               showQuantityModal(dateString);
@@ -1624,18 +1648,16 @@
             dayElement.classList.add("active");
             if (milkBillType === "1~MB") {
               if (milkData[dateString].quantity > 0) {
-                dayElement.innerHTML += `<br>🥛 ${milkData[dateString].quantity}L`;
+                dayElement.innerHTML = `${day}<span>🥛 ${milkData[dateString].quantity}L</span>`;
               } else {
-                dayElement.innerHTML += "<br>❌ Nil";
+                dayElement.innerHTML = `${day}<span>❌ Nil</span>`;
               }
             } else {
-              const total =
-                (milkData[dateString].quantity1 || 0) +
-                (milkData[dateString].quantity2 || 0);
+              const total = (milkData[dateString].quantity1 || 0) + (milkData[dateString].quantity2 || 0);
               if (total > 0) {
-                dayElement.innerHTML += `<br>🥛 ${total}L`;
+                dayElement.innerHTML = `${day}<span>🥛 ${total}L</span>`;
               } else {
-                dayElement.innerHTML += "<br>❌ Nil";
+                dayElement.innerHTML = `${day}<span>❌ Nil</span>`;
               }
             }
           }
@@ -1651,12 +1673,17 @@
         // Store previous quantity if exists
         if (milkData[date]) {
           previousQuantity = JSON.parse(JSON.stringify(milkData[date]));
+        } else {
+          previousQuantity = null;
         }
         
-        // Reset form
-        document.getElementById("milkQuantity1").value = milkData[date]?.quantity || "";
+        // Update dropdowns
+        updateMilkQuantitySelect(1);
         if (milkBillType === "2~MB") {
-          document.getElementById("milkQuantity2").value = milkData[date]?.quantity2 || "";
+          updateMilkQuantitySelect(2);
+          document.getElementById("milkQuantity2Container").classList.remove("hidden");
+        } else {
+          document.getElementById("milkQuantity2Container").classList.add("hidden");
         }
         
         // Initialize quick quantity buttons
@@ -1679,35 +1706,43 @@
       }
 
       function confirmMilkQuantity() {
-        const quantity1 = parseFloat(
-          document.getElementById("milkQuantity1").value
-        );
-        const selectedOption1 =
-          document.getElementById("milkQuantity1").options[
-            document.getElementById("milkQuantity1").selectedIndex
-          ];
+        const quantity1Select = document.getElementById("milkQuantity1");
+        const quantity2Select = document.getElementById("milkQuantity2");
+        
+        const quantity1 = parseFloat(quantity1Select.value);
+        const selectedOption1 = quantity1Select.options[quantity1Select.selectedIndex];
         const cost1 = parseFloat(selectedOption1.getAttribute("data-price"));
 
         if (milkBillType === "1~MB") {
           milkData[selectedDate] = { quantity: quantity1, cost: cost1 };
         } else {
-          const quantity2 = parseFloat(
-            document.getElementById("milkQuantity2").value
-          );
-          const selectedOption2 =
-            document.getElementById("milkQuantity2").options[
-              document.getElementById("milkQuantity2").selectedIndex
-            ];
+          const quantity2 = parseFloat(quantity2Select.value);
+          const selectedOption2 = quantity2Select.options[quantity2Select.selectedIndex];
           const cost2 = parseFloat(selectedOption2.getAttribute("data-price"));
-          milkData[selectedDate] = { quantity1, cost1, quantity2, cost2 };
+          milkData[selectedDate] = { 
+            quantity1, 
+            cost1, 
+            quantity2, 
+            cost2 
+          };
         }
 
         saveMilkData();
         renderCalendar();
         closeQuantityModal();
-        const selectedDayElement = document.querySelector(`.calendar-day[data-date="${selectedDate}"]`);
+        
+        // Show animation on the selected day
+        const selectedDayElement = Array.from(document.querySelectorAll('.calendar-day')).find(
+          el => el.textContent.startsWith(new Date(selectedDate).getDate().toString())
+        );
         if (selectedDayElement) {
           showEmojiAnimation('🥛', selectedDayElement);
+        }
+
+        // Update the milk quantities in the UI immediately
+        updateMilkQuantitySelect(1);
+        if (milkBillType === "2~MB") {
+          updateMilkQuantitySelect(2);
         }
       }
 
@@ -1830,15 +1865,32 @@
         const select = document.getElementById(`milkQuantity${billNumber}`);
         select.innerHTML = "";
         const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
+        
+        // Add default option
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "0";
+        defaultOption.textContent = "Select quantity";
+        defaultOption.setAttribute("data-price", "0");
+        select.appendChild(defaultOption);
+        
         quantities.forEach((item) => {
           const option = document.createElement("option");
           option.value = item.quantity;
-          option.textContent = `${item.quantity} liter${
-            item.quantity !== 1 ? "s" : ""
-          } (₹${item.price})`;
+          option.textContent = `${item.quantity} liter${item.quantity !== 1 ? "s" : ""} (₹${item.price})`;
           option.setAttribute("data-price", item.price);
           select.appendChild(option);
         });
+
+        // Set the current value if exists
+        if (selectedDate && milkData[selectedDate]) {
+          const currentValue = billNumber === 1 ? 
+            (milkBillType === "1~MB" ? milkData[selectedDate].quantity : milkData[selectedDate].quantity1) : 
+            milkData[selectedDate].quantity2;
+          
+          if (currentValue) {
+            select.value = currentValue;
+          }
+        }
       }
 
       function changeMilkBillType() {
@@ -2092,28 +2144,58 @@
           const markedDates = [];
           const nilDates = [];
           
-          // Get current month and year being displayed
           const currentMonth = currentDate.getMonth();
           const currentYear = currentDate.getFullYear();
           
           for (const [date, data] of Object.entries(milkData)) {
             const dateObj = new Date(date);
-            // Only process dates from current month and year
             if (dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear) {
               const dayOfMonth = dateObj.getDate();
-              if (data.quantity === 0 || (milkBillType === "2~MB" && data.quantity2 === 0)) {
-                nilDates.push(dayOfMonth);
+              if (milkBillType === "1~MB") {
+                if (data.quantity === 0) {
+                  nilDates.push(dayOfMonth);
+                } else {
+                  markedDates.push(dayOfMonth);
+                }
               } else {
-                markedDates.push(dayOfMonth);
+                // For 2MB mode
+                const q1 = data.quantity1 || 0;
+                const q2 = data.quantity2 || 0;
+                
+                if (q1 === 0 || q2 === 0) {
+                  nilDates.push({
+                    day: dayOfMonth,
+                    bill1: q1 === 0,
+                    bill2: q2 === 0
+                  });
+                }
+                if (q1 > 0 || q2 > 0) {
+                  markedDates.push(dayOfMonth);
+                }
               }
             }
           }
           
-          // Sort dates numerically
           markedDates.sort((a, b) => a - b);
-          nilDates.sort((a, b) => a - b);
+          if (milkBillType === "1~MB") {
+            nilDates.sort((a, b) => a - b);
+          } else {
+            nilDates.sort((a, b) => a.day - b.day);
+          }
           
           const monthName = currentDate.toLocaleString('default', { month: 'long' });
+          
+          let nilDatesHTML = '';
+          if (milkBillType === "1~MB") {
+            nilDatesHTML = nilDates.map(date => `<span class="marked-date">${date}</span>`).join("");
+          } else {
+            nilDatesHTML = nilDates.map(item => {
+              let missedBills = [];
+              if (item.bill1) missedBills.push("1st");
+              if (item.bill2) missedBills.push("2nd");
+              return `<span class="marked-date">${item.day} (${missedBills.join(", ")})</span>`;
+            }).join("");
+          }
           
           summary.innerHTML = `
             <div>
@@ -2122,14 +2204,13 @@
             </div>
             <div style="margin-top: 8px">
               <strong>${monthName} - Nil Dates (${nilDates.length}):</strong>
-              ${nilDates.map(date => `<span class="marked-date">${date}</span>`).join("")}
+              ${nilDatesHTML}
             </div>
           `;
           
           summary.style.display = "block";
           btn.textContent = "Hide Marked Dates";
           
-          // Auto-toggle after 2 seconds
           autoToggleTimeout = setTimeout(() => {
             summary.style.display = "none";
             btn.textContent = "Show Marked Dates";
