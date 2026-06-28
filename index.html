@@ -30,6 +30,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
     <style>
       :root {
         --primary-color: #3498db;
@@ -507,6 +508,25 @@
         padding: 8px 12px;
         font-size: 14px;
       }
+      .backup-toast {
+        position: fixed;
+        bottom: 40px;
+        left: 10px;
+        background-color: var(--secondary-color);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 13px;
+        z-index: 2000;
+        animation: slideUp 0.3s ease-out;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        pointer-events: auto;
+        cursor: pointer;
+      }
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
       .event-reminder {
         position: fixed;
         top: 20px;
@@ -927,9 +947,35 @@
           transform: scale(0.8);
         }
       }
+
+      body {
+        background-image: radial-gradient(circle, rgba(0,0,0,0.06) 0.5px, transparent 0.5px);
+        background-size: 20px 20px;
+      }
+
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.06;
+        filter: url(#paper-grain);
+        background: rgba(128,128,128,0.15);
+      }
     </style>
   </head>
   <body>
+    <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+      <defs>
+        <filter id="paper-grain" color-interpolation-filters="sRGB" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch" result="noise"/>
+          <feColorMatrix type="saturate" values="0" in="noise" result="grey"/>
+          <feBlend in="SourceGraphic" in2="grey" mode="multiply"/>
+        </filter>
+      </defs>
+    </svg>
+
     <div class="customization-icon" onclick="showCustomizationModal()">⚙️</div>
     <div id="customizationModal" class="customization-modal">
       <div class="customization-content">
@@ -1169,20 +1215,16 @@
     </div>
 
     <script>
-      let events = JSON.parse(localStorage.getItem("events")) || [];
-      let salaryData = JSON.parse(localStorage.getItem("salaryData")) || {};
-      let milkData = JSON.parse(localStorage.getItem("milkData")) || {};
-      let milkQuantities = JSON.parse(
-        localStorage.getItem("milkQuantities")
-      ) || [
+      let events = [];
+      let salaryData = {};
+      let milkData = {};
+      let milkQuantities = [
         { quantity: 0, price: 0 },
         { quantity: 1, price: 55 },
         { quantity: 1.5, price: 83 },
         { quantity: 2, price: 110 },
       ];
-      let milkQuantities2 = JSON.parse(
-        localStorage.getItem("milkQuantities2")
-      ) || [
+      let milkQuantities2 = [
         { quantity: 0, price: 0 },
         { quantity: 1, price: 60 },
         { quantity: 1.5, price: 90 },
@@ -1190,20 +1232,18 @@
       ];
       let currentDate = new Date();
       let selectedDate = null;
-      let milkBillType = localStorage.getItem("milkBillType") || "1~MB";
-      let userName = localStorage.getItem("userName") || "";
-      let selectedCategories = JSON.parse(
-        localStorage.getItem("selectedCategories")
-      ) || ["events", "salary", "milk"];
+      let milkBillType = "1~MB";
+      let userName = "";
+      let selectedCategories = ["events", "salary", "milk"];
 
-      let quickAmounts = JSON.parse(localStorage.getItem("quickAmounts")) || [500, 1000];
+      let quickAmounts = [500, 1000];
       let editingButtonIndex = null;
       let longPressTimer;
 
       let previousQuantity = null;
       let autoToggleTimeout = null;
 
-      let quickQuantities = JSON.parse(localStorage.getItem("quickQuantities")) || [0.5, 1];
+      let quickQuantities = [0.5, 1];
       let editingQuantityIndex = null;
       let editingQuantityBillNumber = null;
       let quantityLongPressTimer;
@@ -1212,26 +1252,23 @@
       let datePreviewTimer = null;
       let datePreviewElement = null;
 
-      function saveEvents() {
-        localStorage.setItem("events", JSON.stringify(events));
+      async function saveEvents() {
+        await localforage.setItem("events", events);
         displayEvents();
       }
 
-      function saveSalaryData() {
-        localStorage.setItem("salaryData", JSON.stringify(salaryData));
+      async function saveSalaryData() {
+        await localforage.setItem("salaryData", salaryData);
         displaySalaryData();
       }
 
-      function saveMilkData() {
-        localStorage.setItem("milkData", JSON.stringify(milkData));
+      async function saveMilkData() {
+        await localforage.setItem("milkData", milkData);
       }
 
-      function saveMilkQuantities() {
-        localStorage.setItem("milkQuantities", JSON.stringify(milkQuantities));
-        localStorage.setItem(
-          "milkQuantities2",
-          JSON.stringify(milkQuantities2)
-        );
+      async function saveMilkQuantities() {
+        await localforage.setItem("milkQuantities", milkQuantities);
+        await localforage.setItem("milkQuantities2", milkQuantities2);
         displayMilkQuantities();
         updateMilkQuantitySelect(1);
         if (milkBillType === "2~MB") {
@@ -1897,7 +1934,7 @@
         milkBillType = document.querySelector(
           'input[name="milkBillType"]:checked'
         ).value;
-        localStorage.setItem("milkBillType", milkBillType);
+        localforage.setItem("milkBillType", milkBillType);
         document
           .getElementById("milkBill2")
           .classList.toggle("hidden", milkBillType === "1~MB");
@@ -1911,7 +1948,7 @@
         displayMilkQuantities();
       }
 
-      function downloadData() {
+      async function downloadData() {
         const data = {
           events: events,
           salaryData: salaryData,
@@ -1930,20 +1967,21 @@
         a.href = URL.createObjectURL(blob);
         a.download = "personal_tracker_data.json";
         a.click();
+        URL.revokeObjectURL(a.href);
         showEmojiAnimation(
           "💾",
           document.querySelector(".data-buttons button:first-child")
         );
       }
 
-      function uploadData() {
+      async function uploadData() {
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".json";
         input.onchange = function (event) {
           const file = event.target.files[0];
           const reader = new FileReader();
-          reader.onload = function (e) {
+          reader.onload = async function (e) {
             const data = JSON.parse(e.target.result);
             events = data.events;
             salaryData = data.salaryData;
@@ -1957,13 +1995,18 @@
               "salary",
               "milk",
             ];
+            quickAmounts = data.quickAmounts || quickAmounts;
             document.querySelector(
               `input[name="milkBillType"][value="${milkBillType}"]`
             ).checked = true;
-            saveEvents();
-            saveSalaryData();
-            saveMilkData();
-            saveMilkQuantities();
+            await saveEvents();
+            await saveSalaryData();
+            await saveMilkData();
+            await saveMilkQuantities();
+            await localforage.setItem("milkBillType", milkBillType);
+            await localforage.setItem("userName", userName);
+            await localforage.setItem("selectedCategories", selectedCategories);
+            await localforage.setItem("quickAmounts", quickAmounts);
             displayEvents();
             displaySalaryData();
             renderCalendar();
@@ -2019,11 +2062,8 @@
         if (document.getElementById("milkCheck").checked)
           selectedCategories.push("milk");
         userName = document.getElementById("userName").value;
-        localStorage.setItem(
-          "selectedCategories",
-          JSON.stringify(selectedCategories)
-        );
-        localStorage.setItem("userName", userName);
+        localforage.setItem("selectedCategories", selectedCategories);
+        localforage.setItem("userName", userName);
         updateSelectedCategories();
         updateUserName();
         document.getElementById("customizationModal").style.display = "none";
@@ -2047,23 +2087,110 @@
           : "";
       }
 
-      // Set initial milk bill type
-      document.querySelector(
-        `input[name="milkBillType"][value="${milkBillType}"]`
-      ).checked = true;
-      changeMilkBillType();
+      // Migration from localStorage to localForage (first-time only)
+      async function migrateFromLocalStorage() {
+        const migrated = await localforage.getItem("_migrated");
+        if (migrated) return;
 
-      displayEvents();
-      displaySalaryData();
-      renderCalendar();
-      displayMilkQuantities();
-      updateMilkQuantitySelect(1);
-      if (milkBillType === "2~MB") {
-        updateMilkQuantitySelect(2);
+        const keys = ["events", "salaryData", "milkData", "milkQuantities", "milkQuantities2", "milkBillType", "userName", "selectedCategories", "quickAmounts", "quickQuantities"];
+        let hasData = false;
+
+        for (const key of keys) {
+          const oldVal = localStorage.getItem(key);
+          if (oldVal !== null) {
+            hasData = true;
+            try {
+              await localforage.setItem(key, JSON.parse(oldVal));
+            } catch (e) {
+              await localforage.setItem(key, oldVal);
+            }
+          }
+        }
+
+        await localforage.setItem("_migrated", true);
+
+        if (hasData) {
+          showToast("Data migrated to new storage! Your data is now safer.");
+        }
       }
-      checkForEvents();
-      updateSelectedCategories();
-      updateUserName();
+
+      // Request persistent storage to prevent browser auto-eviction
+      async function requestPersistentStorage() {
+        if (navigator.storage && navigator.storage.persist) {
+          try {
+            const persisted = await navigator.storage.persisted();
+            if (!persisted) {
+              const result = await navigator.storage.persist();
+              if (result) {
+                console.log("Persistent storage granted - data protected from eviction");
+              }
+            }
+          } catch (e) {
+            // Silently fail - not all browsers support this
+          }
+        }
+      }
+
+      function showToast(message) {
+        const toast = document.createElement("div");
+        toast.className = "backup-toast";
+        toast.textContent = message;
+        toast.onclick = () => toast.remove();
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+      }
+
+      // Async app initialization
+      async function initApp() {
+        // Configure localForage
+        localforage.config({
+          name: "PersonalTracker",
+          storeName: "tracker_data"
+        });
+
+        // Request persistent storage (prevents browser auto-eviction)
+        requestPersistentStorage();
+
+        // Migrate old localStorage data if needed (first-time only)
+        await migrateFromLocalStorage();
+
+        // Load all data from localForage (primary) or defaults
+        events = (await localforage.getItem("events")) || [];
+        salaryData = (await localforage.getItem("salaryData")) || {};
+        milkData = (await localforage.getItem("milkData")) || {};
+        const loadedMQ1 = await localforage.getItem("milkQuantities");
+        if (loadedMQ1) milkQuantities = loadedMQ1;
+        const loadedMQ2 = await localforage.getItem("milkQuantities2");
+        if (loadedMQ2) milkQuantities2 = loadedMQ2;
+        milkBillType = (await localforage.getItem("milkBillType")) || "1~MB";
+        userName = (await localforage.getItem("userName")) || "";
+        selectedCategories = (await localforage.getItem("selectedCategories")) || ["events", "salary", "milk"];
+        const loadedQA = await localforage.getItem("quickAmounts");
+        if (loadedQA) quickAmounts = loadedQA;
+        const loadedQQ = await localforage.getItem("quickQuantities");
+        if (loadedQQ) quickQuantities = loadedQQ;
+
+        // Set initial milk bill type
+        document.querySelector(
+          `input[name="milkBillType"][value="${milkBillType}"]`
+        ).checked = true;
+        changeMilkBillType();
+
+        displayEvents();
+        displaySalaryData();
+        renderCalendar();
+        displayMilkQuantities();
+        updateMilkQuantitySelect(1);
+        if (milkBillType === "2~MB") {
+          updateMilkQuantitySelect(2);
+        }
+        checkForEvents();
+        updateSelectedCategories();
+        updateUserName();
+        updateQuickAmountButtons();
+      }
+
+      initApp();
 
       // Close modal when clicking outside of it
       window.onclick = function (event) {
@@ -2121,7 +2248,7 @@
         const newAmount = parseInt(document.getElementById('newQuickAmount').value);
         if (newAmount && editingButtonIndex !== null) {
           quickAmounts[editingButtonIndex] = newAmount;
-          localStorage.setItem("quickAmounts", JSON.stringify(quickAmounts));
+          localforage.setItem("quickAmounts", quickAmounts);
           updateQuickAmountButtons();
           closeQuickAmountEdit();
           showEmojiAnimation("💰", document.querySelector('.quick-amounts'));
@@ -2275,7 +2402,7 @@
         const newQuantity = parseFloat(document.getElementById('newQuantityValue').value);
         if (newQuantity && editingQuantityIndex !== null) {
           quickQuantities[editingQuantityIndex] = newQuantity;
-          localStorage.setItem("quickQuantities", JSON.stringify(quickQuantities));
+          localforage.setItem("quickQuantities", quickQuantities);
           updateQuickQuantityButtons(1);
           updateQuickQuantityButtons(2);
           closeQuantityEdit();
