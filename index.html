@@ -1797,15 +1797,16 @@
 
       function analyzeMilkConsumption(billNumber) {
         const startDate = new Date(
-          document.getElementById(`startDate${billNumber}`).value
+          document.getElementById(`startDate${billNumber}`).value + "T00:00:00"
         );
         const endDate = new Date(
-          document.getElementById(`endDate${billNumber}`).value
+          document.getElementById(`endDate${billNumber}`).value + "T00:00:00"
         );
         let totalDays = 0;
         let milkTakenDays = 0;
         let totalQuantity = 0;
         let totalCost = 0;
+        const breakdown = {};
 
         for (
           let d = new Date(startDate);
@@ -1813,7 +1814,9 @@
           d.setDate(d.getDate() + 1)
         ) {
           totalDays++;
-          const dateString = d.toISOString().split("T")[0];
+          const dateString = `${d.getFullYear()}-${String(
+            d.getMonth() + 1
+          ).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
           if (milkData[dateString]) {
             const quantity =
               milkBillType === "1~MB"
@@ -1827,9 +1830,25 @@
               milkTakenDays++;
               totalQuantity += quantity;
               totalCost += cost;
+              const key = `${quantity}|${cost}`;
+              if (!breakdown[key]) {
+                breakdown[key] = { count: 0, quantity: 0, cost: 0 };
+              }
+              breakdown[key].count++;
+              breakdown[key].quantity += quantity;
+              breakdown[key].cost += cost;
             }
           }
         }
+
+        let breakdownHtml = "";
+        Object.values(breakdown).forEach((b) => {
+          breakdownHtml += `${b.count} day${
+            b.count !== 1 ? "s" : ""
+          } × ${b.quantity / b.count} L @ ₹${b.cost / b.count} = ₹${b.cost.toFixed(
+            2
+          )}<br>`;
+        });
 
         const resultElement = document.getElementById(
           `analysisResult${billNumber}`
@@ -1837,8 +1856,12 @@
         resultElement.innerHTML = `
                 From ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}:<br>
                 Milk taken on ${milkTakenDays} out of ${totalDays} days.<br>
-                Total quantity: ${totalQuantity.toFixed(1)} liters<br>
-                Total cost: ₹${totalCost.toFixed(2)}
+                <br><strong>Calculation Breakdown:</strong><br>
+                ${breakdownHtml || "No milk taken."}
+                <br><strong>Total quantity: ${totalQuantity.toFixed(
+                  2
+                )} liters</strong><br>
+                <strong>Total cost: ₹${totalCost.toFixed(2)}</strong>
             `;
         showEmojiAnimation("📊", document.querySelector(".milk-btn"));
       }
