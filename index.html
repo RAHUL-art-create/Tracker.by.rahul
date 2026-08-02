@@ -1266,14 +1266,19 @@
         await localforage.setItem("milkData", milkData);
       }
 
-      async function saveMilkQuantities() {
-        await localforage.setItem("milkQuantities", milkQuantities);
-        await localforage.setItem("milkQuantities2", milkQuantities2);
+      function refreshMilkUI() {
         displayMilkQuantities();
         updateMilkQuantitySelect(1);
         if (milkBillType === "2~MB") {
           updateMilkQuantitySelect(2);
         }
+        renderCalendar();
+      }
+
+      async function saveMilkQuantities() {
+        refreshMilkUI();
+        await localforage.setItem("milkQuantities", milkQuantities);
+        await localforage.setItem("milkQuantities2", milkQuantities2);
       }
 
       function addEvent() {
@@ -1872,12 +1877,14 @@
       function updateMilkQuantity(billNumber, index, field, value) {
         const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
         quantities[index][field] = parseFloat(value);
+        refreshMilkUI();
         saveMilkQuantities();
       }
 
       function removeMilkQuantity(billNumber, index) {
         const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
         quantities.splice(index, 1);
+        refreshMilkUI();
         saveMilkQuantities();
       }
 
@@ -1892,6 +1899,7 @@
           const quantities =
             billNumber === 1 ? milkQuantities : milkQuantities2;
           quantities.push({ quantity, price });
+          refreshMilkUI();
           saveMilkQuantities();
           document.getElementById(`newMilkQuantity${billNumber}`).value = "";
           document.getElementById(`newMilkPrice${billNumber}`).value = "";
