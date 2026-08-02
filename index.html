@@ -1735,16 +1735,17 @@
         }
       }
 
-      function closeQuantityModal() {
+      function closeQuantityModal(restorePrevious) {
         const modal = document.getElementById("quantityModal");
         modal.style.display = "none";
         
-        // Restore previous quantity if exists
-        if (previousQuantity) {
+        // Restore previous quantity if cancelling (not confirmed)
+        if (restorePrevious !== false && previousQuantity) {
           milkData[selectedDate] = previousQuantity;
           previousQuantity = null;
           renderCalendar();
         }
+        previousQuantity = null;
       }
 
       function confirmMilkQuantity() {
@@ -1771,7 +1772,7 @@
 
         saveMilkData();
         renderCalendar();
-        closeQuantityModal();
+        closeQuantityModal(false);
         
         // Show animation on the selected day
         const selectedDayElement = Array.from(document.querySelectorAll('.calendar-day')).find(
