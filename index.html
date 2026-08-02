@@ -1792,6 +1792,21 @@
       function changeMonth(delta) {
         currentDate.setMonth(currentDate.getMonth() + delta);
         renderCalendar();
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+        const lastDay = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+          new Date(year, month + 1, 0).getDate()
+        ).padStart(2, "0")}`;
+
+        ["1", "2"].forEach((billNumber) => {
+          const startInput = document.getElementById(`startDate${billNumber}`);
+          const endInput = document.getElementById(`endDate${billNumber}`);
+          if (startInput) startInput.value = firstDay;
+          if (endInput) endInput.value = lastDay;
+        });
+
         showEmojiAnimation(delta > 0 ? "▶️" : "◀️", event.target);
       }
 
