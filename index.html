@@ -1916,8 +1916,29 @@
       function updateMilkQuantity(billNumber, index, field, value) {
         const quantities = billNumber === 1 ? milkQuantities : milkQuantities2;
         quantities[index][field] = parseFloat(value);
+
+        if (field === "price") {
+          syncMilkCosts(billNumber, quantities[index].quantity, quantities[index].price);
+        }
+
         refreshMilkUI();
         saveMilkQuantities();
+      }
+
+      function syncMilkCosts(billNumber, quantity, price) {
+        Object.keys(milkData).forEach((date) => {
+          const entry = milkData[date];
+          if (billNumber === 1) {
+            if (milkBillType === "1~MB") {
+              if (entry.quantity === quantity) entry.cost = price;
+            } else {
+              if (entry.quantity1 === quantity) entry.cost1 = price;
+            }
+          } else {
+            if (entry.quantity2 === quantity) entry.cost2 = price;
+          }
+        });
+        saveMilkData();
       }
 
       function removeMilkQuantity(billNumber, index) {
