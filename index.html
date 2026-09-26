@@ -971,6 +971,127 @@
         .event-reminder-actions button {
           min-width: 45%;
         }
+
+        /* Compact Settings & Modals for Mobile View */
+        .customization-modal {
+          padding: 14px 10px;
+        }
+        .customization-content {
+          margin: 10px auto;
+          padding: 16px 14px;
+          border-radius: 14px;
+          max-width: 320px;
+        }
+        .customization-content h2 {
+          font-size: 17px;
+          margin: 0 0 10px 0;
+        }
+        .customization-content .checkbox-group {
+          gap: 6px;
+          margin-bottom: 10px;
+        }
+        .customization-content .sleek-checkbox-card {
+          padding: 8px 10px;
+          gap: 10px;
+          border-radius: 9px;
+        }
+        .customization-content .sleek-checkbox-box {
+          width: 18px;
+          height: 18px;
+          border-radius: 5px;
+        }
+        .customization-content .sleek-check-icon {
+          width: 10px;
+          height: 8px;
+        }
+        .customization-content .category-indicator {
+          width: 7px;
+          height: 7px;
+        }
+        .customization-content .sleek-checkbox-label {
+          font-size: 13px;
+        }
+        .customization-content .field-group {
+          margin-top: 8px;
+        }
+        .customization-content .field-group label {
+          font-size: 11.5px;
+          margin-bottom: 3px;
+        }
+        .customization-content input[type="text"],
+        .customization-content input[type="password"] {
+          padding: 8px 10px !important;
+          border-radius: 7px;
+          font-size: 14px !important;
+        }
+        .customization-content small {
+          font-size: 10.5px;
+          margin-top: 2px;
+          line-height: 1.25;
+          display: block;
+        }
+        #modalCloudStatus {
+          margin: 8px 0 4px 0 !important;
+          font-size: 11px !important;
+        }
+        .customization-content button.save-btn {
+          padding: 9px 12px;
+          margin-top: 10px;
+          font-size: 13.5px;
+          border-radius: 7px;
+        }
+        .modal-restore-btn {
+          padding: 8px 12px;
+          margin-top: 6px;
+          font-size: 12.5px;
+          border-radius: 7px;
+        }
+        .modal-close-link {
+          padding: 6px 0;
+          margin-top: 4px;
+          font-size: 12px;
+        }
+        #staticHostHint {
+          font-size: 11px !important;
+          margin-top: 8px !important;
+          padding: 5px 8px !important;
+        }
+
+        .pin-modal-content {
+          margin: 20px auto;
+          padding: 18px 14px;
+          border-radius: 14px;
+          max-width: 300px;
+        }
+        .pin-modal-content h3 {
+          font-size: 17px;
+          margin-bottom: 6px;
+        }
+        .pin-modal-content p {
+          font-size: 12px;
+          margin-bottom: 12px;
+          line-height: 1.4;
+        }
+        .pin-input-field {
+          font-size: 20px;
+          padding: 6px;
+          width: 120px;
+        }
+        .pin-modal-actions {
+          margin-top: 14px;
+          gap: 8px;
+        }
+        .pin-btn-primary, .pin-btn-secondary {
+          padding: 8px 12px;
+          font-size: 13px;
+        }
+
+        .modal-content {
+          margin: 15% auto;
+          padding: 16px;
+          max-width: 90vw;
+          border-radius: 12px;
+        }
       }
       .editable-date {
         border: none;
@@ -1621,9 +1742,29 @@
         }
       }
 
+      // Mobile back button navigation & modal management
+      function pushModalHistory(modalId) {
+        try {
+          if (!history.state || history.state.activeModal !== modalId) {
+            history.pushState({ activeModal: modalId }, "");
+          }
+        } catch (e) {}
+      }
+
+      function popModalHistory(modalId) {
+        try {
+          if (history.state && history.state.activeModal === modalId) {
+            history.back();
+          }
+        } catch (e) {}
+      }
+
       function closeCustomizationModal() {
         const modal = document.getElementById("customizationModal");
-        if (modal) modal.style.display = "none";
+        if (modal && modal.style.display !== "none") {
+          modal.style.display = "none";
+          popModalHistory("customizationModal");
+        }
       }
 
       function toggleCheckbox(id) {
@@ -1637,11 +1778,58 @@
       window.addEventListener("click", function(event) {
         const custModal = document.getElementById("customizationModal");
         if (custModal && event.target === custModal) {
-          custModal.style.display = "none";
+          closeCustomizationModal();
         }
         const pinModal = document.getElementById("pinSetupModal");
         if (pinModal && event.target === pinModal) {
+          closePinPrompt();
+        }
+        const qtyModal = document.getElementById("quantityModal");
+        if (qtyModal && event.target === qtyModal) {
+          closeQuantityModal();
+        }
+      });
+
+      // Handle mobile hardware back button / swipe back gesture
+      window.addEventListener("popstate", function (event) {
+        const custModal = document.getElementById("customizationModal");
+        if (custModal && custModal.style.display === "block") {
+          custModal.style.display = "none";
+          return;
+        }
+
+        const pinModal = document.getElementById("pinSetupModal");
+        if (pinModal && pinModal.style.display === "block") {
           pinModal.style.display = "none";
+          return;
+        }
+
+        const qtyModal = document.getElementById("quantityModal");
+        if (qtyModal && qtyModal.style.display === "block") {
+          const modal = document.getElementById("quantityModal");
+          if (modal) modal.style.display = "none";
+          if (previousQuantity) {
+            milkData[selectedDate] = previousQuantity;
+            previousQuantity = null;
+            renderCalendar();
+          }
+          previousQuantity = null;
+          return;
+        }
+
+        const amountEdit = document.getElementById("quickAmountEdit");
+        if (amountEdit && amountEdit.style.display === "block") {
+          amountEdit.style.display = "none";
+          editingButtonIndex = null;
+          return;
+        }
+
+        const qtyEdit = document.getElementById("quantityEditModal");
+        if (qtyEdit && qtyEdit.style.display === "block") {
+          qtyEdit.style.display = "none";
+          editingQuantityIndex = null;
+          editingQuantityBillNumber = null;
+          return;
         }
       });
 
@@ -2005,6 +2193,7 @@
         const modal = document.getElementById("pinSetupModal");
         if (modal) {
           modal.style.display = "block";
+          pushModalHistory("pinSetupModal");
           const input = document.getElementById("promptPinInput");
           if (input) {
             input.value = "";
@@ -2015,7 +2204,10 @@
 
       function closePinPrompt() {
         const modal = document.getElementById("pinSetupModal");
-        if (modal) modal.style.display = "none";
+        if (modal && modal.style.display !== "none") {
+          modal.style.display = "none";
+          popModalHistory("pinSetupModal");
+        }
       }
 
       async function confirmPinPrompt() {
@@ -2468,6 +2660,7 @@
         selectedDate = date;
         const modal = document.getElementById("quantityModal");
         modal.style.display = "block";
+        pushModalHistory("quantityModal");
         
         // Store previous quantity if exists
         if (milkData[date]) {
@@ -2494,15 +2687,18 @@
 
       function closeQuantityModal(restorePrevious) {
         const modal = document.getElementById("quantityModal");
-        modal.style.display = "none";
-        
-        // Restore previous quantity if cancelling (not confirmed)
-        if (restorePrevious !== false && previousQuantity) {
-          milkData[selectedDate] = previousQuantity;
+        if (modal && modal.style.display !== "none") {
+          modal.style.display = "none";
+          
+          // Restore previous quantity if cancelling (not confirmed)
+          if (restorePrevious !== false && previousQuantity) {
+            milkData[selectedDate] = previousQuantity;
+            previousQuantity = null;
+            renderCalendar();
+          }
           previousQuantity = null;
-          renderCalendar();
+          popModalHistory("quantityModal");
         }
-        previousQuantity = null;
       }
 
       function confirmMilkQuantity() {
@@ -2928,7 +3124,9 @@
       }
 
       function showCustomizationModal() {
-        document.getElementById("customizationModal").style.display = "block";
+        const modal = document.getElementById("customizationModal");
+        modal.style.display = "block";
+        pushModalHistory("customizationModal");
         document.getElementById("eventsCheck").checked =
           selectedCategories.includes("events");
         document.getElementById("salaryCheck").checked =
@@ -2964,7 +3162,7 @@
         await parallelSave("userPin", userPin);
         updateSelectedCategories();
         updateUserName();
-        document.getElementById("customizationModal").style.display = "none";
+        closeCustomizationModal();
         if (userName && userPin && userPin.length === 4) {
           showToast("Settings saved! Checking cloud backup...");
           await initCloudSync();
@@ -3166,6 +3364,7 @@
           const editModal = document.getElementById('quickAmountEdit');
           document.getElementById('newQuickAmount').value = quickAmounts[index];
           editModal.style.display = 'block';
+          pushModalHistory("quickAmountEdit");
         }, 2000); // 2 seconds
       }
 
@@ -3188,7 +3387,11 @@
       }
 
       function closeQuickAmountEdit() {
-        document.getElementById('quickAmountEdit').style.display = 'none';
+        const modal = document.getElementById('quickAmountEdit');
+        if (modal && modal.style.display !== 'none') {
+          modal.style.display = 'none';
+          popModalHistory("quickAmountEdit");
+        }
         editingButtonIndex = null;
       }
 
@@ -3320,6 +3523,7 @@
           const editModal = document.getElementById('quantityEditModal');
           document.getElementById('newQuantityValue').value = quickQuantities[index];
           editModal.style.display = 'block';
+          pushModalHistory("quantityEditModal");
         }, 2000);
       }
 
@@ -3343,7 +3547,11 @@
       }
 
       function closeQuantityEdit() {
-        document.getElementById('quantityEditModal').style.display = 'none';
+        const modal = document.getElementById('quantityEditModal');
+        if (modal && modal.style.display !== 'none') {
+          modal.style.display = 'none';
+          popModalHistory("quantityEditModal");
+        }
         editingQuantityIndex = null;
         editingQuantityBillNumber = null;
       }
