@@ -2823,63 +2823,107 @@
       async function uploadData() {
         const input = document.createElement("input");
         input.type = "file";
-        input.accept = ".json";
+        input.accept = ".json,application/json";
         input.onchange = function (event) {
-          const file = event.target.files[0];
+          const file = event.target.files && event.target.files[0];
+          if (!file) return;
+
           const reader = new FileReader();
           reader.onload = async function (e) {
-            const data = JSON.parse(e.target.result);
-            userId = data.userId || userId;
-            events = data.events || [];
-            salaryData = data.salaryData || {};
-            milkData = data.milkData || {};
-            milkQuantities = data.milkQuantities || milkQuantities;
-            milkQuantities2 = data.milkQuantities2 || milkQuantities2;
-            milkBillType = data.milkBillType || "1~MB";
-            userName = data.userName || "";
-            userPin = data.userPin || userPin;
-            selectedCategories = data.selectedCategories || [
-              "events",
-              "salary",
-              "milk",
-            ];
-            quickAmounts = data.quickAmounts || quickAmounts;
-            quickQuantities = data.quickQuantities || quickQuantities;
-            lastModified = data.lastModified || Date.now();
+            try {
+              let parsed = JSON.parse(e.target.result);
+              if (!parsed || typeof parsed !== "object") {
+                throw new Error("Invalid file format: not a JSON object");
+              }
 
-            document.querySelector(
-              `input[name="milkBillType"][value="${milkBillType}"]`
-            ).checked = true;
+              // Unwrap if nested under data (e.g. from cloud backup or wrapped export)
+              const data = parsed.data && typeof parsed.data === "object" && (parsed.data.events || parsed.data.salaryData || parsed.data.milkData) ? parsed.data : parsed;
 
-            await parallelSave("userId", userId);
-            await parallelSave("events", events);
-            await parallelSave("salaryData", salaryData);
-            await parallelSave("milkData", milkData);
-            await parallelSave("milkQuantities", milkQuantities);
-            await parallelSave("milkQuantities2", milkQuantities2);
-            await parallelSave("milkBillType", milkBillType);
-            await parallelSave("userName", userName);
-            await parallelSave("userPin", userPin);
-            await parallelSave("selectedCategories", selectedCategories);
-            await parallelSave("quickAmounts", quickAmounts);
-            await parallelSave("quickQuantities", quickQuantities);
+              // Helper to parse stringified nested objects if stored as strings in legacy exports
+              const normalize = (val, fallback) => {
+                if (val === undefined || val === null) return fallback;
+                if (typeof val === "string") {
+                  try { return JSON.parse(val); } catch (err) { return fallback; }
+                }
+                return val;
+              };
 
-            displayEvents();
-            displaySalaryData();
-            renderCalendar();
-            displayMilkQuantities();
-            updateMilkQuantitySelect(1);
-            if (milkBillType === "2~MB") {
-              updateMilkQuantitySelect(2);
+              events = Array.isArray(data.events) ? data.events : normalize(data.events, []);
+              salaryData = typeof data.salaryData === "object" ? data.salaryData : normalize(data.salaryData, {});
+              milkData = typeof data.milkData === "object" ? data.milkData : normalize(data.milkData, {});
+
+              if (data.milkQuantities) milkQuantities = normalize(data.milkQuantities, milkQuantities);
+              if (data.milkQuantities2) milkQuantities2 = normalize(data.milkQuantities2, milkQuantities2);
+
+              // Normalize milkBillType to valid radio option
+              if (data.milkBillType) {
+                if (data.milkBillType === "1" || data.milkBillType === "1~MB") milkBillType = "1~MB";
+                else if (data.milkBillType === "2" || data.milkBillType === "2~MB") milkBillType = "2~MB";
+                else milkBillType = data.milkBillType;
+              } else {
+                milkBillType = "1~MB";
+              }
+
+              if (data.userName) userName = String(data.userName).trim();
+              if (data.userPin) userPin = String(data.userPin).trim();
+              if (data.userId) userId = String(data.userId).trim();
+              if (data.selectedCategories) selectedCategories = normalize(data.selectedCategories, selectedCategories);
+              if (data.quickAmounts) quickAmounts = normalize(data.quickAmounts, quickAmounts);
+              if (data.quickQuantities) quickQuantities = normalize(data.quickQuantities, quickQuantities);
+
+              lastModified = Number(data.lastModified) || Date.now();
+
+              // Save all keys to localForage & localStorage
+              const keys = [
+                ["events", events],
+                ["salaryData", salaryData],
+                ["milkData", milkData],
+                ["milkQuantities", milkQuantities],
+                ["milkQuantities2", milkQuantities2],
+                ["milkBillType", milkBillType],
+                ["userName", userName],
+                ["userPin", userPin],
+                ["userId", userId],
+                ["selectedCategories", selectedCategories],
+                ["quickAmounts", quickAmounts],
+                ["quickQuantities", quickQuantities],
+                ["lastModified", lastModified]
+              ];
+
+              for (const [k, v] of keys) {
+                try { await localforage.setItem(k, v); } catch (err) {}
+                try { localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)); } catch (err) {}
+              }
+
+              // Safely set the radio button if it exists in the DOM
+              const radio = document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`);
+              if (radio) radio.checked = true;
+
+              // Refresh UI
+              displayEvents();
+              displaySalaryData();
+              renderCalendar();
+              displayMilkQuantities();
+              updateMilkQuantitySelect(1);
+              if (milkBillType === "2~MB") {
+                updateMilkQuantitySelect(2);
+              }
+              changeMilkBillType();
+              updateUserName();
+              updateSelectedCategories();
+              updateQuickAmountButtons();
+              checkForEvents();
+
+              showToast("Data successfully imported!");
+
+              // Automatically sync imported data to cloud backup if user has PIN
+              if (userPin && userPin.length === 4) {
+                scheduleCloudBackup();
+              }
+            } catch (err) {
+              console.error("Error importing JSON:", err);
+              alert("Could not import file: " + (err && err.message ? err.message : "Invalid JSON file structure"));
             }
-            changeMilkBillType();
-            updateUserName();
-            updateSelectedCategories();
-            showEmojiAnimation(
-              "📂",
-              document.querySelector(".data-buttons button:last-child")
-            );
-            showToast("Backup restored from JSON file!");
           };
           reader.readAsText(file);
         };
