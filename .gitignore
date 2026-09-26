@@ -9,5 +9,6 @@ CLOUDFLARE_D1_SETUP.md
 # Dependencies & caches
 node_modules/
 .wrangler/
+.assetsignore
 .DS_Store
 Thumbs.db
