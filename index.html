@@ -31,6 +31,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.min.js"></script>
     <style>
       :root {
         --primary-color: #3498db;
@@ -527,6 +528,44 @@
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      .cloud-icon {
+        top: 70px;
+        font-size: 20px;
+        user-select: none;
+      }
+      .cloud-content {
+        max-width: 340px;
+      }
+      .cloud-content h2 {
+        font-size: 18px;
+        margin-bottom: 12px;
+      }
+      .cloud-content input {
+        width: 100%;
+        box-sizing: border-box;
+        margin: 5px 0;
+      }
+      .cloud-content button {
+        margin-top: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+        width: 100%;
+      }
+      .cloud-content .cloud-status {
+        font-size: 13px;
+        margin: 6px 0;
+      }
+      .cloud-content .cloud-note {
+        font-size: 11px;
+        opacity: 0.75;
+        margin-top: 8px;
+        line-height: 1.4;
+      }
+      .cloud-content .cloud-error {
+        font-size: 12px;
+        color: #b91c1c;
+        margin-top: 6px;
+      }
       .event-reminder {
         position: fixed;
         top: 20px;
@@ -977,6 +1016,14 @@
     </svg>
 
     <div class="customization-icon" onclick="showCustomizationModal()">⚙️</div>
+    <div id="cloudIcon" class="customization-icon cloud-icon hidden" onclick="showCloudModal()" title="Cloud Backup">☁️</div>
+    <div id="cloudModal" class="customization-modal">
+      <div class="customization-content cloud-content">
+        <h2>Cloud Backup</h2>
+        <div id="cloudBody"></div>
+        <button onclick="closeCloudModal()">Close</button>
+      </div>
+    </div>
     <div id="customizationModal" class="customization-modal">
       <div class="customization-content">
         <h2>Customize Your Tracker</h2>
@@ -1215,6 +1262,24 @@
     </div>
 
     <script>
+      /*
+        Cloud backup config (Supabase).
+        The real "supabase-config.js" is NEVER committed to this public repo -
+        it is generated at deploy time from GitHub repo secrets by
+        .github/workflows/deploy.yml. For local testing, copy
+        supabase-config.example.js to supabase-config.js and fill it in.
+      */
+      function loadCloudConfig() {
+        return new Promise((resolve) => {
+          const s = document.createElement("script");
+          s.src = "supabase-config.js?v=" + Date.now();
+          s.onload = () => resolve();
+          s.onerror = () => resolve(); // not deployed yet -> cloud backup stays off
+          document.head.appendChild(s);
+        });
+      }
+    </script>
+    <script>
       let events = [];
       let salaryData = {};
       let milkData = {};
@@ -1254,16 +1319,19 @@
 
       async function saveEvents() {
         await localforage.setItem("events", events);
+        queueCloudSync("events");
         displayEvents();
       }
 
       async function saveSalaryData() {
         await localforage.setItem("salaryData", salaryData);
+        queueCloudSync("salaryData");
         displaySalaryData();
       }
 
       async function saveMilkData() {
         await localforage.setItem("milkData", milkData);
+        queueCloudSync("milkData");
       }
 
       function refreshMilkUI() {
@@ -1279,6 +1347,8 @@
         refreshMilkUI();
         await localforage.setItem("milkQuantities", milkQuantities);
         await localforage.setItem("milkQuantities2", milkQuantities2);
+        queueCloudSync("milkQuantities");
+        queueCloudSync("milkQuantities2");
       }
 
       function addEvent() {
@@ -2003,6 +2073,7 @@
           'input[name="milkBillType"]:checked'
         ).value;
         localforage.setItem("milkBillType", milkBillType);
+        queueCloudSync("milkBillType");
         document
           .getElementById("milkBill2")
           .classList.toggle("hidden", milkBillType === "1~MB");
@@ -2075,6 +2146,10 @@
             await localforage.setItem("userName", userName);
             await localforage.setItem("selectedCategories", selectedCategories);
             await localforage.setItem("quickAmounts", quickAmounts);
+            queueCloudSync("milkBillType");
+            queueCloudSync("userName");
+            queueCloudSync("selectedCategories");
+            queueCloudSync("quickAmounts");
             displayEvents();
             displaySalaryData();
             renderCalendar();
@@ -2132,6 +2207,8 @@
         userName = document.getElementById("userName").value;
         localforage.setItem("selectedCategories", selectedCategories);
         localforage.setItem("userName", userName);
+        queueCloudSync("selectedCategories");
+        queueCloudSync("userName");
         updateSelectedCategories();
         updateUserName();
         document.getElementById("customizationModal").style.display = "none";
@@ -2256,6 +2333,339 @@
         updateSelectedCategories();
         updateUserName();
         updateQuickAmountButtons();
+
+        // Start cloud backup in the background - never blocks app startup
+        loadCloudConfig().then(initCloud);
+      }
+
+      /* ============================================================
+         CLOUD BACKUP LAYER (Supabase) - secure, additive, non-blocking
+         - localForage stays the PRIMARY storage; nothing about the
+           existing save/load flow changes.
+         - Cloud sync is fire-and-forget: runs in the background after
+           every save, silently retries, never throws into the app.
+         - If local storage gets cleared, missing keys are restored
+           from the cloud automatically on next open.
+         - Security: only the PUBLIC anon key is used (safe by design
+           together with Row Level Security); the anon key is NOT
+           stored in this public repo - it is injected from GitHub repo
+           secrets at deploy time. Users must sign in; RLS locks every
+           row to its owner, so nobody else can read or write your data.
+         ============================================================ */
+      const CLOUD_KEYS = ["events", "salaryData", "milkData", "milkQuantities", "milkQuantities2", "milkBillType", "userName", "selectedCategories", "quickAmounts", "quickQuantities"];
+      const CLOUD_GETTERS = {
+        events: () => events,
+        salaryData: () => salaryData,
+        milkData: () => milkData,
+        milkQuantities: () => milkQuantities,
+        milkQuantities2: () => milkQuantities2,
+        milkBillType: () => milkBillType,
+        userName: () => userName,
+        selectedCategories: () => selectedCategories,
+        quickAmounts: () => quickAmounts,
+        quickQuantities: () => quickQuantities,
+      };
+      const CLOUD_SETTERS = {
+        events: (v) => { events = v; },
+        salaryData: (v) => { salaryData = v; },
+        milkData: (v) => { milkData = v; },
+        milkQuantities: (v) => { milkQuantities = v; },
+        milkQuantities2: (v) => { milkQuantities2 = v; },
+        milkBillType: (v) => { milkBillType = v; },
+        userName: (v) => { userName = v; },
+        selectedCategories: (v) => { selectedCategories = v; },
+        quickAmounts: (v) => { quickAmounts = v; },
+        quickQuantities: (v) => { quickQuantities = v; },
+      };
+      const cloud = {
+        enabled: false,    // valid config + SDK loaded
+        client: null,
+        signedIn: false,
+        lastSync: null,
+        timers: {},        // per-key debounce timers
+      };
+
+      // Reject missing / placeholder / non-https config early
+      function cloudConfigValid() {
+        const cfg = window.SUPABASE_CONFIG;
+        if (!cfg || !cfg.url || !cfg.anonKey) return false;
+        if (typeof cfg.url !== "string" || typeof cfg.anonKey !== "string") return false;
+        try {
+          const u = new URL(cfg.url);
+          if (u.protocol !== "https:") return false;
+        } catch (e) { return false; }
+        // Supabase anon keys are JWTs (eyJ...). Anything else -> refuse.
+        return /^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(cfg.anonKey);
+      }
+
+      async function initCloud() {
+        if (!cloudConfigValid()) {
+          window.SUPABASE_CONFIG = null; // force dormant mode
+          updateCloudUI();
+          return;
+        }
+        if (typeof window.supabase === "undefined" || !window.supabase.createClient) {
+          // SDK blocked / offline -> stay dormant, zero impact on the app
+          updateCloudUI();
+          return;
+        }
+        try {
+          cloud.client = window.supabase.createClient(
+            window.SUPABASE_CONFIG.url,
+            window.SUPABASE_CONFIG.anonKey,
+            {
+              auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: false,
+                storageKey: "tracker_cloud_auth",
+              },
+            }
+          );
+          cloud.enabled = true;
+          const { data } = await cloud.client.auth.getSession();
+          cloud.signedIn = !!(data && data.session);
+          if (cloud.signedIn) {
+            // IMPORTANT ORDER: restore BEFORE backup. If local data was
+            // cleared, backing up first would push empty local data and
+            // wipe the cloud backup.
+            await cloudRestoreMissing(); // auto-rescue keys cleared locally
+            await cloudInitialBackup();  // then refresh the backup
+          }
+        } catch (e) {
+          // Any cloud failure must NEVER affect the app
+          cloud.enabled = false;
+        }
+        updateCloudUI();
+      }
+
+      function isCloudReady() {
+        return cloud.enabled && cloud.signedIn;
+      }
+
+      // Queue a background sync for a key. Debounced per key so rapid
+      // taps coalesce into one request. Never awaited by callers.
+      function queueCloudSync(key) {
+        if (!isCloudReady() || !CLOUD_KEYS.includes(key)) return;
+        clearTimeout(cloud.timers[key]);
+        cloud.timers[key] = setTimeout(() => {
+          cloudPushKey(key, 1);
+        }, 1200);
+      }
+
+      async function cloudPushKey(key, attempt) {
+        if (!isCloudReady()) return;
+        try {
+          // No onConflict option: PostgREST resolves on the composite
+          // primary key (user_id, key). user_id is filled by the DB
+          // default auth.uid() server-side.
+          const { error } = await cloud.client
+            .from("app_data")
+            .upsert({ key: key, value: CLOUD_GETTERS[key]() });
+          if (error) throw error;
+          cloud.lastSync = Date.now();
+        } catch (e) {
+          // Exponential-ish backoff, max 5 tries; next app open retries anyway
+          if (attempt < 5) {
+            setTimeout(() => cloudPushKey(key, attempt + 1), Math.min(30000, attempt * 4000));
+          }
+        }
+      }
+
+      // Full mirror push - runs on every app open (acts as a fresh backup
+      // and keeps the free Supabase project active, since activity = requests)
+      async function cloudInitialBackup() {
+        for (const key of CLOUD_KEYS) {
+          await cloudPushKey(key, 1);
+        }
+      }
+
+      // Pull everything from cloud. Returns {} if unavailable.
+      async function cloudFetchAll() {
+        if (!isCloudReady()) return {};
+        try {
+          const { data, error } = await cloud.client
+            .from("app_data")
+            .select("key, value");
+          if (error) throw error;
+          const out = {};
+          // STRICT whitelist: ignore anything that is not a known key
+          (data || []).forEach((row) => {
+            if (row && CLOUD_KEYS.includes(row.key) && row.value !== null && row.value !== undefined) {
+              out[row.key] = row.value;
+            }
+          });
+          return out;
+        } catch (e) {
+          return {};
+        }
+      }
+
+      // A key counts as "missing locally" only when it has NO value at all
+      // (never written, or cleared with site data). Empty-but-present values
+      // ("" or []) are intentional and are never overwritten from the cloud.
+      function isLocalEmpty(value) {
+        return value === null || value === undefined;
+      }
+
+      // Auto-restore: if local storage was cleared, bring back what's missing.
+      async function cloudRestoreMissing() {
+        if (!isCloudReady()) return;
+        const remote = await cloudFetchAll();
+        const restored = [];
+        for (const key of CLOUD_KEYS) {
+          if (!(key in remote)) continue;
+          if (isLocalEmpty(await localforage.getItem(key))) {
+            try {
+              CLOUD_SETTERS[key](remote[key]);
+              await localforage.setItem(key, remote[key]);
+              restored.push(key);
+            } catch (e) { /* skip bad key, never break the app */ }
+          }
+        }
+        if (restored.length > 0) {
+          refreshAllUI();
+          showToast("☁️ Restored " + restored.length + " item(s) from cloud backup");
+        }
+      }
+
+      function refreshAllUI() {
+        try {
+          document.querySelector(
+            `input[name="milkBillType"][value="${milkBillType}"]`
+          ).checked = true;
+          changeMilkBillType();
+          displayEvents();
+          displaySalaryData();
+          renderCalendar();
+          displayMilkQuantities();
+          updateMilkQuantitySelect(1);
+          if (milkBillType === "2~MB") {
+            updateMilkQuantitySelect(2);
+          }
+          checkForEvents();
+          updateSelectedCategories();
+          updateUserName();
+          updateQuickAmountButtons();
+          document.getElementById("userName").value = userName;
+        } catch (e) { /* UI refresh is best-effort */ }
+      }
+
+      // Manual restore from cloud (button in cloud modal)
+      async function cloudRestoreNow() {
+        if (!isCloudReady()) return;
+        const remote = await cloudFetchAll();
+        const restored = [];
+        for (const key of CLOUD_KEYS) {
+          if (!(key in remote)) continue;
+          try {
+            CLOUD_SETTERS[key](remote[key]);
+            await localforage.setItem(key, remote[key]);
+            restored.push(key);
+          } catch (e) { /* skip bad key */ }
+        }
+        if (restored.length > 0) {
+          refreshAllUI();
+          showToast("☁️ Cloud backup restored (" + restored.length + " items)");
+        } else {
+          showToast("☁️ No data found in cloud backup yet");
+        }
+        updateCloudUI();
+      }
+
+      async function cloudSignIn() {
+        const email = (document.getElementById("cloudEmail").value || "").trim().toLowerCase();
+        const password = document.getElementById("cloudPassword").value || "";
+        const errEl = document.getElementById("cloudError");
+        errEl.textContent = "";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+          errEl.textContent = "Please enter a valid email.";
+          return;
+        }
+        if (password.length < 6) {
+          errEl.textContent = "Password must be at least 6 characters.";
+          return;
+        }
+        if (!cloud.enabled) {
+          errEl.textContent = "Cloud backup is not configured.";
+          return;
+        }
+        try {
+          const { error } = await cloud.client.auth.signInWithPassword({ email: email, password: password });
+          if (error) throw error;
+          cloud.signedIn = true;
+          showToast("☁️ Signed in - cloud backup active");
+          // Restore before backup (same reason as in initCloud)
+          await cloudRestoreMissing();
+          await cloudInitialBackup();
+        } catch (e) {
+          cloud.signedIn = false;
+          errEl.textContent = "Sign-in failed. Check email/password.";
+        }
+        updateCloudUI();
+      }
+
+      async function cloudSignOut() {
+        if (cloud.client) {
+          try { await cloud.client.auth.signOut(); } catch (e) { /* ignore */ }
+        }
+        cloud.signedIn = false;
+        CLOUD_KEYS.forEach((k) => clearTimeout(cloud.timers[k]));
+        updateCloudUI();
+      }
+
+      function formatTime(ts) {
+        try {
+          return new Date(ts).toLocaleString();
+        } catch (e) { return "unknown"; }
+      }
+
+      function showCloudModal() {
+        document.getElementById("cloudModal").style.display = "block";
+        updateCloudUI();
+      }
+
+      function closeCloudModal() {
+        document.getElementById("cloudModal").style.display = "none";
+      }
+
+      async function cloudInitialBackupWrapper() {
+        if (!isCloudReady()) return;
+        await cloudInitialBackup();
+        showToast("☁️ Backup complete");
+        updateCloudUI();
+      }
+
+      function updateCloudUI() {
+        const icon = document.getElementById("cloudIcon");
+        if (!icon) return;
+        if (!cloud.enabled) {
+          icon.classList.add("hidden");
+          return;
+        }
+        icon.classList.remove("hidden");
+        icon.textContent = cloud.signedIn ? "☁️" : "👤";
+        const body = document.getElementById("cloudBody");
+        if (!body) return;
+        const isModalOpen = document.getElementById("cloudModal").style.display === "block";
+        if (!isModalOpen) return;
+        if (cloud.signedIn) {
+          body.innerHTML =
+            '<p class="cloud-status">☁️ <b>Cloud backup is active.</b></p>' +
+            '<p class="cloud-status">Last sync: ' + (cloud.lastSync ? formatTime(cloud.lastSync) : "in progress…") + '</p>' +
+            '<button onclick="cloudRestoreNow()">Restore from Cloud Backup</button>' +
+            '<button onclick="cloudInitialBackupWrapper()">Backup Everything Now</button>' +
+            '<button onclick="cloudSignOut()">Sign Out</button>' +
+            '<p class="cloud-note">Your data saves locally AND to your private cloud database after every change. If your browser data is ever cleared, it restores automatically on next open.</p>';
+        } else {
+          body.innerHTML =
+            '<p class="cloud-status">Sign in to turn on cloud backup:</p>' +
+            '<input type="email" id="cloudEmail" placeholder="Email" autocomplete="username" />' +
+            '<input type="password" id="cloudPassword" placeholder="Password" autocomplete="current-password" />' +
+            '<button onclick="cloudSignIn()">Sign In</button>' +
+            '<p class="cloud-error" id="cloudError"></p>' +
+            '<p class="cloud-note">Your account is created privately in the database dashboard - there is no public sign-up, so strangers cannot store data in your database.</p>';
+        }
       }
 
       initApp();
@@ -2264,6 +2674,9 @@
       window.onclick = function (event) {
         if (event.target == document.getElementById("customizationModal")) {
           document.getElementById("customizationModal").style.display = "none";
+        }
+        if (event.target == document.getElementById("cloudModal")) {
+          closeCloudModal();
         }
         if (event.target == document.getElementById("quantityModal")) {
           closeQuantityModal();
@@ -2317,6 +2730,7 @@
         if (newAmount && editingButtonIndex !== null) {
           quickAmounts[editingButtonIndex] = newAmount;
           localforage.setItem("quickAmounts", quickAmounts);
+          queueCloudSync("quickAmounts");
           updateQuickAmountButtons();
           closeQuickAmountEdit();
           showEmojiAnimation("💰", document.querySelector('.quick-amounts'));
@@ -2471,6 +2885,7 @@
         if (newQuantity && editingQuantityIndex !== null) {
           quickQuantities[editingQuantityIndex] = newQuantity;
           localforage.setItem("quickQuantities", quickQuantities);
+          queueCloudSync("quickQuantities");
           updateQuickQuantityButtons(1);
           updateQuickQuantityButtons(2);
           closeQuantityEdit();

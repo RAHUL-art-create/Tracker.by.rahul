@@ -72,7 +72,48 @@ This mechanism provides users with control over their data, ensuring that import
 - **Libraries**:
   - [jsPDF](https://github.com/parallax/jsPDF) for PDF export
   - [jsPDF AutoTable Plugin](https://github.com/simonbengtsson/jsPDF-AutoTable) for table generation in PDFs
-- **LocalStorage**: Used for persistent data storage.
+  - [localForage](https://github.com/localForage/localForage) for primary local storage (IndexedDB)
+  - [Supabase JS](https://github.com/supabase/supabase-js) for cloud backup
+- **Cloud Backup**: [Supabase](https://supabase.com) (free tier) — a private, secured Postgres database
+
+---
+
+## Cloud Backup (Supabase) — how it works
+
+The app still saves everything locally first (localForage / IndexedDB), exactly like before. On top of that, a **cloud backup** mirrors every change to a private Supabase database in the background:
+
+- **Additive & non-blocking** — cloud sync is fire-and-forget; if you are offline it silently retries, and the app never slows down or breaks.
+- **Organized by name** — each dataset (`events`, `salaryData`, `milkData`, `milkQuantities`, `milkQuantities2`, `milkBillType`, `userName`, `selectedCategories`, `quickAmounts`, `quickQuantities`) is stored in the cloud under its own key, mirroring the local storage layout.
+- **Auto-restore** — if your browser data ever gets cleared, the app automatically restores the missing data from the cloud backup the next time you open it (you will see a toast notification).
+- **Sign-in required** — only a signed-in owner can read/write their rows. There is **no public sign-up**: your personal account is created privately in the Supabase dashboard, so strangers cannot use your database.
+- **Credentials never in the repo** — the Supabase URL + anon key live in **GitHub repo secrets** and are injected only at deploy time by `.github/workflows/deploy.yml`. `supabase-config.js` is gitignored.
+
+> Note: the anon key is *designed* to be public — it is safe because Row Level Security (RLS) in `supabase-setup.sql` locks every row to its owner. Never put the `service_role` key in the website.
+
+### One-time setup (≈5 minutes)
+
+1. **Create a free account** at [supabase.com](https://supabase.com) → **New project** (choose a strong database password).
+2. **Create the table + security rules**: open **SQL Editor** in the Supabase dashboard, paste the full contents of [`supabase-setup.sql`](supabase-setup.sql), and click **Run**.
+3. **Create your personal login** (no public sign-up):
+   - Dashboard → **Authentication → Users → Add user → Create new user**
+   - Enter your email + a strong password, and tick **Auto Confirm User**.
+   - Optional hardening: **Authentication → Providers → Email** → turn **off** "Allow new users to sign up".
+4. **Get the two values**: Dashboard → **Project Settings → API** → copy the **Project URL** and the **anon / publishable key** (NOT the `service_role` key!).
+5. **Add GitHub secrets**: in this repository → **Settings → Secrets and variables → Actions → New repository secret** (twice):
+   - `SUPABASE_URL` = your Project URL
+   - `SUPABASE_ANON_KEY` = your anon key
+6. **Add the deploy workflow** (one time): in the repo on GitHub → **Add file → Create new file** → name it exactly `.github/workflows/deploy.yml` (typing the `/` auto-creates folders) → paste the full contents of [`github-pages-deploy.yml.example`](github-pages-deploy.yml.example) → **Commit**. It deploys the site while injecting the secrets only at deploy time — the credentials never enter the repo.
+7. **Switch GitHub Pages to deploy via Actions**: **Settings → Pages → Build and deployment → Source → GitHub Actions**.
+8. The workflow runs automatically (committing it in step 6 triggers it). Open the site, tap the **👤 icon** next to ⚙️, and sign in with the account from step 3. It turns into ☁️ once active.
+
+### Free tier notes
+
+- Free plan: 500 MB database, unlimited API requests — this app uses a few KBs, so you will never come close.
+- Free projects pause after **1 week of inactivity**. Simply opening the app counts as activity (it makes a full backup on every open). If it ever pauses, restore it with one click in the Supabase dashboard.
+
+### Local development
+
+Copy `supabase-config.example.js` to `supabase-config.js`, paste your URL + anon key, and open `index.html`. The copy is gitignored, so it can never be committed by accident. Without the file, the app simply runs local-only (cloud stays dormant — nothing breaks).
 
 ---
 

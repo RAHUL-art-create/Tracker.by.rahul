@@ -1,0 +1,5 @@
+# Cloud backup credentials - NEVER commit the real one.
+# It is generated from GitHub repo secrets at deploy time (see .github/workflows/deploy.yml)
+supabase-config.js
+.env
+.env.*

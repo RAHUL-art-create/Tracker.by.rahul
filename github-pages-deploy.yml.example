@@ -1,0 +1,67 @@
+# ============================================================
+# EXAMPLE WORKFLOW - do NOT let any bot commit this to .github/.
+# (Bots/ GitHub Apps without "workflows" permission cannot push
+#  workflow files - you add this one time yourself, see below.)
+#
+# HOW TO ADD IT (one time, ~1 minute):
+#   1. In this repo on GitHub: Add file -> Create new file
+#   2. Name it exactly:  .github/workflows/deploy.yml
+#      (typing ".github/" and "workflows/" auto-creates the folders)
+#   3. Paste the FULL contents of this file, then Commit.
+#
+# WHAT IT DOES: deploys the site to GitHub Pages WITHOUT ever putting
+# the Supabase credentials in the public repository. The config file
+# is generated from your GitHub repo secrets at deploy time.
+# ============================================================
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate Supabase config (from repo secrets)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            printf 'window.SUPABASE_CONFIG = { url: "%s", anonKey: "%s" };\n' \
+              "$SUPABASE_URL" "$SUPABASE_ANON_KEY" > supabase-config.js
+            echo "Cloud backup config generated."
+          else
+            printf 'window.SUPABASE_CONFIG = null;\n' > supabase-config.js
+            echo "Secrets not set - deploying WITHOUT cloud backup (app still works local-only)."
+          fi
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
