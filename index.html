@@ -887,6 +887,58 @@
         background-color: #bdc3c7;
         color: #2c3e50;
       }
+      .pin-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+      }
+      .pin-input-wrapper input {
+        width: 100%;
+        padding-right: 42px !important;
+      }
+      .pin-reveal-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #7f8c8d;
+        transition: color 0.2s, transform 0.1s;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        z-index: 2;
+        margin: 0 !important;
+      }
+      .pin-reveal-btn:hover {
+        color: #2c3e50;
+        transform: translateY(-50%) scale(1.08);
+      }
+      .pin-reveal-btn:active {
+        transform: translateY(-50%) scale(0.95);
+      }
+      .pin-prompt-wrapper {
+        display: inline-flex;
+        justify-content: center;
+        position: relative;
+        width: auto;
+        margin: 0 auto;
+      }
+      .pin-prompt-wrapper input.pin-input-field {
+        margin: 0;
+        padding-right: 38px !important;
+        text-align: center;
+      }
+      .pin-prompt-reveal-btn {
+        right: 6px;
+      }
       #eventsCheck + label {
         color: var(--event-color);
       }
@@ -1376,7 +1428,15 @@
         </div>
         <div class="field-group">
           <label for="userPin">4-Digit Backup PIN</label>
-          <input type="password" id="userPin" maxlength="4" pattern="\d{4}" placeholder="4-digit PIN (e.g. phone last 4 digits)" />
+          <div class="pin-input-wrapper">
+            <input type="password" id="userPin" maxlength="4" pattern="\d{4}" placeholder="4-digit PIN (e.g. phone last 4 digits)" />
+            <button type="button" class="pin-reveal-btn" onclick="togglePinVisibility('userPin', this)" aria-label="Toggle PIN visibility" title="Show/Hide PIN">
+              <svg class="eye-icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
           <small style="color: #7f8c8d; font-size: 11px; margin-top: 4px;">Keeps your cloud backup safe & lets you restore anytime</small>
         </div>
         <div id="modalCloudStatus" style="font-size: 12px; color: #7f8c8d; margin: 14px 0 6px 0; font-weight: 500; text-align: center;">
@@ -1394,7 +1454,15 @@
       <div class="pin-modal-content">
         <h3>Cloud Backup Protection</h3>
         <p>Set a 4-digit PIN (e.g. the last 4 digits of your phone number). Your data will automatically back up to the cloud and can be restored if browser cache is cleared.</p>
-        <input type="tel" id="promptPinInput" class="pin-input-field" maxlength="4" placeholder="••••" />
+        <div class="pin-prompt-wrapper">
+          <input type="password" id="promptPinInput" class="pin-input-field" maxlength="4" placeholder="••••" />
+          <button type="button" class="pin-reveal-btn pin-prompt-reveal-btn" onclick="togglePinVisibility('promptPinInput', this)" aria-label="Toggle PIN visibility" title="Show/Hide PIN">
+            <svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
         <div class="pin-modal-actions">
           <button class="pin-btn-primary" onclick="confirmPinPrompt()">Enable Backup</button>
           <button class="pin-btn-secondary" onclick="closePinPrompt()">Later</button>
@@ -1763,7 +1831,38 @@
         const modal = document.getElementById("customizationModal");
         if (modal && modal.style.display !== "none") {
           modal.style.display = "none";
+          const pinField = document.getElementById("userPin");
+          if (pinField) pinField.type = "password";
+          const btn = modal.querySelector(".pin-reveal-btn");
+          if (btn) {
+            btn.innerHTML = `<svg class="eye-icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            btn.title = "Show PIN";
+            btn.setAttribute("aria-label", "Show PIN");
+          }
           popModalHistory("customizationModal");
+        }
+      }
+
+      function togglePinVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const eyeIcon = `<svg class="eye-icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        const eyeOffIcon = `<svg class="eye-icon" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+        if (input.type === "password") {
+          input.type = "text";
+          if (btn) {
+            btn.innerHTML = eyeOffIcon;
+            btn.setAttribute("aria-label", "Hide PIN");
+            btn.title = "Hide PIN";
+          }
+        } else {
+          input.type = "password";
+          if (btn) {
+            btn.innerHTML = eyeIcon;
+            btn.setAttribute("aria-label", "Show PIN");
+            btn.title = "Show PIN";
+          }
         }
       }
 
@@ -2206,6 +2305,14 @@
         const modal = document.getElementById("pinSetupModal");
         if (modal && modal.style.display !== "none") {
           modal.style.display = "none";
+          const promptInput = document.getElementById("promptPinInput");
+          if (promptInput) promptInput.type = "password";
+          const btn = modal.querySelector(".pin-reveal-btn");
+          if (btn) {
+            btn.innerHTML = `<svg class="eye-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            btn.title = "Show PIN";
+            btn.setAttribute("aria-label", "Show PIN");
+          }
           popModalHistory("pinSetupModal");
         }
       }
