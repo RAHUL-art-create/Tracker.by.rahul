@@ -85,31 +85,34 @@ The app still saves everything locally first (localForage / IndexedDB), exactly 
 - **Additive & non-blocking** — cloud sync is fire-and-forget; if you are offline it silently retries, and the app never slows down or breaks.
 - **Organized by name** — each dataset (`events`, `salaryData`, `milkData`, `milkQuantities`, `milkQuantities2`, `milkBillType`, `userName`, `selectedCategories`, `quickAmounts`, `quickQuantities`) is stored in the cloud under its own key, mirroring the local storage layout.
 - **Auto-restore** — if your browser data ever gets cleared, the app automatically restores the missing data from the cloud backup the next time you open it (you will see a toast notification).
-- **Sign-in required** — only a signed-in owner can read/write their rows. There is **no public sign-up**: your personal account is created privately in the Supabase dashboard, so strangers cannot use your database.
-- **Credentials never in the repo** — the Supabase URL + anon key live in **GitHub repo secrets** and are injected only at deploy time by `.github/workflows/deploy.yml`. `supabase-config.js` is gitignored.
+- **Zero sign-ups** — visitors never see a login. Each visitor automatically gets an invisible, anonymous cloud slot (Supabase "anonymous sign-ins"), and Row Level Security keeps every visitor's data fully private to them.
+- **Credentials never in the repo** — the Supabase URL + anon key live in **GitHub repo secrets** and are injected only at deploy time by the deploy workflow. `supabase-config.js` is gitignored.
 
 > Note: the anon key is *designed* to be public — it is safe because Row Level Security (RLS) in `supabase-setup.sql` locks every row to its owner. Never put the `service_role` key in the website.
+
+> Honest limitation of zero-signup backup: if a visitor clears **all** site data, the invisible key that unlocks their anonymous cloud slot is cleared too, so that cloud copy becomes unreachable. It still protects against browser resets, partial clears, IndexedDB eviction, "clear cookies", etc. The **Download Data** button remains the full-wipe-proof backup.
 
 ### One-time setup (≈5 minutes)
 
 1. **Create a free account** at [supabase.com](https://supabase.com) → **New project** (choose a strong database password).
 2. **Create the table + security rules**: open **SQL Editor** in the Supabase dashboard, paste the full contents of [`supabase-setup.sql`](supabase-setup.sql), and click **Run**.
-3. **Create your personal login** (no public sign-up):
-   - Dashboard → **Authentication → Users → Add user → Create new user**
-   - Enter your email + a strong password, and tick **Auto Confirm User**.
-   - Optional hardening: **Authentication → Providers → Email** → turn **off** "Allow new users to sign up".
+3. **Enable anonymous sign-ins** (this is what makes it zero-signup):
+   - Dashboard → **Authentication → Sign In / Providers → Anonymous sign-ins** → toggle **ON**.
+   - No user accounts are created manually; every visitor gets their own invisible slot automatically.
 4. **Get the two values**: Dashboard → **Project Settings → API** → copy the **Project URL** and the **anon / publishable key** (NOT the `service_role` key!).
 5. **Add GitHub secrets**: in this repository → **Settings → Secrets and variables → Actions → New repository secret** (twice):
    - `SUPABASE_URL` = your Project URL
    - `SUPABASE_ANON_KEY` = your anon key
 6. **Add the deploy workflow** (one time): in the repo on GitHub → **Add file → Create new file** → name it exactly `.github/workflows/deploy.yml` (typing the `/` auto-creates folders) → paste the full contents of [`github-pages-deploy.yml.example`](github-pages-deploy.yml.example) → **Commit**. It deploys the site while injecting the secrets only at deploy time — the credentials never enter the repo.
 7. **Switch GitHub Pages to deploy via Actions**: **Settings → Pages → Build and deployment → Source → GitHub Actions**.
-8. The workflow runs automatically (committing it in step 6 triggers it). Open the site, tap the **👤 icon** next to ⚙️, and sign in with the account from step 3. It turns into ☁️ once active.
+8. The workflow runs automatically (committing it in step 6 triggers it). Open the site — visitors never log in; the ☁️ icon next to ⚙️ just shows the backup status, and cloud backup starts silently for every visitor.
 
 ### Free tier notes
 
-- Free plan: 500 MB database, unlimited API requests — this app uses a few KBs, so you will never come close.
-- Free projects pause after **1 week of inactivity**. Simply opening the app counts as activity (it makes a full backup on every open). If it ever pauses, restore it with one click in the Supabase dashboard.
+- Free plan: 500 MB database, unlimited API requests, 50,000 monthly active users — this app uses a few KBs per visitor, so you will never come close.
+- Supabase rate-limits anonymous sign-ins per IP, so bots cannot flood the project.
+- Free projects pause after **1 week of inactivity**. Simply opening the app counts as activity. If it ever pauses, restore it with one click in the Supabase dashboard.
+- Housekeeping: once in a while, run the optional cleanup snippet at the bottom of `supabase-setup.sql` to delete anonymous slots abandoned for 90+ days.
 
 ### Local development
 

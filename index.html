@@ -2342,15 +2342,18 @@
          CLOUD BACKUP LAYER (Supabase) - secure, additive, non-blocking
          - localForage stays the PRIMARY storage; nothing about the
            existing save/load flow changes.
+         - ZERO SIGN-UPS: every visitor automatically gets an invisible
+           "anonymous" account. No forms, no email, no password - the app
+           works for everyone exactly like before.
          - Cloud sync is fire-and-forget: runs in the background after
            every save, silently retries, never throws into the app.
          - If local storage gets cleared, missing keys are restored
            from the cloud automatically on next open.
          - Security: only the PUBLIC anon key is used (safe by design
-           together with Row Level Security); the anon key is NOT
-           stored in this public repo - it is injected from GitHub repo
-           secrets at deploy time. Users must sign in; RLS locks every
-           row to its owner, so nobody else can read or write your data.
+           together with Row Level Security); the anon key is NOT stored
+           in this public repo - it is injected from GitHub repo
+           secrets at deploy time. RLS locks every row to its owner,
+           so visitors can never read or write each other's data.
          ============================================================ */
       const CLOUD_KEYS = ["events", "salaryData", "milkData", "milkQuantities", "milkQuantities2", "milkBillType", "userName", "selectedCategories", "quickAmounts", "quickQuantities"];
       const CLOUD_GETTERS = {
@@ -2423,12 +2426,26 @@
             }
           );
           cloud.enabled = true;
+          // ZERO-SIGNUP identity: every visitor automatically gets their
+          // own private anonymous account. No forms, no password, no email.
+          // Each anonymous user is fully isolated by Row Level Security.
           const { data } = await cloud.client.auth.getSession();
-          cloud.signedIn = !!(data && data.session);
+          if (data && data.session) {
+            cloud.signedIn = true;
+          } else {
+            const { error } = await cloud.client.auth.signInAnonymously();
+            if (!error) {
+              cloud.signedIn = true;
+            }
+            // If anonymous sign-in fails (offline, rate limit, disabled in
+            // dashboard) the app just runs local-only. Never an error to user.
+          }
           if (cloud.signedIn) {
             // IMPORTANT ORDER: restore BEFORE backup. If local data was
             // cleared, backing up first would push empty local data and
-            // wipe the cloud backup.
+            // wipe the cloud backup. Restore only fills keys that are
+            // COMPLETELY missing locally - existing local data is never
+            // touched or overwritten by the cloud.
             await cloudRestoreMissing(); // auto-rescue keys cleared locally
             await cloudInitialBackup();  // then refresh the backup
           }
@@ -2573,47 +2590,6 @@
         updateCloudUI();
       }
 
-      async function cloudSignIn() {
-        const email = (document.getElementById("cloudEmail").value || "").trim().toLowerCase();
-        const password = document.getElementById("cloudPassword").value || "";
-        const errEl = document.getElementById("cloudError");
-        errEl.textContent = "";
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-          errEl.textContent = "Please enter a valid email.";
-          return;
-        }
-        if (password.length < 6) {
-          errEl.textContent = "Password must be at least 6 characters.";
-          return;
-        }
-        if (!cloud.enabled) {
-          errEl.textContent = "Cloud backup is not configured.";
-          return;
-        }
-        try {
-          const { error } = await cloud.client.auth.signInWithPassword({ email: email, password: password });
-          if (error) throw error;
-          cloud.signedIn = true;
-          showToast("☁️ Signed in - cloud backup active");
-          // Restore before backup (same reason as in initCloud)
-          await cloudRestoreMissing();
-          await cloudInitialBackup();
-        } catch (e) {
-          cloud.signedIn = false;
-          errEl.textContent = "Sign-in failed. Check email/password.";
-        }
-        updateCloudUI();
-      }
-
-      async function cloudSignOut() {
-        if (cloud.client) {
-          try { await cloud.client.auth.signOut(); } catch (e) { /* ignore */ }
-        }
-        cloud.signedIn = false;
-        CLOUD_KEYS.forEach((k) => clearTimeout(cloud.timers[k]));
-        updateCloudUI();
-      }
-
       function formatTime(ts) {
         try {
           return new Date(ts).toLocaleString();
@@ -2644,7 +2620,7 @@
           return;
         }
         icon.classList.remove("hidden");
-        icon.textContent = cloud.signedIn ? "☁️" : "👤";
+        icon.textContent = "☁️";
         const body = document.getElementById("cloudBody");
         if (!body) return;
         const isModalOpen = document.getElementById("cloudModal").style.display === "block";
@@ -2655,16 +2631,12 @@
             '<p class="cloud-status">Last sync: ' + (cloud.lastSync ? formatTime(cloud.lastSync) : "in progress…") + '</p>' +
             '<button onclick="cloudRestoreNow()">Restore from Cloud Backup</button>' +
             '<button onclick="cloudInitialBackupWrapper()">Backup Everything Now</button>' +
-            '<button onclick="cloudSignOut()">Sign Out</button>' +
-            '<p class="cloud-note">Your data saves locally AND to your private cloud database after every change. If your browser data is ever cleared, it restores automatically on next open.</p>';
+            '<p class="cloud-note">No sign-up needed - your device has its own private, invisible cloud slot. Your data saves locally AND to the cloud after every change, and missing data is restored automatically on the next visit.</p>' +
+            '<p class="cloud-note">Note: clearing <b>all</b> site data also clears the private key that unlocks your cloud slot, so keep using the Download Data button for a full-wipe backup.</p>';
         } else {
           body.innerHTML =
-            '<p class="cloud-status">Sign in to turn on cloud backup:</p>' +
-            '<input type="email" id="cloudEmail" placeholder="Email" autocomplete="username" />' +
-            '<input type="password" id="cloudPassword" placeholder="Password" autocomplete="current-password" />' +
-            '<button onclick="cloudSignIn()">Sign In</button>' +
-            '<p class="cloud-error" id="cloudError"></p>' +
-            '<p class="cloud-note">Your account is created privately in the database dashboard - there is no public sign-up, so strangers cannot store data in your database.</p>';
+            '<p class="cloud-status">Cloud backup is connecting… (or unavailable right now)</p>' +
+            '<p class="cloud-note">Everything still works and saves locally - the cloud mirror will start automatically when it can.</p>';
         }
       }
 

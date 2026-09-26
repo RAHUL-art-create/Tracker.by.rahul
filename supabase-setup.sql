@@ -3,10 +3,14 @@
 -- Paste this whole file into: Supabase Dashboard -> SQL Editor -> Run
 --
 -- SECURITY MODEL:
---   * One row per data key, per user. Each user can ONLY ever see and
---     touch their own rows (Row Level Security below).
---   * The public "anon" key used by the website can do NOTHING until a
---     real user signs in - and even then only to their own rows.
+--   * Zero-signup app: every visitor gets an automatic, INVISIBLE
+--     "anonymous" account (must be enabled in Dashboard -> Authentication
+--     -> Sign In / Providers -> Anonymous sign-ins = ON).
+--   * One row per data key, per anonymous user. Each visitor can ONLY
+--     ever see and touch their own rows (Row Level Security below) -
+--     nobody can read another visitor's tracker data.
+--   * The public "anon" key used by the website can do NOTHING without
+--     a session, and even then only to that visitor's own rows.
 --   * The secret "service_role" key is never used by the website.
 -- ============================================================
 
@@ -50,3 +54,17 @@ alter table public.app_data add constraint app_data_key_whitelist
 alter table public.app_data drop constraint if exists app_data_value_size_limit;
 alter table public.app_data add constraint app_data_value_size_limit
   check (pg_column_size(value) < 1024 * 1024); -- max ~1 MB per key
+
+-- ============================================================
+-- OPTIONAL HOUSEKEEPING (run manually in SQL editor every few months)
+-- Visitors who cleared their browser data leave orphaned anonymous
+-- slots behind. This safely removes ones older than 90 days:
+--
+--   delete from public.app_data
+--     where user_id in (select id from auth.users
+--                        where is_anonymous = true
+--                          and created_at < now() - interval '90 days');
+--   delete from auth.users
+--     where is_anonymous = true
+--       and created_at < now() - interval '90 days';
+-- ============================================================
