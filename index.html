@@ -604,9 +604,22 @@
         position: fixed;
         top: 20px;
         left: 20px;
-        font-size: 24px;
+        font-size: 20px;
         cursor: pointer;
         z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: #ffffff;
+        border-radius: 50%;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        transition: transform 0.25s ease, background-color 0.2s ease;
+      }
+      .customization-icon:hover {
+        transform: rotate(35deg);
+        background: #f8f9fa;
       }
       .customization-modal {
         display: none;
@@ -616,129 +629,162 @@
         top: 0;
         width: 100%;
         height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
+        overflow-y: auto;
+        background-color: rgba(0, 0, 0, 0.55);
+        box-sizing: border-box;
+        padding: 20px 12px;
+        backdrop-filter: blur(2px);
       }
       .customization-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 300px;
-        border-radius: 10px;
+        background-color: #ffffff;
+        margin: 20px auto;
+        padding: 24px 20px;
+        border: none;
+        width: 100%;
+        max-width: 360px;
+        border-radius: 18px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+        box-sizing: border-box;
       }
       .customization-content h2 {
         text-align: center;
-        color: #3498db;
-        margin-bottom: 20px;
+        color: #2c3e50;
+        font-size: 20px;
+        margin: 0 0 18px 0;
+        font-weight: 700;
       }
-      .customization-content div {
+      .customization-content .checkbox-group {
         display: flex;
         flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .customization-content .checkbox-row {
+        display: flex;
+        flex-direction: row;
         align-items: center;
-        margin-bottom: 15px;
-      }
-
-      .customization-content label {
-        display: block;
-        text-align: center;
-        margin-top: 5px;
-      }
-      .customization-content input[type="checkbox"] {
-        margin: 0;
-      }
-      .customization-content input[type="text"] {
-        width: 100%;
-        padding: 8px;
-        margin-top: 5px;
+        justify-content: flex-start;
+        gap: 12px;
+        padding: 11px 14px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+        cursor: pointer;
         box-sizing: border-box;
+        transition: background-color 0.15s, border-color 0.15s;
+        -webkit-tap-highlight-color: transparent;
       }
-      .customization-content button {
+      .customization-content .checkbox-row:hover {
+        background: #f1f3f5;
+        border-color: #dee2e6;
+      }
+      .customization-content .checkbox-row input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin: 0;
+        cursor: pointer;
+        flex-shrink: 0;
+        accent-color: #2c3e50;
+      }
+      .customization-content .checkbox-row label {
+        margin: 0;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: left;
+        flex-grow: 1;
+        user-select: none;
+      }
+      .customization-content .field-group {
+        display: flex;
+        flex-direction: column;
+        margin-top: 14px;
+        text-align: left;
+      }
+      .customization-content .field-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 5px;
+        text-align: left;
+      }
+      .customization-content input[type="text"],
+      .customization-content input[type="password"] {
         width: 100%;
-        padding: 10px;
-        background-color: #000;
+        padding: 11px 12px;
+        border: 1.5px solid #dcdde1;
+        border-radius: 9px;
+        font-size: 14px;
+        box-sizing: border-box;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        font-family: inherit;
+      }
+      .customization-content input[type="text"]:focus,
+      .customization-content input[type="password"]:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+      }
+      .customization-content button.save-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: #111;
         color: #fff;
         border: none;
-        border-radius: 5px;
+        border-radius: 9px;
         cursor: pointer;
+        font-size: 15px;
+        font-weight: 600;
+        margin-top: 16px;
+        transition: background-color 0.2s;
       }
-      .customization-content button:hover {
+      .customization-content button.save-btn:hover {
         background-color: #333;
       }
       .modal-restore-btn {
         width: 100%;
-        padding: 9px;
+        padding: 11px;
         background-color: #34495e !important;
         color: #fff;
         border: none;
-        border-radius: 5px;
+        border-radius: 9px;
         cursor: pointer;
         margin-top: 8px;
-        font-size: 13px;
+        font-size: 14px;
+        font-weight: 500;
         transition: background-color 0.2s;
       }
       .modal-restore-btn:hover {
         background-color: #2c3e50 !important;
       }
-      .cloud-sync-badge {
-        position: fixed;
-        top: 15px;
-        right: 15px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        background: #ffffff;
-        border: 1px solid #dcdde1;
-        border-radius: 20px;
+      .modal-close-link {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: transparent;
+        color: #7f8c8d;
+        border: none;
+        padding: 9px 0;
+        margin-top: 6px;
         font-size: 13px;
-        font-weight: 600;
-        color: #2f3640;
+        font-weight: 500;
         cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        transition: all 0.2s ease;
-        z-index: 1000;
-        user-select: none;
+        transition: color 0.2s;
       }
-      .cloud-sync-badge:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      }
-      .cloud-sync-badge.synced {
-        border-color: #2ecc71;
-        color: #27ae60;
-      }
-      .cloud-sync-badge.syncing {
-        border-color: #3498db;
-        color: #2980b9;
-      }
-      .cloud-sync-badge.offline {
-        border-color: #f39c12;
-        color: #d35400;
-      }
-      .cloud-sync-badge.pin_mismatch {
-        border-color: #e74c3c;
-        color: #c0392b;
-      }
-      .cloud-sync-badge.need_pin {
-        border-color: #9b59b6;
-        color: #8e44ad;
-        animation: pulseBadge 2s infinite;
-      }
-      @keyframes pulseBadge {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(155, 89, 182, 0.4); }
-        50% { box-shadow: 0 0 0 6px rgba(155, 89, 182, 0); }
+      .modal-close-link:hover {
+        color: #2c3e50;
       }
       .pin-modal-content {
         background-color: #ffffff;
-        margin: 12% auto;
+        margin: 40px auto;
         padding: 24px;
         border: none;
-        width: 90%;
-        max-width: 360px;
-        border-radius: 14px;
+        width: 100%;
+        max-width: 350px;
+        border-radius: 16px;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
         text-align: center;
+        box-sizing: border-box;
       }
       .pin-modal-content h3 {
         margin-top: 0;
@@ -763,6 +809,7 @@
         transition: border-color 0.2s;
         font-family: inherit;
         font-weight: bold;
+        box-sizing: border-box;
       }
       .pin-input-field:focus {
         border-color: #3498db;
@@ -1112,49 +1159,53 @@
       </defs>
     </svg>
 
-    <div class="customization-icon" onclick="showCustomizationModal()" title="Settings & Customization">⚙️</div>
-    <div id="cloudSyncStatusBadge" class="cloud-sync-badge" onclick="showCustomizationModal()" title="Cloud Backup Status">
-      <span id="cloudSyncIcon">☁️</span>
-      <span id="cloudSyncText">Sync</span>
+    <div class="customization-icon" onclick="showCustomizationModal()" title="Settings & Backup" aria-label="Settings & Backup">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
     </div>
 
     <div id="customizationModal" class="customization-modal">
       <div class="customization-content">
-        <h2>Customize & Cloud Sync</h2>
-        <div>
-          <input type="checkbox" id="eventsCheck" checked />
-          <label for="eventsCheck">Events of the Day</label>
+        <h2>Customize & Backup</h2>
+        <div class="checkbox-group">
+          <div class="checkbox-row" onclick="toggleCheckbox('eventsCheck')">
+            <input type="checkbox" id="eventsCheck" checked onclick="event.stopPropagation()" />
+            <label for="eventsCheck" onclick="event.stopPropagation()">Events of the Day</label>
+          </div>
+          <div class="checkbox-row" onclick="toggleCheckbox('salaryCheck')">
+            <input type="checkbox" id="salaryCheck" checked onclick="event.stopPropagation()" />
+            <label for="salaryCheck" onclick="event.stopPropagation()">Salary Tracker</label>
+          </div>
+          <div class="checkbox-row" onclick="toggleCheckbox('milkCheck')">
+            <input type="checkbox" id="milkCheck" checked onclick="event.stopPropagation()" />
+            <label for="milkCheck" onclick="event.stopPropagation()">Milk Bill Calendar</label>
+          </div>
         </div>
-        <div>
-          <input type="checkbox" id="salaryCheck" checked />
-          <label for="salaryCheck">Salary Tracker</label>
-        </div>
-        <div>
-          <input type="checkbox" id="milkCheck" checked />
-          <label for="milkCheck">Milk Bill Calendar</label>
-        </div>
-        <div>
-          <label for="userName" style="font-size: 12px; color: #555; margin-bottom: 2px;">Your Name</label>
+        <div class="field-group">
+          <label for="userName">Your Name</label>
           <input type="text" id="userName" placeholder="Enter your name" />
         </div>
-        <div>
-          <label for="userPin" style="font-size: 12px; color: #555; margin-bottom: 2px;">4-Digit Backup PIN</label>
+        <div class="field-group">
+          <label for="userPin">4-Digit Backup PIN</label>
           <input type="password" id="userPin" maxlength="4" pattern="\d{4}" placeholder="4-digit PIN (e.g. phone last 4 digits)" />
-          <small style="color: #7f8c8d; font-size: 11px; margin-top: 4px; text-align: center;">Keeps your cloud backup safe & lets you restore on any device</small>
+          <small style="color: #7f8c8d; font-size: 11px; margin-top: 4px;">Keeps your cloud backup safe & lets you restore anytime</small>
         </div>
-        <div id="modalCloudStatus" style="font-size: 12px; color: #7f8c8d; margin-bottom: 10px; font-weight: 500;">
+        <div id="modalCloudStatus" style="font-size: 12px; color: #7f8c8d; margin: 14px 0 6px 0; font-weight: 500; text-align: center;">
           Status: Ready
         </div>
-        <button onclick="applyCustomization()">Save & Confirm</button>
-        <button class="modal-restore-btn" onclick="manualRestoreFromCloud()">🔄 Restore from Cloud Backup</button>
+        <button class="save-btn" onclick="applyCustomization()">Save & Confirm</button>
+        <button class="modal-restore-btn" onclick="manualRestoreFromCloud()">Restore from Cloud Backup</button>
+        <button class="modal-close-link" onclick="closeCustomizationModal()">Close</button>
       </div>
     </div>
 
     <!-- 4-Digit PIN Setup Popup Modal -->
     <div id="pinSetupModal" class="customization-modal">
       <div class="pin-modal-content">
-        <h3>🔒 Cloud Backup Protection</h3>
-        <p>Set a 4-digit PIN (e.g., the last 4 digits of your phone number). Your data will continuously back up to the cloud and can be restored if browser cache is cleared!</p>
+        <h3>Cloud Backup Protection</h3>
+        <p>Set a 4-digit PIN (e.g. the last 4 digits of your phone number). Your data will automatically back up to the cloud and can be restored if browser cache is cleared.</p>
         <input type="tel" id="promptPinInput" class="pin-input-field" maxlength="4" placeholder="••••" />
         <div class="pin-modal-actions">
           <button class="pin-btn-primary" onclick="confirmPinPrompt()">Enable Backup</button>
@@ -1470,54 +1521,62 @@
         await parallelSave("milkQuantities2", milkQuantities2);
       }
 
-      // Sync status indicator helper matching requested text and emojis exactly
+      // Sync status indicator helper (without emojis)
       function updateSyncStatusBadge(status) {
         cloudSyncStatus = status;
-        const badge = document.getElementById("cloudSyncStatusBadge");
-        const icon = document.getElementById("cloudSyncIcon");
-        const label = document.getElementById("cloudSyncText");
         const modalStatus = document.getElementById("modalCloudStatus");
-
-        if (!badge) return;
-
-        badge.className = "cloud-sync-badge " + status;
+        if (!modalStatus) return;
 
         switch (status) {
           case "synced":
-            icon.textContent = "☁️";
-            label.textContent = "Synced";
-            badge.title = "Up to date in Cloudflare D1";
-            if (modalStatus) modalStatus.textContent = "Status: ☁️ Synced (Up to date in Cloudflare D1)";
+            modalStatus.textContent = "Status: Synced (Up to date)";
+            modalStatus.style.color = "#27ae60";
             break;
           case "syncing":
-            icon.textContent = "🔄";
-            label.textContent = "Syncing...";
-            badge.title = "Actively backing up";
-            if (modalStatus) modalStatus.textContent = "Status: 🔄 Syncing... (Actively backing up)";
+            modalStatus.textContent = "Status: Syncing...";
+            modalStatus.style.color = "#2980b9";
             break;
           case "need_pin":
-            icon.textContent = "🔒";
-            label.textContent = "Set PIN";
-            badge.title = "Click to set 4-digit PIN";
-            if (modalStatus) modalStatus.textContent = "Status: 🔒 Set PIN (Click to set 4-digit PIN)";
+            modalStatus.textContent = "Status: Set 4-digit PIN to enable backup";
+            modalStatus.style.color = "#8e44ad";
             break;
           case "pin_mismatch":
           case "pin_error":
-            icon.textContent = "⚠️";
-            label.textContent = "PIN Error";
-            badge.title = "Alerts if PIN doesn't match an existing backup";
-            if (modalStatus) modalStatus.textContent = "Status: ⚠️ PIN Error (Alerts if PIN doesn't match an existing backup)";
+            modalStatus.textContent = "Status: Incorrect PIN for this backup";
+            modalStatus.style.color = "#c0392b";
             break;
           case "github_pages":
           case "offline":
           default:
-            icon.textContent = "☁️";
-            label.textContent = "Local Mode";
-            badge.title = "Running locally or on GitHub Pages before moving";
-            if (modalStatus) modalStatus.textContent = "Status: ☁️ Local Mode (Running locally or on GitHub Pages before moving)";
+            modalStatus.textContent = "Status: Local Mode";
+            modalStatus.style.color = "#7f8c8d";
             break;
         }
       }
+
+      function closeCustomizationModal() {
+        const modal = document.getElementById("customizationModal");
+        if (modal) modal.style.display = "none";
+      }
+
+      function toggleCheckbox(id) {
+        const el = document.getElementById(id);
+        if (el) {
+          el.checked = !el.checked;
+        }
+      }
+
+      // Close modal on click outside content
+      window.addEventListener("click", function(event) {
+        const custModal = document.getElementById("customizationModal");
+        if (custModal && event.target === custModal) {
+          custModal.style.display = "none";
+        }
+        const pinModal = document.getElementById("pinSetupModal");
+        if (pinModal && event.target === pinModal) {
+          pinModal.style.display = "none";
+        }
+      });
 
       // Check if browser has any meaningful tracker data
       function isLocalEmpty() {
@@ -1581,7 +1640,7 @@
 
           if (res.status === 401 || res.status === 403) {
             updateSyncStatusBadge("pin_error");
-            showToast("⚠️ Cloud PIN mismatch! Please check your 4-digit PIN in settings.");
+            showToast("Cloud PIN mismatch. Please check your 4-digit PIN in settings.");
             return;
           }
 
@@ -1639,7 +1698,7 @@
 
           if (res.status === 401 || res.status === 403) {
             updateSyncStatusBadge("pin_error");
-            showToast("⚠️ PIN did not match existing cloud backup!");
+            showToast("PIN did not match existing cloud backup.");
             return;
           }
 
@@ -1680,7 +1739,7 @@
             lastModified = cloudLastMod;
             await localforage.setItem("lastModified", lastModified);
             try { localStorage.setItem("lastModified", String(lastModified)); } catch (e) {}
-            showToast(`🎉 Welcome back${userName ? ', ' + userName : ''}! Restored all data from your cloud backup.`);
+            showToast(`Welcome back${userName ? ', ' + userName : ''}! Restored all data from cloud backup.`);
             updateSyncStatusBadge("synced");
             return;
           }
@@ -1757,7 +1816,7 @@
             applyRestoredData(cloudBackupData);
             lastModified = cloudTimestamp;
             parallelSave("lastModified", lastModified);
-            showToast("🎉 Restored from latest cloud backup!");
+            showToast("Restored from latest cloud backup.");
             updateSyncStatusBadge("synced");
           } else {
             manualRestoreFromCloud();
@@ -1802,7 +1861,7 @@
           const result = await res.json().catch(() => null);
 
           if (res.status === 401 || res.status === 403) {
-            alert("⚠️ PIN does not match the existing cloud backup" + (nameInput ? " for " + nameInput : "") + ".");
+            alert("PIN does not match the existing cloud backup" + (nameInput ? " for " + nameInput : "") + ".");
             updateSyncStatusBadge("pin_error");
             return;
           }
@@ -1814,7 +1873,7 @@
           }
 
           if (!result.exists) {
-            alert(`No cloud backup found matching this PIN and name. Make sure the 4-digit PIN is correct.`);
+            alert("No cloud backup found matching this PIN and name. Make sure the 4-digit PIN is correct.");
             updateSyncStatusBadge("synced");
             return;
           }
@@ -1835,7 +1894,7 @@
           await localforage.setItem("lastModified", lastModified);
 
           document.getElementById("customizationModal").style.display = "none";
-          showToast(`🎉 Data successfully restored from cloud${userName ? ' for ' + userName : ''}!`);
+          showToast(`Data successfully restored from cloud${userName ? ' for ' + userName : ''}!`);
           updateSyncStatusBadge("synced");
 
         } catch (e) {
@@ -1878,7 +1937,7 @@
         const pinField = document.getElementById("userPin");
         if (pinField) pinField.value = userPin;
 
-        showToast("🔒 PIN set! Initializing your secure cloud backup...");
+        showToast("PIN set. Initializing cloud backup...");
         await initCloudSync();
       }
 
