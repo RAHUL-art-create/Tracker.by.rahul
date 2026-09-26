@@ -1,6 +1,6 @@
 name = "personal-tracker"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = "."
+main = "_worker.js"
 
 [assets]
 directory = "."
