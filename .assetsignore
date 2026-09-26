@@ -1,0 +1,7 @@
+_worker.js
+functions/
+schema.sql
+wrangler.toml
+.git
+.gitignore
+CLOUDFLARE_D1_SETUP.md
