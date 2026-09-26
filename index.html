@@ -665,6 +665,142 @@
       .customization-content button:hover {
         background-color: #333;
       }
+      .modal-restore-btn {
+        width: 100%;
+        padding: 9px;
+        background-color: #34495e !important;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 8px;
+        font-size: 13px;
+        transition: background-color 0.2s;
+      }
+      .modal-restore-btn:hover {
+        background-color: #2c3e50 !important;
+      }
+      .cloud-sync-badge {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #ffffff;
+        border: 1px solid #dcdde1;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #2f3640;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s ease;
+        z-index: 1000;
+        user-select: none;
+      }
+      .cloud-sync-badge:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      }
+      .cloud-sync-badge.synced {
+        border-color: #2ecc71;
+        color: #27ae60;
+      }
+      .cloud-sync-badge.syncing {
+        border-color: #3498db;
+        color: #2980b9;
+      }
+      .cloud-sync-badge.offline {
+        border-color: #f39c12;
+        color: #d35400;
+      }
+      .cloud-sync-badge.pin_mismatch {
+        border-color: #e74c3c;
+        color: #c0392b;
+      }
+      .cloud-sync-badge.need_pin {
+        border-color: #9b59b6;
+        color: #8e44ad;
+        animation: pulseBadge 2s infinite;
+      }
+      @keyframes pulseBadge {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(155, 89, 182, 0.4); }
+        50% { box-shadow: 0 0 0 6px rgba(155, 89, 182, 0); }
+      }
+      .pin-modal-content {
+        background-color: #ffffff;
+        margin: 12% auto;
+        padding: 24px;
+        border: none;
+        width: 90%;
+        max-width: 360px;
+        border-radius: 14px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        text-align: center;
+      }
+      .pin-modal-content h3 {
+        margin-top: 0;
+        color: #2c3e50;
+        font-size: 20px;
+      }
+      .pin-modal-content p {
+        color: #7f8c8d;
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 18px;
+      }
+      .pin-input-field {
+        letter-spacing: 8px;
+        font-size: 24px;
+        text-align: center;
+        width: 140px;
+        padding: 8px;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.2s;
+        font-family: inherit;
+        font-weight: bold;
+      }
+      .pin-input-field:focus {
+        border-color: #3498db;
+      }
+      .pin-modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+        justify-content: center;
+      }
+      .pin-btn-primary {
+        flex: 1;
+        padding: 10px 14px;
+        background-color: #2ecc71;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .pin-btn-primary:hover {
+        background-color: #27ae60;
+      }
+      .pin-btn-secondary {
+        padding: 10px 14px;
+        background-color: #ecf0f1;
+        color: #7f8c8d;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .pin-btn-secondary:hover {
+        background-color: #bdc3c7;
+        color: #2c3e50;
+      }
       #eventsCheck + label {
         color: var(--event-color);
       }
@@ -976,10 +1112,15 @@
       </defs>
     </svg>
 
-    <div class="customization-icon" onclick="showCustomizationModal()">⚙️</div>
+    <div class="customization-icon" onclick="showCustomizationModal()" title="Settings & Customization">⚙️</div>
+    <div id="cloudSyncStatusBadge" class="cloud-sync-badge" onclick="showCustomizationModal()" title="Cloud Backup Status">
+      <span id="cloudSyncIcon">☁️</span>
+      <span id="cloudSyncText">Sync</span>
+    </div>
+
     <div id="customizationModal" class="customization-modal">
       <div class="customization-content">
-        <h2>Customize Your Tracker</h2>
+        <h2>Customize & Cloud Sync</h2>
         <div>
           <input type="checkbox" id="eventsCheck" checked />
           <label for="eventsCheck">Events of the Day</label>
@@ -993,9 +1134,32 @@
           <label for="milkCheck">Milk Bill Calendar</label>
         </div>
         <div>
+          <label for="userName" style="font-size: 12px; color: #555; margin-bottom: 2px;">Your Name</label>
           <input type="text" id="userName" placeholder="Enter your name" />
         </div>
-        <button onclick="applyCustomization()">Confirm</button>
+        <div>
+          <label for="userPin" style="font-size: 12px; color: #555; margin-bottom: 2px;">4-Digit Backup PIN</label>
+          <input type="password" id="userPin" maxlength="4" pattern="\d{4}" placeholder="4-digit PIN (e.g. phone last 4 digits)" />
+          <small style="color: #7f8c8d; font-size: 11px; margin-top: 4px; text-align: center;">Keeps your cloud backup safe & lets you restore on any device</small>
+        </div>
+        <div id="modalCloudStatus" style="font-size: 12px; color: #7f8c8d; margin-bottom: 10px; font-weight: 500;">
+          Status: Ready
+        </div>
+        <button onclick="applyCustomization()">Save & Confirm</button>
+        <button class="modal-restore-btn" onclick="manualRestoreFromCloud()">🔄 Restore from Cloud Backup</button>
+      </div>
+    </div>
+
+    <!-- 4-Digit PIN Setup Popup Modal -->
+    <div id="pinSetupModal" class="customization-modal">
+      <div class="pin-modal-content">
+        <h3>🔒 Cloud Backup Protection</h3>
+        <p>Set a 4-digit PIN (e.g., the last 4 digits of your phone number). Your data will continuously back up to the cloud and can be restored if browser cache is cleared!</p>
+        <input type="tel" id="promptPinInput" class="pin-input-field" maxlength="4" placeholder="••••" />
+        <div class="pin-modal-actions">
+          <button class="pin-btn-primary" onclick="confirmPinPrompt()">Enable Backup</button>
+          <button class="pin-btn-secondary" onclick="closePinPrompt()">Later</button>
+        </div>
       </div>
     </div>
 
@@ -1234,6 +1398,11 @@
       let selectedDate = null;
       let milkBillType = "1~MB";
       let userName = "";
+      let userId = "";
+      let userPin = "";
+      let lastModified = Date.now();
+      let cloudSyncTimer = null;
+      let cloudSyncStatus = "idle";
       let selectedCategories = ["events", "salary", "milk"];
 
       let quickAmounts = [500, 1000];
@@ -1252,18 +1421,38 @@
       let datePreviewTimer = null;
       let datePreviewElement = null;
 
+      // Parallel storage: saves immediately to localForage, mirrors to localStorage, updates lastModified, triggers cloud sync
+      async function parallelSave(key, value) {
+        try {
+          await localforage.setItem(key, value);
+        } catch (e) {
+          console.warn("localForage save error:", e);
+        }
+        try {
+          localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
+        } catch (e) {}
+
+        lastModified = Date.now();
+        try {
+          await localforage.setItem("lastModified", lastModified);
+          localStorage.setItem("lastModified", String(lastModified));
+        } catch (e) {}
+
+        scheduleCloudBackup();
+      }
+
       async function saveEvents() {
-        await localforage.setItem("events", events);
+        await parallelSave("events", events);
         displayEvents();
       }
 
       async function saveSalaryData() {
-        await localforage.setItem("salaryData", salaryData);
+        await parallelSave("salaryData", salaryData);
         displaySalaryData();
       }
 
       async function saveMilkData() {
-        await localforage.setItem("milkData", milkData);
+        await parallelSave("milkData", milkData);
       }
 
       function refreshMilkUI() {
@@ -1277,8 +1466,420 @@
 
       async function saveMilkQuantities() {
         refreshMilkUI();
-        await localforage.setItem("milkQuantities", milkQuantities);
-        await localforage.setItem("milkQuantities2", milkQuantities2);
+        await parallelSave("milkQuantities", milkQuantities);
+        await parallelSave("milkQuantities2", milkQuantities2);
+      }
+
+      // Sync status indicator helper matching requested text and emojis exactly
+      function updateSyncStatusBadge(status) {
+        cloudSyncStatus = status;
+        const badge = document.getElementById("cloudSyncStatusBadge");
+        const icon = document.getElementById("cloudSyncIcon");
+        const label = document.getElementById("cloudSyncText");
+        const modalStatus = document.getElementById("modalCloudStatus");
+
+        if (!badge) return;
+
+        badge.className = "cloud-sync-badge " + status;
+
+        switch (status) {
+          case "synced":
+            icon.textContent = "☁️";
+            label.textContent = "Synced";
+            badge.title = "Up to date in Cloudflare D1";
+            if (modalStatus) modalStatus.textContent = "Status: ☁️ Synced (Up to date in Cloudflare D1)";
+            break;
+          case "syncing":
+            icon.textContent = "🔄";
+            label.textContent = "Syncing...";
+            badge.title = "Actively backing up";
+            if (modalStatus) modalStatus.textContent = "Status: 🔄 Syncing... (Actively backing up)";
+            break;
+          case "need_pin":
+            icon.textContent = "🔒";
+            label.textContent = "Set PIN";
+            badge.title = "Click to set 4-digit PIN";
+            if (modalStatus) modalStatus.textContent = "Status: 🔒 Set PIN (Click to set 4-digit PIN)";
+            break;
+          case "pin_mismatch":
+          case "pin_error":
+            icon.textContent = "⚠️";
+            label.textContent = "PIN Error";
+            badge.title = "Alerts if PIN doesn't match an existing backup";
+            if (modalStatus) modalStatus.textContent = "Status: ⚠️ PIN Error (Alerts if PIN doesn't match an existing backup)";
+            break;
+          case "github_pages":
+          case "offline":
+          default:
+            icon.textContent = "☁️";
+            label.textContent = "Local Mode";
+            badge.title = "Running locally or on GitHub Pages before moving";
+            if (modalStatus) modalStatus.textContent = "Status: ☁️ Local Mode (Running locally or on GitHub Pages before moving)";
+            break;
+        }
+      }
+
+      // Check if browser has any meaningful tracker data
+      function isLocalEmpty() {
+        const hasEvents = Array.isArray(events) && events.length > 0;
+        const hasSalary = salaryData && typeof salaryData === "object" && Object.keys(salaryData).length > 0;
+        const hasMilk = milkData && typeof milkData === "object" && Object.keys(milkData).length > 0;
+        return !hasEvents && !hasSalary && !hasMilk;
+      }
+
+      // Debounce timer for non-blocking background backup
+      function scheduleCloudBackup() {
+        if (cloudSyncTimer) {
+          clearTimeout(cloudSyncTimer);
+        }
+        cloudSyncTimer = setTimeout(() => {
+          performCloudBackup();
+        }, 1500);
+      }
+
+      // Push current tracker state to Cloudflare D1 via /api/sync
+      async function performCloudBackup() {
+        if (!userPin || String(userPin).trim().length !== 4) {
+          updateSyncStatusBadge("need_pin");
+          return;
+        }
+
+        updateSyncStatusBadge("syncing");
+
+        const payload = {
+          userId: userId,
+          userName: (userName || "").trim(),
+          pin: String(userPin).trim(),
+          lastModified: lastModified,
+          data: {
+            events,
+            salaryData,
+            milkData,
+            milkQuantities,
+            milkQuantities2,
+            milkBillType,
+            selectedCategories,
+            quickAmounts,
+            quickQuantities
+          }
+        };
+
+        try {
+          const res = await fetch("/api/sync", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.status === 404) {
+            // Running on GitHub Pages or static host where /api/sync doesn't exist
+            updateSyncStatusBadge("github_pages");
+            return;
+          }
+
+          const result = await res.json().catch(() => null);
+
+          if (res.status === 401 || res.status === 403) {
+            updateSyncStatusBadge("pin_error");
+            showToast("⚠️ Cloud PIN mismatch! Please check your 4-digit PIN in settings.");
+            return;
+          }
+
+          if (!res.ok || (result && !result.success)) {
+            updateSyncStatusBadge("offline");
+            return;
+          }
+
+          if (result && result.userId && result.userId !== userId) {
+            userId = result.userId;
+            await parallelSave("userId", userId);
+          }
+
+          if (result && result.userName && result.userName !== userName && result.userName !== "User") {
+            userName = result.userName;
+            updateUserName();
+          }
+
+          if (result && result.cloudNewer) {
+            console.log("Cloud backup is newer than local data. Prompting restore.");
+            promptCloudRestore(result.cloudLastModified);
+            return;
+          }
+
+          updateSyncStatusBadge("synced");
+        } catch (err) {
+          // Offline or network error - strictly preserve local data
+          updateSyncStatusBadge("offline");
+        }
+      }
+
+      // Safe cloud initialization: handles Restore vs Backup without wipeouts
+      async function initCloudSync() {
+        if (!userPin || String(userPin).trim().length !== 4) {
+          updateSyncStatusBadge("need_pin");
+          setTimeout(() => {
+            showPinSetupPrompt();
+          }, 1500);
+          return;
+        }
+
+        updateSyncStatusBadge("syncing");
+
+        try {
+          const res = await fetch(
+            `/api/sync?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent((userName || "").trim())}&pin=${encodeURIComponent(String(userPin).trim())}`
+          );
+
+          if (res.status === 404) {
+            updateSyncStatusBadge("github_pages");
+            return;
+          }
+
+          const result = await res.json().catch(() => null);
+
+          if (res.status === 401 || res.status === 403) {
+            updateSyncStatusBadge("pin_error");
+            showToast("⚠️ PIN did not match existing cloud backup!");
+            return;
+          }
+
+          if (!res.ok || !result || !result.success) {
+            updateSyncStatusBadge("offline");
+            return;
+          }
+
+          if (!result.exists) {
+            // New user or cloud empty. If we have local data, back it up to cloud!
+            if (!isLocalEmpty()) {
+              await performCloudBackup();
+            } else {
+              updateSyncStatusBadge("synced");
+            }
+            return;
+          }
+
+          // Existing cloud backup found!
+          const cloudBackup = result.data;
+          const cloudLastMod = Number(result.lastModified) || 0;
+
+          if (result.userId) {
+            userId = result.userId;
+            await parallelSave("userId", userId);
+          }
+
+          // If local name was empty but cloud has a name, update local name!
+          if (!userName && result.userName && result.userName !== "User") {
+            userName = result.userName;
+            await parallelSave("userName", userName);
+            updateUserName();
+          }
+
+          // RULE 1: If local is completely empty (e.g. cache was cleared!), RESTORE IMMEDIATELY!
+          if (isLocalEmpty()) {
+            await applyRestoredData(cloudBackup);
+            lastModified = cloudLastMod;
+            await localforage.setItem("lastModified", lastModified);
+            try { localStorage.setItem("lastModified", String(lastModified)); } catch (e) {}
+            showToast(`🎉 Welcome back${userName ? ', ' + userName : ''}! Restored all data from your cloud backup.`);
+            updateSyncStatusBadge("synced");
+            return;
+          }
+
+          // RULE 2: Both local and cloud have data. Compare timestamps!
+          if (cloudLastMod > lastModified) {
+            // Cloud has newer data
+            promptCloudRestore(cloudLastMod, cloudBackup);
+          } else {
+            // Local is newer or equal: push to cloud
+            await performCloudBackup();
+          }
+
+        } catch (err) {
+          updateSyncStatusBadge("offline");
+        }
+      }
+
+      // Apply cloud data to runtime and local storage
+      async function applyRestoredData(data) {
+        if (!data) return;
+        if (data.events) events = data.events;
+        if (data.salaryData) salaryData = data.salaryData;
+        if (data.milkData) milkData = data.milkData;
+        if (data.milkQuantities) milkQuantities = data.milkQuantities;
+        if (data.milkQuantities2) milkQuantities2 = data.milkQuantities2;
+        if (data.milkBillType) milkBillType = data.milkBillType;
+        if (data.selectedCategories) selectedCategories = data.selectedCategories;
+        if (data.quickAmounts) quickAmounts = data.quickAmounts;
+        if (data.quickQuantities) quickQuantities = data.quickQuantities;
+
+        const keys = [
+          ["events", events],
+          ["salaryData", salaryData],
+          ["milkData", milkData],
+          ["milkQuantities", milkQuantities],
+          ["milkQuantities2", milkQuantities2],
+          ["milkBillType", milkBillType],
+          ["selectedCategories", selectedCategories],
+          ["quickAmounts", quickAmounts],
+          ["quickQuantities", quickQuantities]
+        ];
+
+        for (const [k, v] of keys) {
+          try { await localforage.setItem(k, v); } catch (e) {}
+          try { localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)); } catch (e) {}
+        }
+
+        displayEvents();
+        displaySalaryData();
+        renderCalendar();
+        displayMilkQuantities();
+        updateMilkQuantitySelect(1);
+        if (milkBillType === "2~MB") {
+          updateMilkQuantitySelect(2);
+        }
+        const radio = document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`);
+        if (radio) radio.checked = true;
+        changeMilkBillType();
+        updateUserName();
+        updateSelectedCategories();
+        updateQuickAmountButtons();
+        checkForEvents();
+      }
+
+      // Prompt user if cloud is newer
+      function promptCloudRestore(cloudTimestamp, cloudBackupData) {
+        const dateStr = cloudTimestamp ? new Date(cloudTimestamp).toLocaleString() : "recently";
+        const doRestore = confirm(
+          `A newer cloud backup (${dateStr}) was found for ${userName || 'your tracker'}.\n\nDo you want to restore it now?\n\n• Click OK to Restore\n• Click Cancel to keep current local data`
+        );
+        if (doRestore) {
+          if (cloudBackupData) {
+            applyRestoredData(cloudBackupData);
+            lastModified = cloudTimestamp;
+            parallelSave("lastModified", lastModified);
+            showToast("🎉 Restored from latest cloud backup!");
+            updateSyncStatusBadge("synced");
+          } else {
+            manualRestoreFromCloud();
+          }
+        } else {
+          // Keep local data and push to cloud
+          performCloudBackup();
+        }
+      }
+
+      // Manual restore button handler in modal
+      async function manualRestoreFromCloud() {
+        const nameInput = (document.getElementById("userName").value || "").trim() || userName;
+        const pinInput = (document.getElementById("userPin").value || "").trim() || userPin;
+
+        if (!pinInput || pinInput.length !== 4) {
+          alert("Please enter your 4-digit backup PIN.");
+          return;
+        }
+
+        const confirmMsg = nameInput
+          ? `Restore all tracker data from cloud backup for "${nameInput}"? Any unsaved local edits will be replaced.`
+          : `Restore all tracker data from cloud backup using PIN "${pinInput}"? Any unsaved local edits will be replaced.`;
+
+        if (!confirm(confirmMsg)) {
+          return;
+        }
+
+        updateSyncStatusBadge("syncing");
+
+        try {
+          const res = await fetch(
+            `/api/sync?userName=${encodeURIComponent(nameInput)}&pin=${encodeURIComponent(pinInput)}`
+          );
+
+          if (res.status === 404) {
+            alert("Cloud backup API is not reachable (running on static host / GitHub Pages).");
+            updateSyncStatusBadge("github_pages");
+            return;
+          }
+
+          const result = await res.json().catch(() => null);
+
+          if (res.status === 401 || res.status === 403) {
+            alert("⚠️ PIN does not match the existing cloud backup" + (nameInput ? " for " + nameInput : "") + ".");
+            updateSyncStatusBadge("pin_error");
+            return;
+          }
+
+          if (!res.ok || !result || !result.success) {
+            alert("Could not retrieve backup. " + (result && result.error ? result.error : "Please check your network."));
+            updateSyncStatusBadge("offline");
+            return;
+          }
+
+          if (!result.exists) {
+            alert(`No cloud backup found matching this PIN and name. Make sure the 4-digit PIN is correct.`);
+            updateSyncStatusBadge("synced");
+            return;
+          }
+
+          // Apply restored data
+          if (result.userId) {
+            userId = result.userId;
+            await parallelSave("userId", userId);
+          }
+
+          // Rewrite name if the user entered a new name, or restore the cloud's name
+          userName = nameInput || result.userName || userName;
+          userPin = pinInput;
+          await parallelSave("userName", userName);
+          await parallelSave("userPin", userPin);
+          await applyRestoredData(result.data);
+          lastModified = Number(result.lastModified) || Date.now();
+          await localforage.setItem("lastModified", lastModified);
+
+          document.getElementById("customizationModal").style.display = "none";
+          showToast(`🎉 Data successfully restored from cloud${userName ? ' for ' + userName : ''}!`);
+          updateSyncStatusBadge("synced");
+
+        } catch (e) {
+          alert("Network error: Could not reach the cloud backup server.");
+          updateSyncStatusBadge("offline");
+        }
+      }
+
+      // Friendly 4-digit PIN setup prompt
+      function showPinSetupPrompt() {
+        const modal = document.getElementById("pinSetupModal");
+        if (modal) {
+          modal.style.display = "block";
+          const input = document.getElementById("promptPinInput");
+          if (input) {
+            input.value = "";
+            input.focus();
+          }
+        }
+      }
+
+      function closePinPrompt() {
+        const modal = document.getElementById("pinSetupModal");
+        if (modal) modal.style.display = "none";
+      }
+
+      async function confirmPinPrompt() {
+        const input = document.getElementById("promptPinInput");
+        const val = input ? input.value.trim() : "";
+        if (!/^\d{4}$/.test(val)) {
+          alert("Please enter a valid 4-digit PIN (numbers only, e.g. last 4 digits of phone).");
+          if (input) input.focus();
+          return;
+        }
+
+        userPin = val;
+        await parallelSave("userPin", userPin);
+        closePinPrompt();
+
+        const pinField = document.getElementById("userPin");
+        if (pinField) pinField.value = userPin;
+
+        showToast("🔒 PIN set! Initializing your secure cloud backup...");
+        await initCloudSync();
       }
 
       function addEvent() {
@@ -2002,7 +2603,7 @@
         milkBillType = document.querySelector(
           'input[name="milkBillType"]:checked'
         ).value;
-        localforage.setItem("milkBillType", milkBillType);
+        parallelSave("milkBillType", milkBillType);
         document
           .getElementById("milkBill2")
           .classList.toggle("hidden", milkBillType === "1~MB");
@@ -2018,6 +2619,7 @@
 
       async function downloadData() {
         const data = {
+          userId: userId,
           events: events,
           salaryData: salaryData,
           milkData: milkData,
@@ -2025,8 +2627,11 @@
           milkQuantities2: milkQuantities2,
           milkBillType: milkBillType,
           userName: userName,
+          userPin: userPin,
+          lastModified: lastModified,
           selectedCategories: selectedCategories,
           quickAmounts: quickAmounts,
+          quickQuantities: quickQuantities,
         };
         const blob = new Blob([JSON.stringify(data)], {
           type: "application/json",
@@ -2051,30 +2656,41 @@
           const reader = new FileReader();
           reader.onload = async function (e) {
             const data = JSON.parse(e.target.result);
-            events = data.events;
-            salaryData = data.salaryData;
-            milkData = data.milkData;
-            milkQuantities = data.milkQuantities;
+            userId = data.userId || userId;
+            events = data.events || [];
+            salaryData = data.salaryData || {};
+            milkData = data.milkData || {};
+            milkQuantities = data.milkQuantities || milkQuantities;
             milkQuantities2 = data.milkQuantities2 || milkQuantities2;
             milkBillType = data.milkBillType || "1~MB";
             userName = data.userName || "";
+            userPin = data.userPin || userPin;
             selectedCategories = data.selectedCategories || [
               "events",
               "salary",
               "milk",
             ];
             quickAmounts = data.quickAmounts || quickAmounts;
+            quickQuantities = data.quickQuantities || quickQuantities;
+            lastModified = data.lastModified || Date.now();
+
             document.querySelector(
               `input[name="milkBillType"][value="${milkBillType}"]`
             ).checked = true;
-            await saveEvents();
-            await saveSalaryData();
-            await saveMilkData();
-            await saveMilkQuantities();
-            await localforage.setItem("milkBillType", milkBillType);
-            await localforage.setItem("userName", userName);
-            await localforage.setItem("selectedCategories", selectedCategories);
-            await localforage.setItem("quickAmounts", quickAmounts);
+
+            await parallelSave("userId", userId);
+            await parallelSave("events", events);
+            await parallelSave("salaryData", salaryData);
+            await parallelSave("milkData", milkData);
+            await parallelSave("milkQuantities", milkQuantities);
+            await parallelSave("milkQuantities2", milkQuantities2);
+            await parallelSave("milkBillType", milkBillType);
+            await parallelSave("userName", userName);
+            await parallelSave("userPin", userPin);
+            await parallelSave("selectedCategories", selectedCategories);
+            await parallelSave("quickAmounts", quickAmounts);
+            await parallelSave("quickQuantities", quickQuantities);
+
             displayEvents();
             displaySalaryData();
             renderCalendar();
@@ -2090,6 +2706,7 @@
               "📂",
               document.querySelector(".data-buttons button:last-child")
             );
+            showToast("Backup restored from JSON file!");
           };
           reader.readAsText(file);
         };
@@ -2119,9 +2736,11 @@
         document.getElementById("milkCheck").checked =
           selectedCategories.includes("milk");
         document.getElementById("userName").value = userName;
+        const pinEl = document.getElementById("userPin");
+        if (pinEl) pinEl.value = userPin;
       }
 
-      function applyCustomization() {
+      async function applyCustomization() {
         selectedCategories = [];
         if (document.getElementById("eventsCheck").checked)
           selectedCategories.push("events");
@@ -2129,12 +2748,23 @@
           selectedCategories.push("salary");
         if (document.getElementById("milkCheck").checked)
           selectedCategories.push("milk");
-        userName = document.getElementById("userName").value;
-        localforage.setItem("selectedCategories", selectedCategories);
-        localforage.setItem("userName", userName);
+        userName = (document.getElementById("userName").value || "").trim();
+        const pinVal = (document.getElementById("userPin").value || "").trim();
+        if (pinVal && !/^\d{4}$/.test(pinVal)) {
+          alert("Backup PIN must be exactly 4 digits.");
+          return;
+        }
+        userPin = pinVal;
+        await parallelSave("selectedCategories", selectedCategories);
+        await parallelSave("userName", userName);
+        await parallelSave("userPin", userPin);
         updateSelectedCategories();
         updateUserName();
         document.getElementById("customizationModal").style.display = "none";
+        if (userName && userPin && userPin.length === 4) {
+          showToast("Settings saved! Checking cloud backup...");
+          await initCloudSync();
+        }
       }
 
       function updateSelectedCategories() {
@@ -2160,7 +2790,21 @@
         const migrated = await localforage.getItem("_migrated");
         if (migrated) return;
 
-        const keys = ["events", "salaryData", "milkData", "milkQuantities", "milkQuantities2", "milkBillType", "userName", "selectedCategories", "quickAmounts", "quickQuantities"];
+        const keys = [
+          "events",
+          "salaryData",
+          "milkData",
+          "milkQuantities",
+          "milkQuantities2",
+          "milkBillType",
+          "userName",
+          "userId",
+          "userPin",
+          "lastModified",
+          "selectedCategories",
+          "quickAmounts",
+          "quickQuantities",
+        ];
         let hasData = false;
 
         for (const key of keys) {
@@ -2231,7 +2875,17 @@
         const loadedMQ2 = await localforage.getItem("milkQuantities2");
         if (loadedMQ2) milkQuantities2 = loadedMQ2;
         milkBillType = (await localforage.getItem("milkBillType")) || "1~MB";
-        userName = (await localforage.getItem("userName")) || "";
+        userName = (await localforage.getItem("userName")) || localStorage.getItem("userName") || "";
+        userPin = (await localforage.getItem("userPin")) || localStorage.getItem("userPin") || "";
+        userId = (await localforage.getItem("userId")) || localStorage.getItem("userId") || "";
+        if (!userId) {
+          userId = "usr_" + Date.now().toString(36) + "_" + Math.random().toString(36).substring(2, 9);
+          await localforage.setItem("userId", userId);
+          try { localStorage.setItem("userId", userId); } catch (e) {}
+        }
+        const loadedLM = (await localforage.getItem("lastModified")) || localStorage.getItem("lastModified");
+        if (loadedLM) lastModified = Number(loadedLM);
+
         selectedCategories = (await localforage.getItem("selectedCategories")) || ["events", "salary", "milk"];
         const loadedQA = await localforage.getItem("quickAmounts");
         if (loadedQA) quickAmounts = loadedQA;
@@ -2256,6 +2910,9 @@
         updateSelectedCategories();
         updateUserName();
         updateQuickAmountButtons();
+
+        // Start non-blocking cloud sync check
+        initCloudSync();
       }
 
       initApp();
@@ -2264,6 +2921,9 @@
       window.onclick = function (event) {
         if (event.target == document.getElementById("customizationModal")) {
           document.getElementById("customizationModal").style.display = "none";
+        }
+        if (event.target == document.getElementById("pinSetupModal")) {
+          closePinPrompt();
         }
         if (event.target == document.getElementById("quantityModal")) {
           closeQuantityModal();
@@ -2316,7 +2976,7 @@
         const newAmount = parseInt(document.getElementById('newQuickAmount').value);
         if (newAmount && editingButtonIndex !== null) {
           quickAmounts[editingButtonIndex] = newAmount;
-          localforage.setItem("quickAmounts", quickAmounts);
+          parallelSave("quickAmounts", quickAmounts);
           updateQuickAmountButtons();
           closeQuickAmountEdit();
           showEmojiAnimation("💰", document.querySelector('.quick-amounts'));
@@ -2470,7 +3130,7 @@
         const newQuantity = parseFloat(document.getElementById('newQuantityValue').value);
         if (newQuantity && editingQuantityIndex !== null) {
           quickQuantities[editingQuantityIndex] = newQuantity;
-          localforage.setItem("quickQuantities", quickQuantities);
+          parallelSave("quickQuantities", quickQuantities);
           updateQuickQuantityButtons(1);
           updateQuickQuantityButtons(2);
           closeQuantityEdit();
