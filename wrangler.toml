@@ -1,6 +1,6 @@
-name = "personal-tracker"
+name = 'personal-tracker'
 compatibility_date = "2024-01-01"
-main = "_worker.js"
+main = "worker.js"
 
 [assets]
 directory = "."
