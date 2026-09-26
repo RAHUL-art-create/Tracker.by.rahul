@@ -1,11 +1,8 @@
-name = 'personal-tracker'
+name = "personal-tracker"
 compatibility_date = "2024-01-01"
-main = "worker.js"
-
-[assets]
-directory = "."
+pages_build_output_dir = "."
 
 [[d1_databases]]
 binding = "DB"
 database_name = "tracker-db"
-database_id = "tracker-db-id"
+database_id = "5c00a907-accb-4eaa-a5cd-485552f23bed"
