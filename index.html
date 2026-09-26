@@ -1702,6 +1702,11 @@
           return;
         }
 
+        if (isLocalEmpty()) {
+          // Guard: never overwrite cloud backup with empty local data
+          return;
+        }
+
         updateSyncStatusBadge("syncing");
 
         const payload = {
