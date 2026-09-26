@@ -1,6 +1,10 @@
 name = "personal-tracker"
 compatibility_date = "2024-01-01"
+main = "worker.js"
 pages_build_output_dir = "."
+
+[assets]
+directory = "."
 
 [[d1_databases]]
 binding = "DB"
