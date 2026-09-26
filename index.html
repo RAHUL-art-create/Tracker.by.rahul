@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Personal Tracker</title>
     <link
       rel="icon"
@@ -43,21 +43,14 @@
         --milk-color: #9b59b6;
         --export-color: #1abc9c;
       }
-      html, body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        max-width: 100vw;
-        overflow-x: hidden;
-        position: relative;
-        -webkit-text-size-adjust: 100%;
-      }
       body {
         font-family: Arial, sans-serif;
         line-height: 1.6;
+        margin: 0;
         padding: 20px;
         background-color: var(--background-color);
         color: var(--text-color);
+        overflow-x: hidden;
       }
       .calendar-container {
         width: 100%;
@@ -605,29 +598,14 @@
       }
       .customization-icon {
         position: absolute;
-        top: 18px;
-        left: 18px;
-        font-size: 26px;
+        top: 20px;
+        left: 20px;
+        font-size: 24px;
         cursor: pointer;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
+        z-index: 1000;
+        background: none;
         border: none;
-        box-shadow: none;
-        outline: none;
         padding: 0;
-        line-height: 1;
-        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        -webkit-tap-highlight-color: transparent;
-        user-select: none;
-      }
-      .customization-icon:hover {
-        transform: rotate(45deg) scale(1.15);
-      }
-      .customization-icon:active {
-        transform: scale(0.92);
       }
       .customization-modal {
         display: none;
@@ -940,15 +918,7 @@
       }
       @media (max-width: 768px) {
         body {
-          padding: 15px 10px;
-        }
-        .customization-icon {
-          position: absolute;
-          top: 14px;
-          left: 14px;
-        }
-        input, select, textarea {
-          font-size: 16px !important;
+          padding: 10px;
         }
         .container {
           flex-direction: column;
