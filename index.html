@@ -602,24 +602,29 @@
       }
       .customization-icon {
         position: fixed;
-        top: 20px;
-        left: 20px;
-        font-size: 20px;
+        top: 18px;
+        left: 18px;
+        font-size: 22px;
         cursor: pointer;
         z-index: 1000;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
         background: #ffffff;
         border-radius: 50%;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-        transition: transform 0.25s ease, background-color 0.2s ease;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background-color 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
       }
       .customization-icon:hover {
-        transform: rotate(35deg);
-        background: #f8f9fa;
+        transform: rotate(45deg) scale(1.08);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16);
+      }
+      .customization-icon:active {
+        transform: scale(0.95);
       }
       .customization-modal {
         display: none;
@@ -659,41 +664,94 @@
         gap: 10px;
         margin-bottom: 16px;
       }
-      .customization-content .checkbox-row {
+      .customization-content .sleek-checkbox-card {
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
         gap: 12px;
-        padding: 11px 14px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        border: 1px solid #e9ecef;
+        padding: 12px 14px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 1.5px solid #e2e8f0;
         cursor: pointer;
         box-sizing: border-box;
-        transition: background-color 0.15s, border-color 0.15s;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        position: relative;
       }
-      .customization-content .checkbox-row:hover {
-        background: #f1f3f5;
-        border-color: #dee2e6;
+      .customization-content .sleek-checkbox-card:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
       }
-      .customization-content .checkbox-row input[type="checkbox"] {
-        width: 20px;
-        height: 20px;
-        margin: 0;
-        cursor: pointer;
+      .customization-content .sleek-checkbox-card input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+      }
+      .customization-content .sleek-checkbox-box {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        border: 2px solid #cbd5e1;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         flex-shrink: 0;
-        accent-color: #2c3e50;
+        box-sizing: border-box;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       }
-      .customization-content .checkbox-row label {
+      .customization-content .sleek-check-icon {
+        width: 12px;
+        height: 10px;
+        stroke: #ffffff;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      .customization-content .sleek-checkbox-card input[type="checkbox"]:checked + .sleek-checkbox-box {
+        background: #2563eb;
+        border-color: #2563eb;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+      }
+      .customization-content .sleek-checkbox-card input[type="checkbox"]:checked + .sleek-checkbox-box .sleek-check-icon {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .customization-content .sleek-checkbox-card:has(input[type="checkbox"]:checked) {
+        background: #f0f7ff;
+        border-color: #bfdbfe;
+      }
+      .customization-content .category-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .customization-content .category-indicator.events {
+        background-color: var(--event-color);
+        box-shadow: 0 0 6px rgba(231, 76, 60, 0.4);
+      }
+      .customization-content .category-indicator.salary {
+        background-color: var(--salary-color);
+        box-shadow: 0 0 6px rgba(243, 156, 18, 0.4);
+      }
+      .customization-content .category-indicator.milk {
+        background-color: var(--milk-color);
+        box-shadow: 0 0 6px rgba(52, 152, 219, 0.4);
+      }
+      .customization-content .sleek-checkbox-label {
         margin: 0;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 14.5px;
         font-weight: 600;
+        color: #1e293b;
         text-align: left;
         flex-grow: 1;
-        user-select: none;
       }
       .customization-content .field-group {
         display: flex;
@@ -1159,29 +1217,42 @@
       </defs>
     </svg>
 
-    <div class="customization-icon" onclick="showCustomizationModal()" title="Settings & Backup" aria-label="Settings & Backup">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"></circle>
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-      </svg>
-    </div>
+    <div class="customization-icon" onclick="showCustomizationModal()" title="Settings & Backup" aria-label="Settings & Backup">⚙️</div>
 
     <div id="customizationModal" class="customization-modal">
       <div class="customization-content">
         <h2>Customize & Backup</h2>
         <div class="checkbox-group">
-          <div class="checkbox-row" onclick="toggleCheckbox('eventsCheck')">
-            <input type="checkbox" id="eventsCheck" checked onclick="event.stopPropagation()" />
-            <label for="eventsCheck" onclick="event.stopPropagation()">Events of the Day</label>
-          </div>
-          <div class="checkbox-row" onclick="toggleCheckbox('salaryCheck')">
-            <input type="checkbox" id="salaryCheck" checked onclick="event.stopPropagation()" />
-            <label for="salaryCheck" onclick="event.stopPropagation()">Salary Tracker</label>
-          </div>
-          <div class="checkbox-row" onclick="toggleCheckbox('milkCheck')">
-            <input type="checkbox" id="milkCheck" checked onclick="event.stopPropagation()" />
-            <label for="milkCheck" onclick="event.stopPropagation()">Milk Bill Calendar</label>
-          </div>
+          <label class="sleek-checkbox-card" for="eventsCheck">
+            <input type="checkbox" id="eventsCheck" checked />
+            <span class="sleek-checkbox-box">
+              <svg class="sleek-check-icon" viewBox="0 0 12 10" fill="none">
+                <path d="M1.5 5.2L4.3 8L10.5 1.8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="category-indicator events"></span>
+            <span class="sleek-checkbox-label">Events of the Day</span>
+          </label>
+          <label class="sleek-checkbox-card" for="salaryCheck">
+            <input type="checkbox" id="salaryCheck" checked />
+            <span class="sleek-checkbox-box">
+              <svg class="sleek-check-icon" viewBox="0 0 12 10" fill="none">
+                <path d="M1.5 5.2L4.3 8L10.5 1.8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="category-indicator salary"></span>
+            <span class="sleek-checkbox-label">Salary Tracker</span>
+          </label>
+          <label class="sleek-checkbox-card" for="milkCheck">
+            <input type="checkbox" id="milkCheck" checked />
+            <span class="sleek-checkbox-box">
+              <svg class="sleek-check-icon" viewBox="0 0 12 10" fill="none">
+                <path d="M1.5 5.2L4.3 8L10.5 1.8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="category-indicator milk"></span>
+            <span class="sleek-checkbox-label">Milk Bill Calendar</span>
+          </label>
         </div>
         <div class="field-group">
           <label for="userName">Your Name</label>
@@ -1198,6 +1269,7 @@
         <button class="save-btn" onclick="applyCustomization()">Save & Confirm</button>
         <button class="modal-restore-btn" onclick="manualRestoreFromCloud()">Restore from Cloud Backup</button>
         <button class="modal-close-link" onclick="closeCustomizationModal()">Close</button>
+        <div id="staticHostHint" style="display:none; font-size: 11.5px; color: #64748b; margin-top: 10px; line-height: 1.4; text-align: center; background: #f1f5f9; padding: 7px 10px; border-radius: 8px;">Running on GitHub Pages. To use cloud backup, open your app on <a href="https://personal-tracker.pages.dev" target="_blank" style="color: #2563eb; font-weight: 600; text-decoration: underline;">Cloudflare Pages</a></div>
       </div>
     </div>
 
@@ -1586,6 +1658,21 @@
         return !hasEvents && !hasSalary && !hasMilk;
       }
 
+      // Resolve API URL for both Cloudflare Pages and static host (GitHub Pages)
+      function getSyncApiUrl(queryOrPath) {
+        const isStaticHost = window.location.hostname.includes("github.io") || 
+                             window.location.protocol === "file:" ||
+                             window.location.hostname === "localhost" ||
+                             window.location.hostname === "127.0.0.1";
+        
+        let base = "";
+        if (isStaticHost) {
+          const custom = (localStorage.getItem("cloudBackendUrl") || "").trim();
+          base = custom ? custom.replace(/\/+$/, "") : "https://personal-tracker.pages.dev";
+        }
+        return `${base}${queryOrPath}`;
+      }
+
       // Debounce timer for non-blocking background backup
       function scheduleCloudBackup() {
         if (cloudSyncTimer) {
@@ -1624,7 +1711,7 @@
         };
 
         try {
-          const res = await fetch("/api/sync", {
+          const res = await fetch(getSyncApiUrl("/api/sync"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -1686,7 +1773,7 @@
 
         try {
           const res = await fetch(
-            `/api/sync?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent((userName || "").trim())}&pin=${encodeURIComponent(String(userPin).trim())}`
+            getSyncApiUrl(`/api/sync?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent((userName || "").trim())}&pin=${encodeURIComponent(String(userPin).trim())}`)
           );
 
           if (res.status === 404) {
@@ -1849,11 +1936,16 @@
 
         try {
           const res = await fetch(
-            `/api/sync?userName=${encodeURIComponent(nameInput)}&pin=${encodeURIComponent(pinInput)}`
+            getSyncApiUrl(`/api/sync?userName=${encodeURIComponent(nameInput)}&pin=${encodeURIComponent(pinInput)}`)
           );
 
           if (res.status === 404) {
-            alert("Cloud backup API is not reachable (running on static host / GitHub Pages).");
+            const isGithub = window.location.hostname.includes("github.io");
+            alert(
+              isGithub
+                ? "Cloud backup API is not reachable on GitHub Pages.\n\nGitHub Pages is purely static. Please open your app directly on your Cloudflare Pages URL (https://personal-tracker.pages.dev) where the cloud database is connected!"
+                : "Cloud backup API is not reachable (/api/sync returned 404)."
+            );
             updateSyncStatusBadge("github_pages");
             return;
           }
@@ -1898,7 +1990,12 @@
           updateSyncStatusBadge("synced");
 
         } catch (e) {
-          alert("Network error: Could not reach the cloud backup server.");
+          const isGithub = window.location.hostname.includes("github.io");
+          alert(
+            isGithub
+              ? "Could not reach the cloud database from GitHub Pages.\n\nPlease open your app directly on your Cloudflare Pages URL (https://personal-tracker.pages.dev) where cloud backup is connected!"
+              : "Network error: Could not reach the cloud backup server."
+          );
           updateSyncStatusBadge("offline");
         }
       }
@@ -2797,6 +2894,10 @@
         document.getElementById("userName").value = userName;
         const pinEl = document.getElementById("userPin");
         if (pinEl) pinEl.value = userPin;
+        const hint = document.getElementById("staticHostHint");
+        if (hint) {
+          hint.style.display = window.location.hostname.includes("github.io") ? "block" : "none";
+        }
       }
 
       async function applyCustomization() {
