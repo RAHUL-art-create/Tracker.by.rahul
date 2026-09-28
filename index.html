@@ -109,8 +109,13 @@
         width: 100%; /* Ensures the element doesn't exceed the viewport width */
         max-width: 100vw; /* Prevents overflow on mobile */
       }
-      * {
+      *, *::before, *::after {
         box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      ::selection {
+        background: rgba(100, 116, 139, 0.2);
+        color: inherit;
       }
       .container {
         max-width: 1200px;
@@ -156,14 +161,16 @@
         font-family: inherit;
         font-size: 14.5px;
         color: #1e293b;
-        transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease;
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease;
       }
       input:focus,
       select:focus {
-        outline: none;
-        border-color: var(--primary-color);
+        outline: none !important;
+        border-color: #64748b;
         background-color: #ffffff;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.18);
+        box-shadow: none !important;
       }
       button {
         margin-bottom: 10px;
@@ -178,6 +185,15 @@
         letter-spacing: 0.015em;
         color: white;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      button:focus,
+      button:focus-visible,
+      button:active {
+        outline: none !important;
       }
       button:hover {
         transform: translateY(-1.5px);
@@ -350,6 +366,16 @@
         font-weight: 600;
         box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         line-height: 1.2;
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+      .calendar-day:focus,
+      .calendar-day:focus-visible,
+      .calendar-day:active {
+        outline: none !important;
       }
 
       .calendar-day br {
@@ -889,8 +915,9 @@
       }
       .customization-content input[type="text"]:focus,
       .customization-content input[type="password"]:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        border-color: #64748b;
+        outline: none !important;
+        box-shadow: none !important;
       }
       .customization-content button.save-btn {
         width: 100%;
@@ -979,7 +1006,9 @@
         box-sizing: border-box;
       }
       .pin-input-field:focus {
-        border-color: #3498db;
+        border-color: #64748b;
+        outline: none !important;
+        box-shadow: none !important;
       }
       .pin-modal-actions {
         display: flex;
