@@ -67,13 +67,15 @@
         --export-color: #1abc9c;
       }
       body {
-        font-family: Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Google Sans', 'Roboto', 'Segoe UI', system-ui, sans-serif;
         line-height: 1.6;
         margin: 0;
         padding: 20px;
         background-color: var(--background-color);
         color: var(--text-color);
         overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
       .calendar-container {
         width: 100%;
@@ -88,8 +90,9 @@
         gap: 4px;
         padding: 10px;
         background-color: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-radius: 14px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
       }
       @media (max-width: 767px) {
         .calendar-day {
@@ -120,41 +123,69 @@
       .card {
         background-color: var(--card-background);
         padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.07);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.04);
         flex: 1;
         min-width: 300px;
+        transition: box-shadow 0.25s cubic-bezier(0.2, 0, 0, 1), transform 0.2s cubic-bezier(0.2, 0, 0, 1);
       }
       h1,
       h2,
       h3 {
         color: var(--primary-color);
+        letter-spacing: -0.01em;
+      }
+      h1 {
+        font-weight: 700;
+      }
+      h2 {
+        font-weight: 600;
+        margin-top: 0;
+        margin-bottom: 16px;
       }
       input,
       select {
         margin-bottom: 10px;
-        padding: 8px;
+        padding: 10px 13px;
         width: 100%;
         box-sizing: border-box;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+        border: 1.5px solid #d0d5dd;
+        border-radius: 10px;
+        background-color: #fafbfc;
+        font-family: inherit;
+        font-size: 14.5px;
+        color: #1e293b;
+        transition: border-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        background-color: #ffffff;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.18);
       }
       button {
         margin-bottom: 10px;
-        padding: 8px 12px;
+        padding: 9px 18px;
         box-sizing: border-box;
         border: none;
-        border-radius: 5px;
+        border-radius: 20px;
         cursor: pointer;
-        transition: background-color 0.3s, transform 0.1s;
-        font-weight: bold;
+        transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), transform 0.15s cubic-bezier(0.2, 0, 0, 1);
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: 0.015em;
         color: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
       }
       button:hover {
-        transform: translateY(-2px);
+        transform: translateY(-1.5px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
       }
       button:active {
-        transform: translateY(1px);
+        transform: scale(0.98);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
       .event-btn {
         background-color: var(--event-color);
@@ -167,18 +198,28 @@
       }
       .export-btn {
         background-color: var(--export-color);
+        border-radius: 20px;
+        padding: 8px 18px;
+        font-weight: 600;
       }
       ul {
         list-style-type: none;
         padding: 0;
       }
       li {
-        margin-bottom: 5px;
-        padding: 10px;
-        border-radius: 5px;
+        margin-bottom: 8px;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
         display: flex;
         justify-content: space-between;
         align-items: center;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
+      li:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
       }
       .event-item {
         flex-grow: 1;
@@ -236,38 +277,69 @@
       }
       table {
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 12px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
       }
       th,
       td {
-        border: 1px solid #ddd;
-        padding: 8px;
+        padding: 10px 12px;
         text-align: left;
       }
       th {
-        background-color: var(--primary-color);
-        color: white;
+        background-color: #f1f5f9;
+        color: #334155;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border-bottom: 2px solid #e2e8f0;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+      }
+      td {
+        border-bottom: 1px solid #e2e8f0;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        font-size: 13.5px;
+        color: #1e293b;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover td {
+        background-color: #f8fafc;
       }
       .remove-btn {
-        background-color: #e74c3c;
+        background-color: #ef4444;
         color: white;
         border: none;
-        padding: 5px 10px;
+        padding: 5px 12px;
         cursor: pointer;
-        border-radius: 5px;
-        font-size: 0.8em;
+        border-radius: 16px;
+        font-size: 0.82em;
+        font-weight: 600;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
       }
       .remove-btn:hover {
-        background-color: #c0392b;
+        background-color: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(220, 38, 38, 0.3);
       }
       .calendar-day {
         padding: 4px;
         text-align: center;
-        background-color: #f1f1f1;
+        background-color: #f8fafc;
+        border: 1px solid rgba(0, 0, 0, 0.05);
         cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.3s ease;
+        border-radius: 10px;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         min-height: 55px;
         display: flex;
         flex-direction: column;
@@ -275,8 +347,8 @@
         align-items: center;
         position: relative;
         margin: 2px;
-        font-weight: 500;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-weight: 600;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
         line-height: 1.2;
       }
 
@@ -297,18 +369,20 @@
         }
       }
       .calendar-day:hover {
-        background-color: #e0e0e0;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        background-color: #edf2f7;
+        border-color: #cbd5e1;
+        transform: translateY(-1.5px);
+        box-shadow: 0 3px 6px rgba(0,0,0,0.08);
       }
       .calendar-day.active {
         background-color: var(--milk-color);
         color: white;
         border: none;
-        box-shadow: 0 4px 8px rgba(155, 89, 182, 0.3);
+        box-shadow: 0 3px 8px rgba(155, 89, 182, 0.35);
       }
       .calendar-day.active:hover {
         background-color: #8e44ad;
+        box-shadow: 0 4px 10px rgba(155, 89, 182, 0.45);
       }
       .calendar-controls {
         display: flex;
@@ -320,10 +394,12 @@
         width: auto;
       }
       .current-month-year {
-        padding: 5px 10px;
-        background-color: var(--milk-color);
-        color: white;
-        border-radius: 5px;
+        padding: 6px 16px;
+        background-color: #f7effa;
+        color: var(--milk-color);
+        border: 1.5px solid #e8d5ef;
+        border-radius: 20px;
+        font-weight: 700;
       }
       .quantity-modal {
         display: none;
@@ -598,10 +674,39 @@
       .milk-bill-type {
         display: flex;
         justify-content: center;
-        margin-bottom: 15px;
+        align-items: center;
+        margin: 0 auto 16px auto;
+        background-color: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 24px;
+        padding: 3px;
+        gap: 3px;
+        width: fit-content;
       }
       .milk-bill-type label {
-        margin: 0 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 16px;
+        border-radius: 20px;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        color: #64748b;
+        margin: 0;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        user-select: none;
+      }
+      .milk-bill-type label:hover {
+        color: #1e293b;
+      }
+      .milk-bill-type label:has(input[type="radio"]:checked) {
+        background-color: #ffffff;
+        color: var(--milk-color);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .milk-bill-type input[type="radio"] {
+        display: none;
       }
       .modal-close {
         position: absolute;
@@ -1214,19 +1319,26 @@
         flex-wrap: wrap;
       }
       .quick-amount-btn {
-        background-color: var(--salary-color);
-        color: white;
-        border: none;
+        background-color: #fef6e7;
+        color: #b7791f;
+        border: 1.5px solid #fbd38d;
         border-radius: 20px;
-        padding: 5px 15px;
-        font-size: 0.9em;
+        padding: 5px 14px;
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
-        transition: transform 0.2s, background-color 0.2s;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         margin: 0;
+        box-shadow: 0 1px 2px rgba(243, 156, 18, 0.08);
       }
       .quick-amount-btn:hover {
-        background-color: #e67e22;
-        transform: translateY(-2px);
+        background-color: #feebc8;
+        border-color: #f6ad55;
+        transform: translateY(-1.5px);
+        box-shadow: 0 3px 6px rgba(243, 156, 18, 0.2);
+      }
+      .quick-amount-btn:active {
+        transform: scale(0.97);
       }
       .quick-amount-edit {
         position: fixed;
@@ -1305,20 +1417,26 @@
       }
 
       .quick-quantity-btn {
-        background-color: var(--milk-color);
-        color: white;
-        border: none;
+        background-color: #f7effa;
+        color: #7d3c98;
+        border: 1.5px solid #d7bde2;
         border-radius: 20px;
-        padding: 5px 15px;
-        font-size: 0.9em;
+        padding: 5px 14px;
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
-        transition: transform 0.2s, background-color 0.2s;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         margin: 0;
+        box-shadow: 0 1px 2px rgba(155, 89, 182, 0.08);
       }
-
       .quick-quantity-btn:hover {
-        background-color: #8e44ad;
-        transform: translateY(-2px);
+        background-color: #ebd7f1;
+        border-color: #bb8fce;
+        transform: translateY(-1.5px);
+        box-shadow: 0 3px 6px rgba(155, 89, 182, 0.2);
+      }
+      .quick-quantity-btn:active {
+        transform: scale(0.97);
       }
 
       .quantity-edit-modal {
@@ -1443,16 +1561,6 @@
             </span>
             <span class="category-indicator milk"></span>
             <span class="sleek-checkbox-label">Milk Bill Calendar</span>
-          </label>
-          <label class="sleek-checkbox-card" for="soundEffectsCheck" style="margin-top: 4px;">
-            <input type="checkbox" id="soundEffectsCheck" checked />
-            <span class="sleek-checkbox-box">
-              <svg class="sleek-check-icon" viewBox="0 0 12 10" fill="none">
-                <path d="M1.5 5.2L4.3 8L10.5 1.8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            <span class="category-indicator sound" style="background-color: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);"></span>
-            <span class="sleek-checkbox-label">Sound Effects & Chimes 🔔</span>
           </label>
         </div>
         <div class="field-group">
@@ -1755,10 +1863,9 @@
         return ["events", "salary", "milk"];
       })();
 
-      // High-quality Web Audio API procedural sound effects synthesizer (100% offline, zero-latency)
+      // High-quality Web Audio API procedural sound effects synthesizer (100% offline, zero-latency, always default)
       const SoundEffects = (function () {
         let ctx = null;
-        let enabled = localStorage.getItem("soundEffectsEnabled") !== "false";
 
         function getContext() {
           try {
@@ -1788,17 +1895,6 @@
         window.addEventListener("pointerdown", unlockAudio, { passive: true });
         window.addEventListener("keydown", unlockAudio, { passive: true });
 
-        function isEnabled() {
-          return enabled;
-        }
-
-        function setEnabled(val) {
-          enabled = Boolean(val);
-          try {
-            localStorage.setItem("soundEffectsEnabled", enabled ? "true" : "false");
-          } catch (e) {}
-        }
-
         function playTone(freq, type, duration, startTime, gainVal, endFreq) {
           const c = getContext();
           if (!c) return;
@@ -1824,10 +1920,7 @@
         }
 
         return {
-          isEnabled,
-          setEnabled,
           play: function (soundType) {
-            if (!enabled) return;
             try {
               const c = getContext();
               if (!c) return;
@@ -3445,8 +3538,6 @@
           selectedCategories.includes("salary");
         document.getElementById("milkCheck").checked =
           selectedCategories.includes("milk");
-        const soundEl = document.getElementById("soundEffectsCheck");
-        if (soundEl) soundEl.checked = SoundEffects.isEnabled();
         document.getElementById("userName").value = userName;
         const pinEl = document.getElementById("userPin");
         if (pinEl) pinEl.value = userPin;
@@ -3464,11 +3555,6 @@
           selectedCategories.push("salary");
         if (document.getElementById("milkCheck").checked)
           selectedCategories.push("milk");
-        
-        const soundEl = document.getElementById("soundEffectsCheck");
-        if (soundEl) {
-          SoundEffects.setEnabled(soundEl.checked);
-        }
 
         userName = (document.getElementById("userName").value || "").trim();
         const pinVal = (document.getElementById("userPin").value || "").trim();
