@@ -31,6 +31,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"></script>
+    <!-- Immediate synchronous card visibility initialization to prevent flash of unselected cards on first view -->
+    <script>
+      (function() {
+        try {
+          var raw = localStorage.getItem("selectedCategories");
+          if (raw) {
+            var cats = JSON.parse(raw);
+            if (Array.isArray(cats) && cats.length > 0) {
+              var css = "";
+              if (!cats.includes("events")) css += "#eventsCard { display: none !important; } ";
+              if (!cats.includes("salary")) css += "#salaryCard { display: none !important; } ";
+              if (!cats.includes("milk")) css += "#milkCard { display: none !important; } ";
+              if (css) {
+                var s = document.createElement("style");
+                s.id = "prefEarlyStyle";
+                s.textContent = css;
+                document.head.appendChild(s);
+              }
+            }
+          }
+        } catch(e) {}
+      })();
+    </script>
     <style>
       :root {
         --primary-color: #3498db;
@@ -1421,6 +1444,16 @@
             <span class="category-indicator milk"></span>
             <span class="sleek-checkbox-label">Milk Bill Calendar</span>
           </label>
+          <label class="sleek-checkbox-card" for="soundEffectsCheck" style="margin-top: 4px;">
+            <input type="checkbox" id="soundEffectsCheck" checked />
+            <span class="sleek-checkbox-box">
+              <svg class="sleek-check-icon" viewBox="0 0 12 10" fill="none">
+                <path d="M1.5 5.2L4.3 8L10.5 1.8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="category-indicator sound" style="background-color: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);"></span>
+            <span class="sleek-checkbox-label">Sound Effects & Chimes 🔔</span>
+          </label>
         </div>
         <div class="field-group">
           <label for="userName">Your Name</label>
@@ -1710,7 +1743,168 @@
       let lastModified = Date.now();
       let cloudSyncTimer = null;
       let cloudSyncStatus = "idle";
-      let selectedCategories = ["events", "salary", "milk"];
+      // Synchronously load selectedCategories from localStorage to match early CSS render
+      let selectedCategories = (function () {
+        try {
+          const raw = localStorage.getItem("selectedCategories");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          }
+        } catch (e) {}
+        return ["events", "salary", "milk"];
+      })();
+
+      // High-quality Web Audio API procedural sound effects synthesizer (100% offline, zero-latency)
+      const SoundEffects = (function () {
+        let ctx = null;
+        let enabled = localStorage.getItem("soundEffectsEnabled") !== "false";
+
+        function getContext() {
+          try {
+            if (!ctx) {
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              if (AudioCtx) {
+                ctx = new AudioCtx();
+              }
+            }
+            if (ctx && ctx.state === "suspended") {
+              ctx.resume().catch(() => {});
+            }
+            return ctx;
+          } catch (e) {
+            return null;
+          }
+        }
+
+        // Auto-unlock Web Audio on first user gesture
+        function unlockAudio() {
+          const c = getContext();
+          if (c && c.state === "running") {
+            window.removeEventListener("pointerdown", unlockAudio);
+            window.removeEventListener("keydown", unlockAudio);
+          }
+        }
+        window.addEventListener("pointerdown", unlockAudio, { passive: true });
+        window.addEventListener("keydown", unlockAudio, { passive: true });
+
+        function isEnabled() {
+          return enabled;
+        }
+
+        function setEnabled(val) {
+          enabled = Boolean(val);
+          try {
+            localStorage.setItem("soundEffectsEnabled", enabled ? "true" : "false");
+          } catch (e) {}
+        }
+
+        function playTone(freq, type, duration, startTime, gainVal, endFreq) {
+          const c = getContext();
+          if (!c) return;
+          const start = startTime || c.currentTime;
+          const osc = c.createOscillator();
+          const gain = c.createGain();
+
+          osc.type = type || "sine";
+          osc.frequency.setValueAtTime(freq, start);
+          if (endFreq && endFreq > 0) {
+            osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), start + duration);
+          }
+
+          const peakGain = gainVal || 0.15;
+          gain.gain.setValueAtTime(peakGain, start);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+          osc.connect(gain);
+          gain.connect(c.destination);
+
+          osc.start(start);
+          osc.stop(start + duration + 0.05);
+        }
+
+        return {
+          isEnabled,
+          setEnabled,
+          play: function (soundType) {
+            if (!enabled) return;
+            try {
+              const c = getContext();
+              if (!c) return;
+              const now = c.currentTime;
+
+              switch (soundType) {
+                case "event-add":
+                  // Upbeat, cheerful 4-note ascending chime (C5, E5, G5, C6)
+                  playTone(523.25, "sine", 0.12, now, 0.16);
+                  playTone(659.25, "sine", 0.12, now + 0.07, 0.16);
+                  playTone(783.99, "sine", 0.14, now + 0.14, 0.16);
+                  playTone(1046.50, "sine", 0.28, now + 0.21, 0.20);
+                  break;
+
+                case "event-celebrate":
+                  // Festive sparkling celebration / party flourish
+                  playTone(880, "triangle", 0.08, now, 0.18);
+                  playTone(1174.66, "sine", 0.08, now + 0.06, 0.20);
+                  playTone(1567.98, "triangle", 0.12, now + 0.12, 0.22);
+                  playTone(2093.00, "sine", 0.32, now + 0.18, 0.24);
+                  break;
+
+                case "event-delete":
+                  // Gentle soft descending removal blip
+                  playTone(420, "sine", 0.15, now, 0.13, 180);
+                  break;
+
+                case "salary-add":
+                  // Crisp cash register "ka-ching" metallic hit & dual-coin ring
+                  playTone(1975.53, "sine", 0.10, now, 0.22);
+                  playTone(1318.51, "triangle", 0.32, now + 0.06, 0.20);
+                  playTone(1567.98, "sine", 0.38, now + 0.08, 0.16);
+                  break;
+
+                case "salary-quick":
+                  // High tactile coin clink
+                  playTone(1320, "triangle", 0.07, now, 0.14, 1100);
+                  break;
+
+                case "salary-delete":
+                  // Subdued descending coin slide / reverse tone
+                  playTone(340, "sine", 0.14, now, 0.11, 160);
+                  break;
+
+                case "milk-log":
+                  // Creamy liquid milk droplet / bubble "bloop!"
+                  playTone(320, "sine", 0.12, now, 0.22, 880);
+                  break;
+
+                case "milk-nil":
+                  // Soft hollow wooden tock for 0L / nil entry
+                  playTone(180, "triangle", 0.08, now, 0.16, 90);
+                  break;
+
+                case "milk-quick":
+                  // Quick water droplet pop
+                  playTone(550, "sine", 0.06, now, 0.15, 950);
+                  break;
+
+                case "month-flip":
+                  // Crisp calendar page flip tick
+                  playTone(600, "triangle", 0.04, now, 0.11, 220);
+                  break;
+
+                case "settings-save":
+                  // Harmonious major chord chime
+                  playTone(523.25, "sine", 0.26, now, 0.15);
+                  playTone(659.25, "sine", 0.26, now + 0.05, 0.15);
+                  playTone(783.99, "sine", 0.32, now + 0.10, 0.18);
+                  break;
+              }
+            } catch (e) {
+              console.warn("Sound effect playback error:", e);
+            }
+          }
+        };
+      })();
 
       let quickAmounts = [500, 1000];
       let editingButtonIndex = null;
@@ -2348,6 +2542,7 @@
           document.getElementById("eventType").value = "";
           document.getElementById("eventDate").value = "";
           showEmojiAnimation("🎉", document.querySelector(".event-btn"));
+          SoundEffects.play("event-add");
         }
       }
 
@@ -2485,12 +2680,14 @@
         events[index].celebrated = !events[index].celebrated;
         saveEvents();
         showEmojiAnimation("🎈", document.querySelectorAll("li")[index]);
+        SoundEffects.play(events[index].celebrated ? "event-celebrate" : "event-delete");
       }
 
       function removeEvent(index) {
         events.splice(index, 1);
         saveEvents();
         showEmojiAnimation("🗑️", document.querySelectorAll("li")[index]);
+        SoundEffects.play("event-delete");
       }
 
       function addSalary() {
@@ -2513,7 +2710,8 @@
           document.getElementById("studentName").value = "";
           document.getElementById("salaryAmount").value = "";
           document.getElementById("salaryDate").value = "";
-          showEmojiAnimation("", document.querySelector(".salary-btn"));
+          showEmojiAnimation("💰", document.querySelector(".salary-btn"));
+          SoundEffects.play("salary-add");
         }
       }
 
@@ -2620,12 +2818,14 @@
         }
         saveSalaryData();
         showEmojiAnimation("🗑️", event.target);
+        SoundEffects.play("salary-delete");
       }
 
       function removeMonth(month) {
         delete salaryData[month];
         saveSalaryData();
         showEmojiAnimation("🗑️", event.target);
+        SoundEffects.play("salary-delete");
       }
 
       function exportToPDF() {
@@ -2765,6 +2965,7 @@
 
       function showQuantityModal(date) {
         selectedDate = date;
+        SoundEffects.play("milk-quick");
         const modal = document.getElementById("quantityModal");
         modal.style.display = "block";
         pushModalHistory("quantityModal");
@@ -2847,6 +3048,9 @@
         if (milkBillType === "2~MB") {
           updateMilkQuantitySelect(2);
         }
+
+        const totalQty = milkBillType === "1~MB" ? quantity1 : (quantity1 + (parseFloat(quantity2Select ? quantity2Select.value : 0) || 0));
+        SoundEffects.play(totalQty > 0 ? "milk-log" : "milk-nil");
       }
 
       function changeMonth(delta) {
@@ -2868,6 +3072,7 @@
         });
 
         showEmojiAnimation(delta > 0 ? "▶️" : "◀️", event.target);
+        SoundEffects.play("month-flip");
       }
 
       function analyzeMilkConsumption(billNumber) {
@@ -3240,6 +3445,8 @@
           selectedCategories.includes("salary");
         document.getElementById("milkCheck").checked =
           selectedCategories.includes("milk");
+        const soundEl = document.getElementById("soundEffectsCheck");
+        if (soundEl) soundEl.checked = SoundEffects.isEnabled();
         document.getElementById("userName").value = userName;
         const pinEl = document.getElementById("userPin");
         if (pinEl) pinEl.value = userPin;
@@ -3257,6 +3464,12 @@
           selectedCategories.push("salary");
         if (document.getElementById("milkCheck").checked)
           selectedCategories.push("milk");
+        
+        const soundEl = document.getElementById("soundEffectsCheck");
+        if (soundEl) {
+          SoundEffects.setEnabled(soundEl.checked);
+        }
+
         userName = (document.getElementById("userName").value || "").trim();
         const pinVal = (document.getElementById("userPin").value || "").trim();
         if (pinVal && !/^\d{4}$/.test(pinVal)) {
@@ -3264,12 +3477,17 @@
           return;
         }
         userPin = pinVal;
+        // Synchronous write to localStorage so future page opens render immediately without waiting
+        try {
+          localStorage.setItem("selectedCategories", JSON.stringify(selectedCategories));
+        } catch (e) {}
         await parallelSave("selectedCategories", selectedCategories);
         await parallelSave("userName", userName);
         await parallelSave("userPin", userPin);
         updateSelectedCategories();
         updateUserName();
         closeCustomizationModal();
+        SoundEffects.play("settings-save");
         if (userName && userPin && userPin.length === 4) {
           showToast("Settings saved! Checking cloud backup...");
           await initCloudSync();
@@ -3277,6 +3495,8 @@
       }
 
       function updateSelectedCategories() {
+        const earlyStyle = document.getElementById("prefEarlyStyle");
+        if (earlyStyle) earlyStyle.remove();
         document.getElementById("eventsCard").style.display =
           selectedCategories.includes("events") ? "block" : "none";
         document.getElementById("salaryCard").style.display =
@@ -3363,6 +3583,9 @@
 
       // Async app initialization
       async function initApp() {
+        // Enforce immediate category visibility on first run
+        updateSelectedCategories();
+
         // Configure localForage
         localforage.config({
           name: "PersonalTracker",
@@ -3395,7 +3618,11 @@
         const loadedLM = (await localforage.getItem("lastModified")) || localStorage.getItem("lastModified");
         if (loadedLM) lastModified = Number(loadedLM);
 
-        selectedCategories = (await localforage.getItem("selectedCategories")) || ["events", "salary", "milk"];
+        const loadedCats = await localforage.getItem("selectedCategories");
+        if (loadedCats && Array.isArray(loadedCats) && loadedCats.length > 0) {
+          selectedCategories = loadedCats;
+          try { localStorage.setItem("selectedCategories", JSON.stringify(selectedCategories)); } catch (e) {}
+        }
         const loadedQA = await localforage.getItem("quickAmounts");
         if (loadedQA) quickAmounts = loadedQA;
         const loadedQQ = await localforage.getItem("quickQuantities");
@@ -3448,6 +3675,7 @@
       function setQuickAmount(amount) {
         document.getElementById("salaryAmount").value = amount;
         showEmojiAnimation("💰", event.target);
+        SoundEffects.play("salary-quick");
       }
 
       function updateQuickAmountButtons() {
@@ -3620,6 +3848,7 @@
         }
         
         showEmojiAnimation("🥛", event.target);
+        SoundEffects.play(quantity > 0 ? "milk-quick" : "milk-nil");
       }
 
       function startQuantityLongPress(index, billNumber) {
