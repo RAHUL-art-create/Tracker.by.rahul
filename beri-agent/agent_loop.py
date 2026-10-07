@@ -120,21 +120,48 @@ class Agent:
             self.get()
             self.offer_all()
 
+    def frontier(self, cmd):
+        return self.act("frontier", {"command": json.dumps(cmd)})
+
     def _find_node(self, item_id):
         for n in (self.state.get("nodes") or []):
             if n.get("ready") and (n.get("gives") or {}).get("itemId") == item_id:
                 return n
         return None
 
-    def gather_priority(self):
-        for item in ("timber", "stone", "plant_fibre", "clay", "berry_greenberry"):
-            node = self._find_node(item)
-            if node:
-                self.act("harvest", {"node": node["id"]})
-                self.settle()
-                return True
-        self.act("harvest", {})
+    def _find_resource(self, item):
+        for r in ((self.state.get("frontier") or {}).get("resources") or []):
+            if r.get("item") == item:
+                return r
+        return None
+
+    def harvest_berry(self, item_id="berry_greenberry"):
+        node = self._find_node(item_id)
+        self.act("harvest", {"nodeId": node["id"]} if node else {})
         self.settle()
+
+    def gather_frontier(self, item):
+        res = self._find_resource(item)
+        if not res:
+            return False
+        if self.state["player"]["region"] != res["region"]:
+            self.frontier({"action": "enter"})
+            self.settle()
+        self.frontier({"action": "walk", "id": res["region"], "x": res["x"], "z": res["z"]})
+        self.settle()
+        self.frontier({"action": "gather", "id": res["id"]})
+        self.settle()
+        return True
+
+    def gather_priority(self):
+        # Need a stick (4 berry harvests -> Foraging 2) before the brambles to Meadows.
+        if self.have("stick") == 0:
+            self.harvest_berry()
+            return True
+        for item in ("timber", "stone", "fibre", "clay"):
+            if self.gather_frontier(item):
+                return True
+        self.harvest_berry()
         return True
 
     def step(self):
