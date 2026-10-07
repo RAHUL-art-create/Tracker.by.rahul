@@ -1,0 +1,8 @@
+.secrets.json
+*.token
+__pycache__/
+state.json
+loop.log
+openapi.json
+wiki-index.json
+agent.md
