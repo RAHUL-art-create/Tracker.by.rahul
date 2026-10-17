@@ -27,6 +27,12 @@
       sizes="180x180"
       href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png"
     />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#3498db" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Tracker" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
@@ -968,6 +974,95 @@
       .modal-close-link:hover {
         color: #2c3e50;
       }
+      .pwa-notif-box {
+        margin-top: 12px;
+        padding: 10px 12px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 11px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .pwa-notif-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .pwa-notif-toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+        user-select: none;
+        flex: 1;
+        margin: 0;
+      }
+      .pwa-notif-toggle-label input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        pointer-events: none;
+      }
+      .pwa-notif-title {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #1e293b;
+        line-height: 1.2;
+      }
+      .pwa-notif-sub {
+        font-size: 11px;
+        color: #64748b;
+        line-height: 1.25;
+        text-align: left;
+      }
+      .pwa-notif-test-btn {
+        background: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #bfdbfe;
+        border-radius: 14px;
+        padding: 4px 10px;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 0;
+        box-shadow: none;
+        white-space: nowrap;
+      }
+      .pwa-notif-test-btn:hover {
+        background: #dbeafe;
+        transform: none;
+        box-shadow: none;
+      }
+      .pwa-install-btn {
+        width: 100%;
+        padding: 9px 12px;
+        background: linear-gradient(135deg, #2563eb, #3498db);
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 2px 0 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.22);
+      }
+      .pwa-install-btn:hover {
+        background: linear-gradient(135deg, #1d4ed8, #2980b9);
+      }
+      .pwa-install-btn.installed {
+        background: #ecfdf5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+        box-shadow: none;
+        cursor: default;
+      }
       .pin-modal-content {
         background-color: #ffffff;
         margin: 40px auto;
@@ -1264,6 +1359,27 @@
           font-size: 11px !important;
           margin-top: 8px !important;
           padding: 5px 8px !important;
+        }
+        .pwa-notif-box {
+          margin-top: 8px;
+          padding: 7px 9px;
+          border-radius: 9px;
+          gap: 5px;
+        }
+        .pwa-notif-title {
+          font-size: 12.5px;
+        }
+        .pwa-notif-sub {
+          font-size: 10px;
+        }
+        .pwa-notif-test-btn {
+          padding: 3px 8px;
+          font-size: 10.5px;
+        }
+        .pwa-install-btn {
+          padding: 7px 10px;
+          font-size: 12px;
+          border-radius: 7px;
         }
 
         .pin-modal-content {
@@ -1608,6 +1724,26 @@
             </button>
           </div>
           <small style="color: #7f8c8d; font-size: 11px; margin-top: 4px;">Keeps your cloud backup safe & lets you restore anytime</small>
+        </div>
+        <div class="pwa-notif-box">
+          <div class="pwa-notif-header">
+            <label class="pwa-notif-toggle-label" for="smartNotifCheck">
+              <input type="checkbox" id="smartNotifCheck" onchange="handleSmartNotifToggle(this)" />
+              <span class="sleek-checkbox-box">
+                <svg class="sleek-check-icon" viewBox="0 0 12 10" fill="none">
+                  <path d="M1.5 5.2L4.3 8L10.5 1.8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <div>
+                <div class="pwa-notif-title">Smart Notifications</div>
+                <div class="pwa-notif-sub" id="smartNotifStatusText">5 PM milk alert, month-end bills & events</div>
+              </div>
+            </label>
+            <button type="button" class="pwa-notif-test-btn" onclick="sendInstantSummaryNotification()" title="Send current summary notification now">Summary</button>
+          </div>
+          <button type="button" id="pwaInstallBtn" class="pwa-install-btn" onclick="triggerPwaInstall()">
+            <span>📲 Install App to Home Screen</span>
+          </button>
         </div>
         <div id="modalCloudStatus" style="font-size: 12px; color: #7f8c8d; margin: 14px 0 6px 0; font-weight: 500; text-align: center;">
           Status: Ready
@@ -3173,6 +3309,11 @@
 
         const totalQty = milkBillType === "1~MB" ? quantity1 : (quantity1 + (parseFloat(quantity2Select ? quantity2Select.value : 0) || 0));
         SoundEffects.play(totalQty > 0 ? "milk-log" : "milk-nil");
+
+        // Evaluate month-end summary if user just completed the last day of the month
+        if (typeof evaluateSmartNotifications === "function") {
+          setTimeout(() => evaluateSmartNotifications(), 600);
+        }
       }
 
       function changeMonth(delta) {
@@ -3574,6 +3715,9 @@
         if (hint) {
           hint.style.display = window.location.hostname.includes("github.io") ? "block" : "none";
         }
+        if (typeof refreshPwaAndNotifSettingsUI === "function") {
+          refreshPwaAndNotifSettingsUI();
+        }
       }
 
       async function applyCustomization() {
@@ -3764,6 +3908,11 @@
 
         // Start non-blocking cloud sync check
         initCloudSync();
+
+        // Initialize PWA Service Worker & Smart Notifications scheduler
+        if (typeof initPwaAndNotifications === "function") {
+          initPwaAndNotifications();
+        }
       }
 
       initApp();
@@ -4044,6 +4193,689 @@
             datePreviewElement = null;
           });
         }
+      }
+
+      // =========================================================================
+      // PWA Home Screen Installation & Smart Service Worker Notifications Engine
+      // =========================================================================
+      let deferredInstallPrompt = null;
+      let notificationsEnabled = false;
+      let notificationLog = {};
+      let fivePmTimeoutId = null;
+      let notifCheckIntervalId = null;
+
+      function isStandaloneApp() {
+        return (
+          (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+          window.navigator.standalone === true
+        );
+      }
+
+      window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        refreshPwaAndNotifSettingsUI();
+      });
+
+      window.addEventListener("appinstalled", () => {
+        deferredInstallPrompt = null;
+        refreshPwaAndNotifSettingsUI();
+        SoundEffects.play("settings-save");
+        showToast("Personal Tracker installed on your Home Screen!");
+      });
+
+      function formatLocalYMD(dateObj) {
+        const d = dateObj || new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      }
+
+      function refreshPwaAndNotifSettingsUI() {
+        const installBtn = document.getElementById("pwaInstallBtn");
+        if (installBtn) {
+          if (isStandaloneApp()) {
+            installBtn.classList.add("installed");
+            installBtn.innerHTML = "<span>✓ Installed on Home Screen</span>";
+          } else {
+            installBtn.classList.remove("installed");
+            installBtn.innerHTML = "<span>📲 Install App to Home Screen</span>";
+          }
+        }
+
+        const notifCheck = document.getElementById("smartNotifCheck");
+        const statusText = document.getElementById("smartNotifStatusText");
+        const hasNotifSupport = "Notification" in window;
+        const perm = hasNotifSupport ? Notification.permission : "unsupported";
+
+        if (notifCheck) {
+          notifCheck.checked = Boolean(notificationsEnabled && perm === "granted");
+        }
+
+        if (statusText) {
+          if (!hasNotifSupport) {
+            statusText.textContent = "Notifications not supported in this browser";
+          } else if (perm === "denied") {
+            statusText.textContent = "Blocked in browser settings (allow to enable)";
+          } else if (notificationsEnabled && perm === "granted") {
+            statusText.textContent = "Active: 5 PM milk, month-end bills, events & salary";
+          } else {
+            statusText.textContent = "5 PM milk alert, month-end bills & events";
+          }
+        }
+      }
+
+      async function triggerPwaInstall() {
+        if (isStandaloneApp()) {
+          showToast("App is already installed on your Home Screen!");
+          return;
+        }
+
+        if (deferredInstallPrompt) {
+          try {
+            deferredInstallPrompt.prompt();
+            const choice = await deferredInstallPrompt.userChoice;
+            if (choice && choice.outcome === "accepted") {
+              deferredInstallPrompt = null;
+              refreshPwaAndNotifSettingsUI();
+            }
+          } catch (e) {}
+          return;
+        }
+
+        const ua = navigator.userAgent || "";
+        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        if (isIOS) {
+          alert("To install on iPhone/iPad:\n\n1. Tap the Share button (↑) in Safari\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add'");
+        } else {
+          alert("To install Personal Tracker:\n\nOpen your browser menu (⋮ or ⋯) and tap 'Install App' or 'Add to Home Screen'.");
+        }
+      }
+
+      async function saveNotificationPrefs() {
+        try {
+          await localforage.setItem("notificationsEnabled", notificationsEnabled);
+          await localforage.setItem("notificationLog", notificationLog);
+        } catch (e) {}
+        try {
+          localStorage.setItem("notificationsEnabled", JSON.stringify(notificationsEnabled));
+          localStorage.setItem("notificationLog", JSON.stringify(notificationLog));
+        } catch (e) {}
+      }
+
+      async function handleSmartNotifToggle(checkboxEl) {
+        if (!("Notification" in window)) {
+          checkboxEl.checked = false;
+          alert("This browser does not support Web Notifications.");
+          refreshPwaAndNotifSettingsUI();
+          return;
+        }
+
+        if (checkboxEl.checked) {
+          let perm = Notification.permission;
+          if (perm === "default") {
+            try {
+              perm = await Notification.requestPermission();
+            } catch (e) {}
+          }
+
+          if (perm !== "granted") {
+            checkboxEl.checked = false;
+            notificationsEnabled = false;
+            await saveNotificationPrefs();
+            refreshPwaAndNotifSettingsUI();
+            alert("Please allow Notifications in your browser site settings to receive 5 PM milk reminders and month-end summaries.");
+            return;
+          }
+
+          notificationsEnabled = true;
+          await saveNotificationPrefs();
+          refreshPwaAndNotifSettingsUI();
+          SoundEffects.play("settings-save");
+          scheduleDailyFivePmCheck();
+
+          await deliverSwNotification(
+            "🔔 Smart Notifications Enabled",
+            "You'll receive 5:00 PM unmarked milk reminders, month-end bill totals, and event/salary alerts.",
+            "tracker-notif-enabled",
+            { action: "open" }
+          );
+          evaluateSmartNotifications();
+        } else {
+          notificationsEnabled = false;
+          await saveNotificationPrefs();
+          refreshPwaAndNotifSettingsUI();
+          showToast("Smart notifications paused.");
+        }
+      }
+
+      async function deliverSwNotification(title, body, tag, data) {
+        if (!("Notification" in window) || Notification.permission !== "granted") {
+          return false;
+        }
+
+        const options = {
+          body: body,
+          icon: "icon.svg",
+          badge: "icon.svg",
+          tag: tag || "personal-tracker-" + Date.now(),
+          vibrate: [150, 70, 150],
+          data: data || { action: "open" }
+        };
+
+        try {
+          if ("serviceWorker" in navigator) {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg && typeof reg.showNotification === "function") {
+              await reg.showNotification(title, options);
+              return true;
+            }
+          }
+        } catch (e) {}
+
+        try {
+          const n = new Notification(title, options);
+          n.onclick = function () {
+            window.focus();
+            if (data && data.action) {
+              handleNotificationDeepLink(data.action, data);
+            }
+            n.close();
+          };
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function computeMonthMilkSummaryClient(year, monthIndex) {
+        const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+        const monthName = new Date(year, monthIndex, 1).toLocaleString("default", { month: "long" });
+        let days1 = 0, nil1 = 0, qty1 = 0, cost1 = 0;
+        let days2 = 0, nil2 = 0, qty2 = 0, cost2 = 0;
+        let anyLogged = false;
+
+        for (let day = 1; day <= lastDay; day++) {
+          const dateStr = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const entry = milkData && milkData[dateStr];
+          if (!entry) continue;
+          anyLogged = true;
+
+          if (milkBillType === "1~MB") {
+            const q = Number(entry.quantity) || 0;
+            const c = Number(entry.cost) || 0;
+            if (q > 0) {
+              days1++;
+              qty1 += q;
+              cost1 += c;
+            } else {
+              nil1++;
+            }
+          } else {
+            const q1 = Number(entry.quantity1) || 0;
+            const c1 = Number(entry.cost1) || 0;
+            const q2 = Number(entry.quantity2) || 0;
+            const c2 = Number(entry.cost2) || 0;
+            if (q1 > 0) {
+              days1++;
+              qty1 += q1;
+              cost1 += c1;
+            } else {
+              nil1++;
+            }
+            if (q2 > 0) {
+              days2++;
+              qty2 += q2;
+              cost2 += c2;
+            } else {
+              nil2++;
+            }
+          }
+        }
+
+        return {
+          monthName,
+          year,
+          monthIndex,
+          lastDay,
+          anyLogged,
+          milkBillType,
+          days1,
+          nil1,
+          qty1,
+          cost1,
+          days2,
+          nil2,
+          qty2,
+          cost2,
+          totalCost: cost1 + cost2,
+          totalQty: qty1 + qty2
+        };
+      }
+
+      function computeMonthSalarySummaryClient(year, monthIndex) {
+        const targetDate = new Date(year, monthIndex, 1);
+        const prevDate = new Date(year, monthIndex - 1, 1);
+        const monthName = targetDate.toLocaleString("default", { month: "long" });
+        const prevMonthName = prevDate.toLocaleString("default", { month: "long" });
+
+        const currentStudentsObj = (salaryData && salaryData[monthName]) || {};
+        const prevStudentsObj = (salaryData && salaryData[prevMonthName]) || {};
+
+        let monthTotal = 0;
+        const currentStudents = Object.keys(currentStudentsObj);
+        currentStudents.forEach((student) => {
+          const item = currentStudentsObj[student];
+          const amt = typeof item === "object" ? Number(item.amount) || 0 : Number(item) || 0;
+          monthTotal += amt;
+        });
+
+        const currentLowerSet = new Set(currentStudents.map((s) => s.trim().toLowerCase()));
+        const pendingStudents = Object.keys(prevStudentsObj).filter(
+          (s) => !currentLowerSet.has(s.trim().toLowerCase())
+        );
+
+        return {
+          monthName,
+          prevMonthName,
+          monthTotal,
+          studentCount: currentStudents.length,
+          pendingStudents
+        };
+      }
+
+      async function sendInstantSummaryNotification() {
+        if (!("Notification" in window)) {
+          alert("This browser does not support Web Notifications.");
+          return;
+        }
+
+        if (Notification.permission !== "granted") {
+          const perm = await Notification.requestPermission();
+          if (perm !== "granted") {
+            alert("Please allow notification permission to view smart summary notifications.");
+            refreshPwaAndNotifSettingsUI();
+            return;
+          }
+          notificationsEnabled = true;
+          await saveNotificationPrefs();
+          refreshPwaAndNotifSettingsUI();
+        }
+
+        const now = new Date();
+        const todayStr = formatLocalYMD(now);
+        const viewYear = currentDate.getFullYear();
+        const viewMonth = currentDate.getMonth();
+        const lines = [];
+
+        if (selectedCategories.includes("milk")) {
+          const mSum = computeMonthMilkSummaryClient(viewYear, viewMonth);
+          const todayLogged = Boolean(milkData && milkData[todayStr]);
+          if (milkBillType === "1~MB") {
+            lines.push(
+              `🥛 ${mSum.monthName} (1st Bill): ${mSum.days1}d, ${mSum.qty1.toFixed(1)}L${mSum.nil1 ? ` (${mSum.nil1} Nil)` : ""} = ₹${mSum.cost1.toFixed(2)}`
+            );
+          } else {
+            lines.push(
+              `🥛 ${mSum.monthName}: 1st Bill ${mSum.qty1.toFixed(1)}L (₹${mSum.cost1.toFixed(0)}) | 2nd Bill ${mSum.qty2.toFixed(1)}L (₹${mSum.cost2.toFixed(0)}) • Total: ₹${mSum.totalCost.toFixed(2)}`
+            );
+          }
+          if (!todayLogged) {
+            lines.push(`⏰ Today (${now.toLocaleDateString()}) is not marked yet`);
+          }
+        }
+
+        if (selectedCategories.includes("salary")) {
+          const sSum = computeMonthSalarySummaryClient(now.getFullYear(), now.getMonth());
+          let salLine = `💰 ${sSum.monthName} Salary: ₹${sSum.monthTotal} (${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""})`;
+          if (sSum.pendingStudents.length > 0) {
+            salLine += ` • Pending: ${sSum.pendingStudents.slice(0, 3).join(", ")}`;
+          }
+          lines.push(salLine);
+        }
+
+        if (selectedCategories.includes("events") && Array.isArray(events)) {
+          const tomorrow = new Date(now);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const upcoming = events.filter((ev) => {
+            if (!ev || !ev.date) return false;
+            const d = new Date(ev.date);
+            return (
+              (d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && !ev.celebrated) ||
+              (d.getDate() === tomorrow.getDate() && d.getMonth() === tomorrow.getMonth())
+            );
+          });
+          if (upcoming.length > 0) {
+            lines.push(`🎉 Upcoming: ${upcoming.map((e) => `${e.name}'s ${e.type}`).join(", ")}`);
+          }
+        }
+
+        const bodyText = lines.length > 0 ? lines.join("\n") : "All your tracked sections are up to date!";
+        const sent = await deliverSwNotification(
+          `📊 ${userName ? userName + "'s " : ""}Tracker Summary`,
+          bodyText,
+          "tracker-instant-summary",
+          { action: selectedCategories.includes("milk") ? "milk-summary" : "open", year: viewYear, month: viewMonth }
+        );
+
+        if (sent) {
+          SoundEffects.play("settings-save");
+          showToast("Summary notification sent!");
+        }
+      }
+
+      async function evaluateSmartNotifications() {
+        if (!notificationsEnabled || !("Notification" in window) || Notification.permission !== "granted") {
+          return;
+        }
+
+        const now = new Date();
+        const todayStr = formatLocalYMD(now);
+        const hour = now.getHours();
+        let updatedLog = false;
+
+        // 1. 5:00 PM Daily Unmarked Milk Bill Reminder
+        if (selectedCategories.includes("milk") && hour >= 17) {
+          const logKey = `milk_5pm_${todayStr}`;
+          const isTodayMarked = Boolean(milkData && milkData[todayStr]);
+          if (!isTodayMarked && !notificationLog[logKey]) {
+            const billLabel = milkBillType === "2~MB" ? "1st & 2nd milk bills" : "milk bill";
+            const sent = await deliverSwNotification(
+              "🥛 Milk Bill Reminder (5:00 PM)",
+              `You haven't marked today's ${billLabel} (${now.toLocaleDateString()}) yet. Tap to log today's milk!`,
+              logKey,
+              { action: "mark-milk", date: todayStr }
+            );
+            if (sent) {
+              notificationLog[logKey] = Date.now();
+              updatedLog = true;
+            }
+          }
+        }
+
+        // 2. Month-End Milk Bill Total Notification (1~MB vs 2~MB aware)
+        if (selectedCategories.includes("milk")) {
+          const year = now.getFullYear();
+          const month = now.getMonth();
+          const lastDayOfCurrent = new Date(year, month + 1, 0).getDate();
+          const isLastDayReady =
+            now.getDate() === lastDayOfCurrent && (hour >= 18 || Boolean(milkData && milkData[todayStr]));
+          const isFirstDaysCatchup = now.getDate() <= 3;
+
+          let targetY = null;
+          let targetM = null;
+          if (isLastDayReady) {
+            targetY = year;
+            targetM = month;
+          } else if (isFirstDaysCatchup) {
+            const prev = new Date(year, month - 1, 1);
+            targetY = prev.getFullYear();
+            targetM = prev.getMonth();
+          }
+
+          if (targetY !== null && targetM !== null) {
+            const ymKey = `milk_monthend_${targetY}-${String(targetM + 1).padStart(2, "0")}`;
+            if (!notificationLog[ymKey]) {
+              const mSum = computeMonthMilkSummaryClient(targetY, targetM);
+              if (mSum.anyLogged) {
+                let title = `📊 ${mSum.monthName} Milk Bill Total`;
+                let body = "";
+                if (mSum.milkBillType === "1~MB") {
+                  body = `1st Milk Bill: ${mSum.days1} days (${mSum.qty1.toFixed(1)}L)${mSum.nil1 ? ` • ${mSum.nil1} Nil` : ""} — Total Bill: ₹${mSum.cost1.toFixed(2)}`;
+                } else {
+                  title = `📊 ${mSum.monthName} Milk Bills (1~MB & 2~MB)`;
+                  body = `1st Bill: ${mSum.days1}d, ${mSum.qty1.toFixed(1)}L (₹${mSum.cost1.toFixed(2)}) | 2nd Bill: ${mSum.days2}d, ${mSum.qty2.toFixed(1)}L (₹${mSum.cost2.toFixed(2)}) — Grand Total: ₹${mSum.totalCost.toFixed(2)}`;
+                }
+                const sent = await deliverSwNotification(title, body, ymKey, {
+                  action: "milk-summary",
+                  year: targetY,
+                  month: targetM
+                });
+                if (sent) {
+                  notificationLog[ymKey] = Date.now();
+                  updatedLog = true;
+                }
+              }
+            }
+          }
+        }
+
+        // 3. Birthday & Wedding Anniversary Notifications (Day-Of + Day-Before)
+        if (selectedCategories.includes("events") && Array.isArray(events)) {
+          const tomorrow = new Date(now);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const tomorrowStr = formatLocalYMD(tomorrow);
+
+          for (const ev of events) {
+            if (!ev || !ev.date || !ev.name) continue;
+            const evDate = new Date(ev.date);
+            const isToday =
+              evDate.getDate() === now.getDate() &&
+              evDate.getMonth() === now.getMonth() &&
+              !ev.celebrated;
+            const isTomorrow =
+              evDate.getDate() === tomorrow.getDate() &&
+              evDate.getMonth() === tomorrow.getMonth();
+
+            if (isToday) {
+              const key = `event_today_${todayStr}_${ev.name}`;
+              if (!notificationLog[key]) {
+                const sent = await deliverSwNotification(
+                  `🎉 Today: ${ev.name}'s ${ev.type}!`,
+                  `Today is ${ev.name}'s ${ev.type}! Don't forget to wish them and mark it celebrated.`,
+                  key,
+                  { action: "events" }
+                );
+                if (sent) {
+                  notificationLog[key] = Date.now();
+                  updatedLog = true;
+                }
+              }
+            } else if (isTomorrow && hour >= 9) {
+              const key = `event_tomorrow_${tomorrowStr}_${ev.name}`;
+              if (!notificationLog[key]) {
+                const sent = await deliverSwNotification(
+                  `🎈 Tomorrow: ${ev.name}'s ${ev.type}`,
+                  `Heads up! Tomorrow (${tomorrow.toLocaleDateString()}) is ${ev.name}'s ${ev.type}.`,
+                  key,
+                  { action: "events" }
+                );
+                if (sent) {
+                  notificationLog[key] = Date.now();
+                  updatedLog = true;
+                }
+              }
+            }
+          }
+        }
+
+        // 4. Month-End Salary Summary & Pending Student Reminder
+        if (selectedCategories.includes("salary")) {
+          const year = now.getFullYear();
+          const month = now.getMonth();
+          const lastDayOfCurrent = new Date(year, month + 1, 0).getDate();
+          const isMonthEndWindow = now.getDate() >= lastDayOfCurrent - 1 && hour >= 17;
+          const isNewMonthCatchup = now.getDate() <= 3;
+
+          let salY = null;
+          let salM = null;
+          if (isMonthEndWindow) {
+            salY = year;
+            salM = month;
+          } else if (isNewMonthCatchup) {
+            const prev = new Date(year, month - 1, 1);
+            salY = prev.getFullYear();
+            salM = prev.getMonth();
+          }
+
+          if (salY !== null && salM !== null) {
+            const salKey = `salary_monthend_${salY}-${String(salM + 1).padStart(2, "0")}`;
+            if (!notificationLog[salKey]) {
+              const sSum = computeMonthSalarySummaryClient(salY, salM);
+              if (sSum.studentCount > 0 || sSum.pendingStudents.length > 0) {
+                let title = `💰 ${sSum.monthName} Salary Summary`;
+                let body = "";
+                if (sSum.studentCount > 0 && sSum.pendingStudents.length > 0) {
+                  title = `💰 ${sSum.monthName} Salary & Pending Students`;
+                  body = `Collected: ₹${sSum.monthTotal} (${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""}). Pending from ${sSum.prevMonthName}: ${sSum.pendingStudents.slice(0, 3).join(", ")}${sSum.pendingStudents.length > 3 ? ` +${sSum.pendingStudents.length - 3} more` : ""}.`;
+                } else if (sSum.studentCount > 0) {
+                  body = `Total salary logged for ${sSum.monthName}: ₹${sSum.monthTotal} across ${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""}.`;
+                } else {
+                  title = `💰 ${sSum.monthName} Salary Reminder`;
+                  body = `No salary entries logged for ${sSum.monthName} yet (${sSum.pendingStudents.length} student${sSum.pendingStudents.length !== 1 ? "s" : ""} in ${sSum.prevMonthName}: ${sSum.pendingStudents.slice(0, 3).join(", ")}).`;
+                }
+                const sent = await deliverSwNotification(title, body, salKey, { action: "salary" });
+                if (sent) {
+                  notificationLog[salKey] = Date.now();
+                  updatedLog = true;
+                }
+              }
+            }
+          }
+        }
+
+        if (updatedLog) {
+          await saveNotificationPrefs();
+        }
+      }
+
+      function scheduleDailyFivePmCheck() {
+        if (fivePmTimeoutId) {
+          clearTimeout(fivePmTimeoutId);
+          fivePmTimeoutId = null;
+        }
+
+        const now = new Date();
+        const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0, 2, 0);
+        if (now >= target) {
+          // Schedule for 5:00 PM tomorrow
+          target.setDate(target.getDate() + 1);
+        }
+
+        const msUntilFivePm = target.getTime() - now.getTime();
+        fivePmTimeoutId = setTimeout(() => {
+          evaluateSmartNotifications();
+          scheduleDailyFivePmCheck();
+        }, msUntilFivePm);
+      }
+
+      function handleNotificationDeepLink(action, data) {
+        if (!action) return;
+
+        if (action === "mark-milk") {
+          const dateToMark = (data && data.date) || formatLocalYMD(new Date());
+          if (selectedCategories.includes("milk")) {
+            const milkCard = document.getElementById("milkCard");
+            if (milkCard) milkCard.scrollIntoView({ behavior: "smooth", block: "start" });
+            setTimeout(() => {
+              showQuantityModal(dateToMark);
+            }, 250);
+          }
+        } else if (action === "milk-summary") {
+          if (selectedCategories.includes("milk")) {
+            const targetY = data && data.year !== undefined ? Number(data.year) : currentDate.getFullYear();
+            const targetM = data && data.month !== undefined ? Number(data.month) : currentDate.getMonth();
+            currentDate = new Date(targetY, targetM, 1);
+            renderCalendar();
+
+            const firstDay = `${targetY}-${String(targetM + 1).padStart(2, "0")}-01`;
+            const lastDay = `${targetY}-${String(targetM + 1).padStart(2, "0")}-${String(
+              new Date(targetY, targetM + 1, 0).getDate()
+            ).padStart(2, "0")}`;
+
+            ["1", "2"].forEach((billNum) => {
+              const sEl = document.getElementById(`startDate${billNum}`);
+              const eEl = document.getElementById(`endDate${billNum}`);
+              if (sEl) sEl.value = firstDay;
+              if (eEl) eEl.value = lastDay;
+            });
+
+            analyzeMilkConsumption(1);
+            if (milkBillType === "2~MB") {
+              analyzeMilkConsumption(2);
+            }
+            const milkBillEl = document.getElementById("milkBill1");
+            if (milkBillEl) milkBillEl.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        } else if (action === "salary") {
+          const salaryCard = document.getElementById("salaryCard");
+          if (salaryCard) salaryCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (action === "events") {
+          const eventsCard = document.getElementById("eventsCard");
+          if (eventsCard) eventsCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      async function initPwaAndNotifications() {
+        try {
+          const savedNotifEnabled = await localforage.getItem("notificationsEnabled");
+          if (savedNotifEnabled !== null && savedNotifEnabled !== undefined) {
+            notificationsEnabled = Boolean(savedNotifEnabled);
+          } else {
+            const rawLocal = localStorage.getItem("notificationsEnabled");
+            if (rawLocal !== null) {
+              notificationsEnabled = JSON.parse(rawLocal);
+            } else if ("Notification" in window && Notification.permission === "granted") {
+              notificationsEnabled = true;
+            }
+          }
+
+          const savedLog = await localforage.getItem("notificationLog");
+          if (savedLog && typeof savedLog === "object") {
+            notificationLog = savedLog;
+          }
+        } catch (e) {}
+
+        refreshPwaAndNotifSettingsUI();
+
+        // Register Service Worker for PWA installability, offline resilience & notifications
+        if ("serviceWorker" in navigator && (window.location.protocol === "https:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+          try {
+            const reg = await navigator.serviceWorker.register("./sw.js");
+            if (reg && "periodicSync" in reg) {
+              try {
+                await reg.periodicSync.register("tracker-smart-reminders", {
+                  minInterval: 3 * 60 * 60 * 1000
+                });
+              } catch (e) {}
+            }
+          } catch (err) {
+            console.warn("Service worker registration skipped:", err);
+          }
+
+          navigator.serviceWorker.addEventListener("message", (event) => {
+            if (event.data && event.data.type === "NOTIFICATION_CLICK") {
+              handleNotificationDeepLink(event.data.action, event.data.data);
+            }
+          });
+        }
+
+        // Check URL query parameters for PWA shortcut or notification deep-link
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const actionParam = params.get("action");
+          if (actionParam) {
+            handleNotificationDeepLink(actionParam, {
+              date: params.get("date"),
+              year: params.get("year") ? Number(params.get("year")) : undefined,
+              month: params.get("month") ? Number(params.get("month")) : undefined
+            });
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (e) {}
+
+        scheduleDailyFivePmCheck();
+        setTimeout(() => evaluateSmartNotifications(), 1800);
+
+        if (!notifCheckIntervalId) {
+          notifCheckIntervalId = setInterval(() => {
+            evaluateSmartNotifications();
+          }, 60000);
+        }
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") {
+            evaluateSmartNotifications();
+          }
+        });
       }
     </script>
   </body>

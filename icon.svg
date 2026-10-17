@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="50%" stop-color="#3498db" />
+      <stop offset="100%" stop-color="#8e44ad" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f8fafc" />
+    </linearGradient>
+  </defs>
+  <!-- App Squircle Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <!-- Calendar / Tracker Card -->
+  <rect x="76" y="96" width="360" height="336" rx="40" fill="url(#cardGrad)" />
+  <!-- Top Header Bar -->
+  <path d="M76 136 C76 113.909 93.909 96 116 96 H396 C418.091 96 436 113.909 436 136 V172 H76 V136 Z" fill="#1e293b" />
+  <!-- Calendar Rings -->
+  <rect x="148" y="72" width="24" height="52" rx="12" fill="#f39c12" />
+  <rect x="340" y="72" width="24" height="52" rx="12" fill="#e74c3c" />
+  <!-- Category Rows / Dots -->
+  <!-- Events Row -->
+  <circle cx="140" cy="232" r="18" fill="#e74c3c" />
+  <rect x="180" y="220" width="196" height="24" rx="12" fill="#cbd5e1" />
+  <!-- Salary Row -->
+  <circle cx="140" cy="298" r="18" fill="#f39c12" />
+  <rect x="180" y="286" width="150" height="24" rx="12" fill="#cbd5e1" />
+  <!-- Milk Row -->
+  <circle cx="140" cy="364" r="18" fill="#9b59b6" />
+  <rect x="180" y="352" width="174" height="24" rx="12" fill="#cbd5e1" />
+  <!-- Checkmark Badge -->
+  <circle cx="384" cy="376" r="56" fill="#2ecc71" stroke="#ffffff" stroke-width="10" />
+  <path d="M358 376 L375 393 L412 356" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

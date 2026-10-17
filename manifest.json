@@ -1,0 +1,61 @@
+{
+  "name": "Personal Tracker",
+  "short_name": "Tracker",
+  "description": "Track daily milk consumption bills, salaries, and special events with automatic cloud backup and smart reminders.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ecf0f1",
+  "theme_color": "#3498db",
+  "categories": ["finance", "productivity", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mark Today's Milk",
+      "short_name": "Mark Milk",
+      "description": "Log today's milk quantity in the calendar",
+      "url": "./?action=mark-milk",
+      "icons": [{ "src": "icon.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Salary Tracker",
+      "short_name": "Salary",
+      "description": "Open Salary Tracker",
+      "url": "./?action=salary",
+      "icons": [{ "src": "icon.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Events of the Day",
+      "short_name": "Events",
+      "description": "View or add birthdays and anniversaries",
+      "url": "./?action=events",
+      "icons": [{ "src": "icon.svg", "sizes": "192x192", "type": "image/svg+xml" }]
+    }
+  ]
+}
