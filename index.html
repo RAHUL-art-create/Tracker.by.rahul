@@ -1145,10 +1145,41 @@
         align-items: center;
         width: 100%;
       }
-      .pin-input-wrapper input {
+      .pin-input-wrapper input,
+      .customization-content .pin-input-wrapper input[type="text"],
+      .customization-content .pin-input-wrapper input[type="password"] {
         width: 100%;
-        padding-right: 42px !important;
+        margin: 0 !important;
+        padding-right: 44px !important;
       }
+      .notif-switch {
+        position: relative;
+        flex-shrink: 0;
+        width: 42px;
+        height: 24px;
+        border-radius: 12px;
+        background: #cbd5e1;
+        transition: background-color 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
+      .notif-switch::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
+      .pwa-notif-toggle-label input[type="checkbox"]:checked + .notif-switch {
+        background: #2563eb;
+      }
+      .pwa-notif-toggle-label input[type="checkbox"]:checked + .notif-switch::after {
+        transform: translateX(18px);
+      }
+
       .pin-reveal-btn {
         position: absolute;
         right: 8px;
@@ -1730,14 +1761,10 @@
           <div class="pwa-notif-header">
             <label class="pwa-notif-toggle-label" for="smartNotifCheck">
               <input type="checkbox" id="smartNotifCheck" onchange="handleSmartNotifToggle(this)" />
-              <span class="sleek-checkbox-box">
-                <svg class="sleek-check-icon" viewBox="0 0 12 10" fill="none">
-                  <path d="M1.5 5.2L4.3 8L10.5 1.8" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
+              <span class="notif-switch" aria-hidden="true"></span>
               <div>
                 <div class="pwa-notif-title">Smart Notifications</div>
-                <div class="pwa-notif-sub" id="smartNotifStatusText">5 PM milk alert, month-end bills & events</div>
+                <div class="pwa-notif-sub" id="smartNotifStatusText">Daily and month-end reminders</div>
               </div>
             </label>
             <button type="button" class="pwa-notif-test-btn" onclick="sendInstantSummaryNotification()" title="Send current summary notification now">Summary</button>
@@ -3898,24 +3925,26 @@
         const loadedQQ = await localforage.getItem("quickQuantities");
         if (loadedQQ) quickQuantities = loadedQQ;
 
-        // Set initial milk bill type
-        document.querySelector(
-          `input[name="milkBillType"][value="${milkBillType}"]`
-        ).checked = true;
-        changeMilkBillType();
+        // Only redraw if stored data differs from the instant first paint
+        if (typeof instantPaintSnapshot === "undefined" || instantPaintSnapshot !== getRenderSnapshot()) {
+          document.querySelector(
+            `input[name="milkBillType"][value="${milkBillType}"]`
+          ).checked = true;
+          changeMilkBillType();
 
-        displayEvents();
-        displaySalaryData();
-        renderCalendar();
-        displayMilkQuantities();
-        updateMilkQuantitySelect(1);
-        if (milkBillType === "2~MB") {
-          updateMilkQuantitySelect(2);
+          displayEvents();
+          displaySalaryData();
+          renderCalendar();
+          displayMilkQuantities();
+          updateMilkQuantitySelect(1);
+          if (milkBillType === "2~MB") {
+            updateMilkQuantitySelect(2);
+          }
+          checkForEvents();
+          updateSelectedCategories();
+          updateUserName();
+          updateQuickAmountButtons();
         }
-        checkForEvents();
-        updateSelectedCategories();
-        updateUserName();
-        updateQuickAmountButtons();
 
         // Start non-blocking cloud sync check
         initCloudSync();
@@ -3925,6 +3954,68 @@
           initPwaAndNotifications();
         }
       }
+
+      // Instant first paint: every save is mirrored to localStorage, so render from it
+      // synchronously before the slower async localForage load in initApp().
+      function readLocalMirror(key, isJson) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw === null) return undefined;
+          return isJson ? JSON.parse(raw) : raw;
+        } catch (e) {
+          return undefined;
+        }
+      }
+
+      function getRenderSnapshot() {
+        return JSON.stringify([events, salaryData, milkData, milkQuantities, milkQuantities2, milkBillType, userName, quickAmounts, quickQuantities]);
+      }
+
+      function renderAllFromState() {
+        const radio = document.querySelector(`input[name="milkBillType"][value="${milkBillType}"]`);
+        if (radio) radio.checked = true;
+        const isSingle = milkBillType === "1~MB";
+        document.getElementById("milkBill2").classList.toggle("hidden", isSingle);
+        document.getElementById("milkQuantityList2Container").classList.toggle("hidden", isSingle);
+        document.getElementById("milkQuantity2Container").classList.toggle("hidden", isSingle);
+        displayEvents();
+        displaySalaryData();
+        renderCalendar();
+        displayMilkQuantities();
+        updateMilkQuantitySelect(1);
+        if (!isSingle) updateMilkQuantitySelect(2);
+        updateSelectedCategories();
+        updateUserName();
+        updateQuickAmountButtons();
+      }
+
+      let instantPaintSnapshot = null;
+      (function instantPaintFromLocalStorage() {
+        try {
+          const ev = readLocalMirror("events", true);
+          if (Array.isArray(ev)) events = ev;
+          const sd = readLocalMirror("salaryData", true);
+          if (sd && typeof sd === "object") salaryData = sd;
+          const md = readLocalMirror("milkData", true);
+          if (md && typeof md === "object") milkData = md;
+          const mq1 = readLocalMirror("milkQuantities", true);
+          if (Array.isArray(mq1)) milkQuantities = mq1;
+          const mq2 = readLocalMirror("milkQuantities2", true);
+          if (Array.isArray(mq2)) milkQuantities2 = mq2;
+          const bt = readLocalMirror("milkBillType", false);
+          if (bt === "1~MB" || bt === "2~MB") milkBillType = bt;
+          const un = readLocalMirror("userName", false);
+          if (typeof un === "string") userName = un;
+          const qa = readLocalMirror("quickAmounts", true);
+          if (Array.isArray(qa)) quickAmounts = qa;
+          const qq = readLocalMirror("quickQuantities", true);
+          if (Array.isArray(qq)) quickQuantities = qq;
+          renderAllFromState();
+          instantPaintSnapshot = getRenderSnapshot();
+        } catch (e) {
+          instantPaintSnapshot = null;
+        }
+      })();
 
       initApp();
 
@@ -4308,13 +4399,13 @@
 
         if (statusText) {
           if (!hasNotifSupport) {
-            statusText.textContent = "Notifications not supported in this browser";
+            statusText.textContent = "Not supported on this browser";
           } else if (perm === "denied") {
-            statusText.textContent = "Blocked in browser settings (allow to enable)";
+            statusText.textContent = "Blocked in browser settings";
           } else if (notificationsEnabled && perm === "granted") {
-            statusText.textContent = "Active: 5 PM milk, month-end bills, events & salary";
+            statusText.textContent = "On";
           } else {
-            statusText.textContent = "5 PM milk alert, month-end bills & events";
+            statusText.textContent = "Daily and month-end reminders";
           }
         }
       }
