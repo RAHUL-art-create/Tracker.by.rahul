@@ -1036,32 +1036,32 @@
         transform: none;
         box-shadow: none;
       }
-      .pwa-install-btn {
-        width: 100%;
-        padding: 9px 12px;
-        background: linear-gradient(135deg, #2563eb, #3498db);
-        color: #ffffff;
-        border: none;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        margin: 2px 0 0 0;
+      .pin-label-row {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 6px;
-        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.22);
+        justify-content: space-between;
+        margin-bottom: 5px;
       }
-      .pwa-install-btn:hover {
-        background: linear-gradient(135deg, #1d4ed8, #2980b9);
+      .pin-label-row label {
+        margin-bottom: 0 !important;
       }
-      .pwa-install-btn.installed {
-        background: #ecfdf5;
-        color: #059669;
-        border: 1px solid #a7f3d0;
+      .pin-reset-link {
+        background: transparent;
+        border: none;
+        color: #2563eb;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
         box-shadow: none;
-        cursor: default;
+        text-decoration: none;
+      }
+      .pin-reset-link:hover {
+        color: #1d4ed8;
+        text-decoration: underline;
+        transform: none;
+        box-shadow: none;
       }
       .pin-modal-content {
         background-color: #ffffff;
@@ -1376,10 +1376,8 @@
           padding: 3px 8px;
           font-size: 10.5px;
         }
-        .pwa-install-btn {
-          padding: 7px 10px;
-          font-size: 12px;
-          border-radius: 7px;
+        .pin-reset-link {
+          font-size: 10.5px;
         }
 
         .pin-modal-content {
@@ -1713,7 +1711,10 @@
           <input type="text" id="userName" placeholder="Enter your name" />
         </div>
         <div class="field-group">
-          <label for="userPin">4-Digit Backup PIN</label>
+          <div class="pin-label-row">
+            <label for="userPin">4-Digit Backup PIN</label>
+            <button type="button" class="pin-reset-link" onclick="resetOrChangeCloudPin()">Forgot / Change PIN?</button>
+          </div>
           <div class="pin-input-wrapper">
             <input type="password" id="userPin" maxlength="4" pattern="\d{4}" placeholder="4-digit PIN (e.g. phone last 4 digits)" />
             <button type="button" class="pin-reveal-btn" onclick="togglePinVisibility('userPin', this)" aria-label="Toggle PIN visibility" title="Show/Hide PIN">
@@ -1741,9 +1742,6 @@
             </label>
             <button type="button" class="pwa-notif-test-btn" onclick="sendInstantSummaryNotification()" title="Send current summary notification now">Summary</button>
           </div>
-          <button type="button" id="pwaInstallBtn" class="pwa-install-btn" onclick="triggerPwaInstall()">
-            <span>📲 Install App to Home Screen</span>
-          </button>
         </div>
         <div id="modalCloudStatus" style="font-size: 12px; color: #7f8c8d; margin: 14px 0 6px 0; font-weight: 500; text-align: center;">
           Status: Ready
@@ -2418,13 +2416,15 @@
       }
 
       // Push current tracker state to Cloudflare D1 via /api/sync
-      async function performCloudBackup() {
+      async function performCloudBackup(options) {
         if (!userPin || String(userPin).trim().length !== 4) {
           updateSyncStatusBadge("need_pin");
           return;
         }
 
-        if (isLocalEmpty()) {
+        const allowPinUpdate = Boolean(options && options.updatePin);
+
+        if (isLocalEmpty() && !allowPinUpdate) {
           // Guard: never overwrite cloud backup with empty local data
           return;
         }
@@ -2435,6 +2435,8 @@
           userId: userId,
           userName: (userName || "").trim(),
           pin: String(userPin).trim(),
+          updatePin: allowPinUpdate,
+          pinOnly: isLocalEmpty() && allowPinUpdate,
           lastModified: lastModified,
           data: {
             events,
@@ -2466,7 +2468,7 @@
 
           if (res.status === 401 || res.status === 403) {
             updateSyncStatusBadge("pin_error");
-            showToast("Cloud PIN mismatch. Please check your 4-digit PIN in settings.");
+            showToast("Cloud PIN mismatch. Use 'Forgot / Change PIN?' in Settings to update it.");
             return;
           }
 
@@ -2499,7 +2501,7 @@
       }
 
       // Safe cloud initialization: handles Restore vs Backup without wipeouts
-      async function initCloudSync() {
+      async function initCloudSync(options) {
         if (!userPin || String(userPin).trim().length !== 4) {
           updateSyncStatusBadge("need_pin");
           setTimeout(() => {
@@ -2508,11 +2510,12 @@
           return;
         }
 
+        const allowPinUpdate = Boolean(options && options.updatePin);
         updateSyncStatusBadge("syncing");
 
         try {
           const res = await fetch(
-            getSyncApiUrl(`/api/sync?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent((userName || "").trim())}&pin=${encodeURIComponent(String(userPin).trim())}`)
+            getSyncApiUrl(`/api/sync?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent((userName || "").trim())}&pin=${encodeURIComponent(String(userPin).trim())}${allowPinUpdate ? "&updatePin=1" : ""}`)
           );
 
           if (res.status === 404) {
@@ -2536,7 +2539,7 @@
           if (!result.exists) {
             // New user or cloud empty. If we have local data, back it up to cloud!
             if (!isLocalEmpty()) {
-              await performCloudBackup();
+              await performCloudBackup({ updatePin: allowPinUpdate });
             } else {
               updateSyncStatusBadge("synced");
             }
@@ -2576,7 +2579,7 @@
             promptCloudRestore(cloudLastMod, cloudBackup);
           } else {
             // Local is newer or equal: push to cloud
-            await performCloudBackup();
+            await performCloudBackup({ updatePin: allowPinUpdate });
           }
 
         } catch (err) {
@@ -2654,7 +2657,7 @@
       }
 
       // Manual restore button handler in modal
-      async function manualRestoreFromCloud() {
+      async function manualRestoreFromCloud(forceUpdatePin) {
         const nameInput = (document.getElementById("userName").value || "").trim() || userName;
         const pinInput = (document.getElementById("userPin").value || "").trim() || userPin;
 
@@ -2663,19 +2666,21 @@
           return;
         }
 
-        const confirmMsg = nameInput
-          ? `Restore all tracker data from cloud backup for "${nameInput}"? Any unsaved local edits will be replaced.`
-          : `Restore all tracker data from cloud backup using PIN "${pinInput}"? Any unsaved local edits will be replaced.`;
+        if (!forceUpdatePin) {
+          const confirmMsg = nameInput
+            ? `Restore all tracker data from cloud backup for "${nameInput}"? Any unsaved local edits will be replaced.`
+            : `Restore all tracker data from cloud backup using PIN "${pinInput}"? Any unsaved local edits will be replaced.`;
 
-        if (!confirm(confirmMsg)) {
-          return;
+          if (!confirm(confirmMsg)) {
+            return;
+          }
         }
 
         updateSyncStatusBadge("syncing");
 
         try {
           const res = await fetch(
-            getSyncApiUrl(`/api/sync?userName=${encodeURIComponent(nameInput)}&pin=${encodeURIComponent(pinInput)}`)
+            getSyncApiUrl(`/api/sync?userId=${encodeURIComponent(userId)}&userName=${encodeURIComponent(nameInput)}&pin=${encodeURIComponent(pinInput)}${forceUpdatePin ? "&updatePin=1" : ""}`)
           );
 
           if (res.status === 404) {
@@ -2692,8 +2697,13 @@
           const result = await res.json().catch(() => null);
 
           if (res.status === 401 || res.status === 403) {
-            alert("PIN does not match the existing cloud backup" + (nameInput ? " for " + nameInput : "") + ".");
             updateSyncStatusBadge("pin_error");
+            const doReset = confirm(
+              `The PIN "${pinInput}" does not match the previous cloud backup PIN${nameInput ? ' for "' + nameInput + '"' : ''}.\n\nDid you forget your old PIN or want to change it to "${pinInput}"?\n\n• Click OK to set "${pinInput}" as your new PIN and restore\n• Click Cancel to try entering your old PIN again`
+            );
+            if (doReset) {
+              await manualRestoreFromCloud(true);
+            }
             return;
           }
 
@@ -3735,6 +3745,7 @@
           alert("Backup PIN must be exactly 4 digits.");
           return;
         }
+        const pinChangedOrMismatch = Boolean(pinVal && (pinVal !== userPin || cloudSyncStatus === "pin_error"));
         userPin = pinVal;
         // Synchronous write to localStorage so future page opens render immediately without waiting
         try {
@@ -3747,9 +3758,9 @@
         updateUserName();
         closeCustomizationModal();
         SoundEffects.play("settings-save");
-        if (userName && userPin && userPin.length === 4) {
+        if (userPin && userPin.length === 4) {
           showToast("Settings saved! Checking cloud backup...");
-          await initCloudSync();
+          await initCloudSync({ updatePin: pinChangedOrMismatch });
         }
       }
 
@@ -4196,33 +4207,89 @@
       }
 
       // =========================================================================
-      // PWA Home Screen Installation & Smart Service Worker Notifications Engine
+      // PIN Reset / Change & Smart Service Worker Notifications Engine
       // =========================================================================
-      let deferredInstallPrompt = null;
       let notificationsEnabled = false;
       let notificationLog = {};
       let fivePmTimeoutId = null;
       let notifCheckIntervalId = null;
 
-      function isStandaloneApp() {
-        return (
-          (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
-          window.navigator.standalone === true
+      async function resetOrChangeCloudPin() {
+        const nameInput = (document.getElementById("userName").value || "").trim() || userName;
+        const pinField = document.getElementById("userPin");
+        const typedPin = pinField ? pinField.value.trim() : "";
+
+        const promptDefault = /^\d{4}$/.test(typedPin) && typedPin !== userPin ? typedPin : "";
+        const newPinInput = prompt(
+          `Enter a new 4-digit Backup PIN${nameInput ? ' for "' + nameInput + '"' : ""}:\n\nThis will replace your previous PIN for Cloud Backup & Restore.`,
+          promptDefault
         );
-      }
 
-      window.addEventListener("beforeinstallprompt", (e) => {
-        e.preventDefault();
-        deferredInstallPrompt = e;
-        refreshPwaAndNotifSettingsUI();
-      });
+        if (newPinInput === null) return;
+        const cleanedPin = newPinInput.trim();
+        if (!/^\d{4}$/.test(cleanedPin)) {
+          alert("Please enter a valid 4-digit PIN (numbers only, e.g. 1234).");
+          return;
+        }
 
-      window.addEventListener("appinstalled", () => {
-        deferredInstallPrompt = null;
-        refreshPwaAndNotifSettingsUI();
+        if (nameInput && nameInput !== userName) {
+          userName = nameInput;
+          await parallelSave("userName", userName);
+          updateUserName();
+        }
+
+        userPin = cleanedPin;
+        if (pinField) pinField.value = userPin;
+        await parallelSave("userPin", userPin);
         SoundEffects.play("settings-save");
-        showToast("Personal Tracker installed on your Home Screen!");
-      });
+
+        updateSyncStatusBadge("syncing");
+        try {
+          const res = await fetch(getSyncApiUrl("/api/sync"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: userId,
+              userName: (userName || "").trim(),
+              pin: userPin,
+              updatePin: true,
+              pinOnly: true
+            })
+          });
+
+          if (res.status === 404) {
+            updateSyncStatusBadge("github_pages");
+            showToast("New PIN saved locally.");
+            return;
+          }
+
+          const result = await res.json().catch(() => null);
+          if (res.ok && result && result.success) {
+            if (result.userId && result.userId !== userId) {
+              userId = result.userId;
+              await parallelSave("userId", userId);
+            }
+            if (result.exists) {
+              updateSyncStatusBadge("synced");
+              showToast("Cloud backup PIN updated! You can now Save or Restore with your new PIN.");
+              await initCloudSync({ updatePin: true });
+            } else {
+              if (!isLocalEmpty()) {
+                await performCloudBackup({ updatePin: true });
+              } else {
+                updateSyncStatusBadge("synced");
+              }
+              showToast("New 4-digit PIN saved!");
+            }
+          } else {
+            updateSyncStatusBadge("offline");
+            showToast("New PIN saved locally.");
+          }
+        } catch (e) {
+          updateSyncStatusBadge("offline");
+          showToast("New PIN saved locally.");
+        }
+      }
 
       function formatLocalYMD(dateObj) {
         const d = dateObj || new Date();
@@ -4230,17 +4297,6 @@
       }
 
       function refreshPwaAndNotifSettingsUI() {
-        const installBtn = document.getElementById("pwaInstallBtn");
-        if (installBtn) {
-          if (isStandaloneApp()) {
-            installBtn.classList.add("installed");
-            installBtn.innerHTML = "<span>✓ Installed on Home Screen</span>";
-          } else {
-            installBtn.classList.remove("installed");
-            installBtn.innerHTML = "<span>📲 Install App to Home Screen</span>";
-          }
-        }
-
         const notifCheck = document.getElementById("smartNotifCheck");
         const statusText = document.getElementById("smartNotifStatusText");
         const hasNotifSupport = "Notification" in window;
@@ -4260,33 +4316,6 @@
           } else {
             statusText.textContent = "5 PM milk alert, month-end bills & events";
           }
-        }
-      }
-
-      async function triggerPwaInstall() {
-        if (isStandaloneApp()) {
-          showToast("App is already installed on your Home Screen!");
-          return;
-        }
-
-        if (deferredInstallPrompt) {
-          try {
-            deferredInstallPrompt.prompt();
-            const choice = await deferredInstallPrompt.userChoice;
-            if (choice && choice.outcome === "accepted") {
-              deferredInstallPrompt = null;
-              refreshPwaAndNotifSettingsUI();
-            }
-          } catch (e) {}
-          return;
-        }
-
-        const ua = navigator.userAgent || "";
-        const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
-        if (isIOS) {
-          alert("To install on iPhone/iPad:\n\n1. Tap the Share button (↑) in Safari\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add'");
-        } else {
-          alert("To install Personal Tracker:\n\nOpen your browser menu (⋮ or ⋯) and tap 'Install App' or 'Add to Home Screen'.");
         }
       }
 
@@ -4333,8 +4362,8 @@
           scheduleDailyFivePmCheck();
 
           await deliverSwNotification(
-            "🔔 Smart Notifications Enabled",
-            "You'll receive 5:00 PM unmarked milk reminders, month-end bill totals, and event/salary alerts.",
+            "Smart Notifications Enabled",
+            "You will receive 5:00 PM unmarked milk reminders, month-end bill totals, and event/salary alerts.",
             "tracker-notif-enabled",
             { action: "open" }
           );
@@ -4511,23 +4540,23 @@
           const todayLogged = Boolean(milkData && milkData[todayStr]);
           if (milkBillType === "1~MB") {
             lines.push(
-              `🥛 ${mSum.monthName} (1st Bill): ${mSum.days1}d, ${mSum.qty1.toFixed(1)}L${mSum.nil1 ? ` (${mSum.nil1} Nil)` : ""} = ₹${mSum.cost1.toFixed(2)}`
+              `${mSum.monthName} Milk (1st Bill): ${mSum.days1}d, ${mSum.qty1.toFixed(1)}L${mSum.nil1 ? ` (${mSum.nil1} Nil)` : ""} = Rs.${mSum.cost1.toFixed(2)}`
             );
           } else {
             lines.push(
-              `🥛 ${mSum.monthName}: 1st Bill ${mSum.qty1.toFixed(1)}L (₹${mSum.cost1.toFixed(0)}) | 2nd Bill ${mSum.qty2.toFixed(1)}L (₹${mSum.cost2.toFixed(0)}) • Total: ₹${mSum.totalCost.toFixed(2)}`
+              `${mSum.monthName} Milk: 1st Bill ${mSum.qty1.toFixed(1)}L (Rs.${mSum.cost1.toFixed(0)}) | 2nd Bill ${mSum.qty2.toFixed(1)}L (Rs.${mSum.cost2.toFixed(0)}) | Total: Rs.${mSum.totalCost.toFixed(2)}`
             );
           }
           if (!todayLogged) {
-            lines.push(`⏰ Today (${now.toLocaleDateString()}) is not marked yet`);
+            lines.push(`Today (${now.toLocaleDateString()}) is not marked yet`);
           }
         }
 
         if (selectedCategories.includes("salary")) {
           const sSum = computeMonthSalarySummaryClient(now.getFullYear(), now.getMonth());
-          let salLine = `💰 ${sSum.monthName} Salary: ₹${sSum.monthTotal} (${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""})`;
+          let salLine = `${sSum.monthName} Salary: Rs.${sSum.monthTotal} (${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""})`;
           if (sSum.pendingStudents.length > 0) {
-            salLine += ` • Pending: ${sSum.pendingStudents.slice(0, 3).join(", ")}`;
+            salLine += ` | Pending: ${sSum.pendingStudents.slice(0, 3).join(", ")}`;
           }
           lines.push(salLine);
         }
@@ -4544,13 +4573,13 @@
             );
           });
           if (upcoming.length > 0) {
-            lines.push(`🎉 Upcoming: ${upcoming.map((e) => `${e.name}'s ${e.type}`).join(", ")}`);
+            lines.push(`Upcoming Events: ${upcoming.map((e) => `${e.name}'s ${e.type}`).join(", ")}`);
           }
         }
 
-        const bodyText = lines.length > 0 ? lines.join("\n") : "All your tracked sections are up to date!";
+        const bodyText = lines.length > 0 ? lines.join("\n") : "All your tracked sections are up to date.";
         const sent = await deliverSwNotification(
-          `📊 ${userName ? userName + "'s " : ""}Tracker Summary`,
+          `${userName ? userName + "'s " : ""}Tracker Summary`,
           bodyText,
           "tracker-instant-summary",
           { action: selectedCategories.includes("milk") ? "milk-summary" : "open", year: viewYear, month: viewMonth }
@@ -4579,8 +4608,8 @@
           if (!isTodayMarked && !notificationLog[logKey]) {
             const billLabel = milkBillType === "2~MB" ? "1st & 2nd milk bills" : "milk bill";
             const sent = await deliverSwNotification(
-              "🥛 Milk Bill Reminder (5:00 PM)",
-              `You haven't marked today's ${billLabel} (${now.toLocaleDateString()}) yet. Tap to log today's milk!`,
+              "Milk Bill Reminder (5:00 PM)",
+              `You haven't marked today's ${billLabel} (${now.toLocaleDateString()}) yet. Tap to log today's milk.`,
               logKey,
               { action: "mark-milk", date: todayStr }
             );
@@ -4616,13 +4645,13 @@
             if (!notificationLog[ymKey]) {
               const mSum = computeMonthMilkSummaryClient(targetY, targetM);
               if (mSum.anyLogged) {
-                let title = `📊 ${mSum.monthName} Milk Bill Total`;
+                let title = `${mSum.monthName} Milk Bill Total`;
                 let body = "";
                 if (mSum.milkBillType === "1~MB") {
-                  body = `1st Milk Bill: ${mSum.days1} days (${mSum.qty1.toFixed(1)}L)${mSum.nil1 ? ` • ${mSum.nil1} Nil` : ""} — Total Bill: ₹${mSum.cost1.toFixed(2)}`;
+                  body = `1st Milk Bill: ${mSum.days1} days (${mSum.qty1.toFixed(1)}L)${mSum.nil1 ? ` | ${mSum.nil1} Nil` : ""} - Total Bill: Rs.${mSum.cost1.toFixed(2)}`;
                 } else {
-                  title = `📊 ${mSum.monthName} Milk Bills (1~MB & 2~MB)`;
-                  body = `1st Bill: ${mSum.days1}d, ${mSum.qty1.toFixed(1)}L (₹${mSum.cost1.toFixed(2)}) | 2nd Bill: ${mSum.days2}d, ${mSum.qty2.toFixed(1)}L (₹${mSum.cost2.toFixed(2)}) — Grand Total: ₹${mSum.totalCost.toFixed(2)}`;
+                  title = `${mSum.monthName} Milk Bills (1~MB & 2~MB)`;
+                  body = `1st Bill: ${mSum.days1}d, ${mSum.qty1.toFixed(1)}L (Rs.${mSum.cost1.toFixed(2)}) | 2nd Bill: ${mSum.days2}d, ${mSum.qty2.toFixed(1)}L (Rs.${mSum.cost2.toFixed(2)}) - Grand Total: Rs.${mSum.totalCost.toFixed(2)}`;
                 }
                 const sent = await deliverSwNotification(title, body, ymKey, {
                   action: "milk-summary",
@@ -4659,8 +4688,8 @@
               const key = `event_today_${todayStr}_${ev.name}`;
               if (!notificationLog[key]) {
                 const sent = await deliverSwNotification(
-                  `🎉 Today: ${ev.name}'s ${ev.type}!`,
-                  `Today is ${ev.name}'s ${ev.type}! Don't forget to wish them and mark it celebrated.`,
+                  `Today: ${ev.name}'s ${ev.type}`,
+                  `Today is ${ev.name}'s ${ev.type}. Don't forget to wish them and mark it celebrated.`,
                   key,
                   { action: "events" }
                 );
@@ -4673,8 +4702,8 @@
               const key = `event_tomorrow_${tomorrowStr}_${ev.name}`;
               if (!notificationLog[key]) {
                 const sent = await deliverSwNotification(
-                  `🎈 Tomorrow: ${ev.name}'s ${ev.type}`,
-                  `Heads up! Tomorrow (${tomorrow.toLocaleDateString()}) is ${ev.name}'s ${ev.type}.`,
+                  `Tomorrow: ${ev.name}'s ${ev.type}`,
+                  `Reminder: Tomorrow (${tomorrow.toLocaleDateString()}) is ${ev.name}'s ${ev.type}.`,
                   key,
                   { action: "events" }
                 );
@@ -4711,15 +4740,15 @@
             if (!notificationLog[salKey]) {
               const sSum = computeMonthSalarySummaryClient(salY, salM);
               if (sSum.studentCount > 0 || sSum.pendingStudents.length > 0) {
-                let title = `💰 ${sSum.monthName} Salary Summary`;
+                let title = `${sSum.monthName} Salary Summary`;
                 let body = "";
                 if (sSum.studentCount > 0 && sSum.pendingStudents.length > 0) {
-                  title = `💰 ${sSum.monthName} Salary & Pending Students`;
-                  body = `Collected: ₹${sSum.monthTotal} (${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""}). Pending from ${sSum.prevMonthName}: ${sSum.pendingStudents.slice(0, 3).join(", ")}${sSum.pendingStudents.length > 3 ? ` +${sSum.pendingStudents.length - 3} more` : ""}.`;
+                  title = `${sSum.monthName} Salary & Pending Students`;
+                  body = `Collected: Rs.${sSum.monthTotal} (${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""}). Pending from ${sSum.prevMonthName}: ${sSum.pendingStudents.slice(0, 3).join(", ")}${sSum.pendingStudents.length > 3 ? ` +${sSum.pendingStudents.length - 3} more` : ""}.`;
                 } else if (sSum.studentCount > 0) {
-                  body = `Total salary logged for ${sSum.monthName}: ₹${sSum.monthTotal} across ${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""}.`;
+                  body = `Total salary logged for ${sSum.monthName}: Rs.${sSum.monthTotal} across ${sSum.studentCount} student${sSum.studentCount !== 1 ? "s" : ""}.`;
                 } else {
-                  title = `💰 ${sSum.monthName} Salary Reminder`;
+                  title = `${sSum.monthName} Salary Reminder`;
                   body = `No salary entries logged for ${sSum.monthName} yet (${sSum.pendingStudents.length} student${sSum.pendingStudents.length !== 1 ? "s" : ""} in ${sSum.prevMonthName}: ${sSum.pendingStudents.slice(0, 3).join(", ")}).`;
                 }
                 const sent = await deliverSwNotification(title, body, salKey, { action: "salary" });

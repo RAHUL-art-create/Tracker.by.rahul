@@ -43,6 +43,9 @@ export async function onRequestGet(context) {
     const userId = (url.searchParams.get("userId") || "").trim();
     const rawName = (url.searchParams.get("userName") || "").trim();
     const rawPin = (url.searchParams.get("pin") || "").trim();
+    const updatePin =
+      url.searchParams.get("updatePin") === "1" ||
+      url.searchParams.get("updatePin") === "true";
 
     if (!rawPin || rawPin.length !== 4) {
       return jsonResponse({ success: false, error: "A 4-digit PIN is required." }, 400);
@@ -58,10 +61,18 @@ export async function onRequestGet(context) {
 
       if (record) {
         if (record.pin !== rawPin) {
-          return jsonResponse({
-            success: false,
-            error: "PIN does not match this backup."
-          }, 401);
+          if (updatePin) {
+            await env.DB.prepare(
+              "UPDATE user_backups SET pin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+            ).bind(rawPin, record.id).run();
+            record.pin = rawPin;
+          } else {
+            return jsonResponse({
+              success: false,
+              pinMismatch: true,
+              error: "PIN does not match this backup."
+            }, 401);
+          }
         }
 
         // If user edited their name, update it to the latest in D1!
@@ -91,7 +102,7 @@ export async function onRequestGet(context) {
       }
 
       // If still not found and no other name matched, check if there's exactly one record with this PIN
-      if (!record) {
+      if (!record && !rawName) {
         const recordsWithPin = await env.DB.prepare(
           "SELECT id, user_id, user_name, pin, data, last_modified, updated_at FROM user_backups WHERE pin = ? ORDER BY last_modified DESC"
         ).bind(rawPin).all();
@@ -103,25 +114,42 @@ export async function onRequestGet(context) {
     }
 
     if (!record) {
-      // Check if this username exists with a DIFFERENT PIN so we can warn them specifically
+      // Check if this username exists with a DIFFERENT PIN
       if (rawName) {
-        const otherPin = await env.DB.prepare(
-          "SELECT id FROM user_backups WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(?))"
+        let otherPinRecord = await env.DB.prepare(
+          "SELECT id, user_id, user_name, pin, data, last_modified, updated_at FROM user_backups WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(?)) ORDER BY last_modified DESC"
         ).bind(rawName).first();
 
-        if (otherPin) {
-          return jsonResponse({
-            success: false,
-            error: "PIN does not match the existing backup for this username."
-          }, 401);
+        if (!otherPinRecord) {
+          otherPinRecord = await env.DB.prepare(
+            "SELECT id, user_id, user_name, pin, data, last_modified, updated_at FROM user_backups WHERE (LOWER(user_name) LIKE '%' || LOWER(?) || '%' OR LOWER(?) LIKE '%' || LOWER(user_name) || '%') ORDER BY last_modified DESC"
+          ).bind(rawName, rawName).first();
+        }
+
+        if (otherPinRecord) {
+          if (updatePin) {
+            await env.DB.prepare(
+              "UPDATE user_backups SET pin = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+            ).bind(rawPin, otherPinRecord.id).run();
+            otherPinRecord.pin = rawPin;
+            record = otherPinRecord;
+          } else {
+            return jsonResponse({
+              success: false,
+              pinMismatch: true,
+              error: "PIN does not match the existing backup for this username."
+            }, 401);
+          }
         }
       }
 
-      return jsonResponse({
-        success: true,
-        exists: false,
-        message: "No existing cloud backup found matching this PIN and name."
-      });
+      if (!record) {
+        return jsonResponse({
+          success: true,
+          exists: false,
+          message: "No existing cloud backup found matching this PIN and name."
+        });
+      }
     }
 
     // Verify PIN again for safety
@@ -184,11 +212,55 @@ export async function onRequestPost(context) {
     let userId = (body.userId || "").trim();
     const rawName = (body.userName || "").trim();
     const pin = (body.pin || "").toString().trim();
+    const updatePin = Boolean(body.updatePin);
+    const pinOnly = Boolean(body.pinOnly);
     const lastModified = Number(body.lastModified) || Date.now();
     const data = body.data;
 
     if (!pin || pin.length !== 4) {
       return jsonResponse({ success: false, error: "A 4-digit PIN is required." }, 400);
+    }
+
+    if (pinOnly) {
+      let targetRecord = null;
+      if (userId) {
+        targetRecord = await env.DB.prepare(
+          "SELECT id, user_id, user_name, pin FROM user_backups WHERE user_id = ?"
+        ).bind(userId).first();
+      }
+      if (!targetRecord && rawName) {
+        targetRecord = await env.DB.prepare(
+          "SELECT id, user_id, user_name, pin FROM user_backups WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(?)) ORDER BY last_modified DESC"
+        ).bind(rawName).first();
+      }
+      if (!targetRecord && rawName) {
+        targetRecord = await env.DB.prepare(
+          "SELECT id, user_id, user_name, pin FROM user_backups WHERE (LOWER(user_name) LIKE '%' || LOWER(?) || '%' OR LOWER(?) LIKE '%' || LOWER(user_name) || '%') ORDER BY last_modified DESC"
+        ).bind(rawName, rawName).first();
+      }
+
+      if (!targetRecord) {
+        return jsonResponse({
+          success: true,
+          exists: false,
+          pinUpdated: false,
+          message: "No existing cloud backup found yet. Your new PIN is saved locally and will be used for backups."
+        });
+      }
+
+      const updatedName = rawName || targetRecord.user_name || "User";
+      await env.DB.prepare(
+        "UPDATE user_backups SET pin = ?, user_name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
+      ).bind(pin, updatedName, targetRecord.id).run();
+
+      return jsonResponse({
+        success: true,
+        exists: true,
+        pinUpdated: true,
+        userId: targetRecord.user_id,
+        userName: updatedName,
+        message: "Cloud backup PIN updated successfully."
+      });
     }
 
     if (!data || typeof data !== "object") {
@@ -214,24 +286,31 @@ export async function onRequestPost(context) {
     // If still not found, check if this name was previously used with a DIFFERENT PIN
     if (!existing && rawName) {
       const nameTaken = await env.DB.prepare(
-        "SELECT id, pin FROM user_backups WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(?))"
+        "SELECT id, user_id, user_name, pin, last_modified FROM user_backups WHERE LOWER(TRIM(user_name)) = LOWER(TRIM(?)) ORDER BY last_modified DESC"
       ).bind(rawName).first();
 
       if (nameTaken && nameTaken.pin !== pin) {
-        return jsonResponse({
-          success: false,
-          error: "PIN does not match the existing cloud backup for this username."
-        }, 403);
+        if (updatePin) {
+          existing = nameTaken;
+          existing.pin = pin;
+        } else {
+          return jsonResponse({
+            success: false,
+            pinMismatch: true,
+            error: "PIN does not match the existing cloud backup for this username."
+          }, 403);
+        }
       }
     }
 
     const dataJsonString = JSON.stringify(data);
 
     if (existing) {
-      // Verify PIN
-      if (existing.pin !== pin) {
+      // Verify PIN unless updatePin is explicitly requested
+      if (existing.pin !== pin && !updatePin) {
         return jsonResponse({
           success: false,
+          pinMismatch: true,
           error: "PIN does not match the existing cloud backup for this account."
         }, 403);
       }

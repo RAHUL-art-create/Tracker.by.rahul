@@ -230,8 +230,8 @@ async function evaluateBackgroundNotifications() {
     const isUnmarked = !todayEntry;
     if (isUnmarked && !notifLog[logKey]) {
       const billLabel = milkBillType === "2~MB" ? "1st & 2nd milk bills" : "milk bill";
-      await self.registration.showNotification("🥛 Milk Bill Reminder", {
-        body: `It's past 5:00 PM and today's ${billLabel} (${now.toLocaleDateString()}) isn't marked yet. Tap to log now!`,
+      await self.registration.showNotification("Milk Bill Reminder (5:00 PM)", {
+        body: `It's past 5:00 PM and today's ${billLabel} (${now.toLocaleDateString()}) isn't marked yet. Tap to log now.`,
         icon: "icon.svg",
         badge: "icon.svg",
         tag: logKey,
@@ -267,13 +267,13 @@ async function evaluateBackgroundNotifications() {
       if (!notifLog[ymKey]) {
         const summary = computeMonthMilkSummary(milkData, milkBillType, targetYear, targetMonth);
         if (summary.anyLogged) {
-          let title = `📊 ${summary.monthName} Milk Bill Total`;
+          let title = `${summary.monthName} Milk Bill Total`;
           let body = "";
           if (summary.milkBillType === "1~MB") {
-            body = `1st Milk Bill: ${summary.days1} days (${summary.qty1.toFixed(1)}L)${summary.nil1 ? ` • ${summary.nil1} Nil` : ""} — Total: ₹${summary.cost1.toFixed(2)}`;
+            body = `1st Milk Bill: ${summary.days1} days (${summary.qty1.toFixed(1)}L)${summary.nil1 ? ` | ${summary.nil1} Nil` : ""} - Total: Rs.${summary.cost1.toFixed(2)}`;
           } else {
-            title = `📊 ${summary.monthName} Milk Bills (1~MB & 2~MB)`;
-            body = `1st Bill: ${summary.qty1.toFixed(1)}L (₹${summary.cost1.toFixed(0)}) • 2nd Bill: ${summary.qty2.toFixed(1)}L (₹${summary.cost2.toFixed(0)}) — Grand Total: ₹${summary.totalCost.toFixed(2)}`;
+            title = `${summary.monthName} Milk Bills (1~MB & 2~MB)`;
+            body = `1st Bill: ${summary.qty1.toFixed(1)}L (Rs.${summary.cost1.toFixed(0)}) | 2nd Bill: ${summary.qty2.toFixed(1)}L (Rs.${summary.cost2.toFixed(0)}) - Grand Total: Rs.${summary.totalCost.toFixed(2)}`;
           }
           await self.registration.showNotification(title, {
             body,
@@ -304,8 +304,8 @@ async function evaluateBackgroundNotifications() {
       if (isToday && hour >= 8) {
         const key = `event_today_${todayStr}_${ev.name}`;
         if (!notifLog[key]) {
-          await self.registration.showNotification(`🎉 Today: ${ev.name}'s ${ev.type}!`, {
-            body: `Don't forget to wish ${ev.name} on their ${ev.type} today!`,
+          await self.registration.showNotification(`Today: ${ev.name}'s ${ev.type}`, {
+            body: `Don't forget to wish ${ev.name} on their ${ev.type} today.`,
             icon: "icon.svg",
             badge: "icon.svg",
             tag: key,
@@ -317,8 +317,8 @@ async function evaluateBackgroundNotifications() {
       } else if (isTomorrow && hour >= 17) {
         const key = `event_tomorrow_${tomorrowStr}_${ev.name}`;
         if (!notifLog[key]) {
-          await self.registration.showNotification(`🎈 Tomorrow: ${ev.name}'s ${ev.type}`, {
-            body: `Heads up! ${ev.name}'s ${ev.type} is tomorrow.`,
+          await self.registration.showNotification(`Tomorrow: ${ev.name}'s ${ev.type}`, {
+            body: `Reminder: ${ev.name}'s ${ev.type} is tomorrow.`,
             icon: "icon.svg",
             badge: "icon.svg",
             tag: key,
