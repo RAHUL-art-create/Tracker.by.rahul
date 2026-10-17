@@ -2,7 +2,7 @@
 // Provides safe Network-First offline caching and Smart Native Notifications
 
 const APP_ICON_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png";
-const CACHE_NAME = "personal-tracker-v2";
+const CACHE_NAME = "personal-tracker-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -41,38 +41,46 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Network-First strategy for HTML/app files, strict bypass for /api/sync
+// Cache-first with background refresh (stale-while-revalidate): the installed app opens
+// from the on-device copy without waiting on the network, so the launch splash ends fast.
+// Fresh files are fetched in the background and used on the next open.
+// /api/sync is never intercepted.
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
+  if (url.pathname.includes("/api/sync")) return;
 
-  // Never cache or intercept Cloud Sync API calls
-  if (url.pathname.includes("/api/sync")) {
-    return;
-  }
+  const cacheable =
+    url.origin === self.location.origin ||
+    url.hostname.includes("cdnjs.cloudflare.com") ||
+    url.hostname.includes("cdn.jsdelivr.net") ||
+    req.url === APP_ICON_URL;
+  if (!cacheable) return;
 
   event.respondWith(
-    fetch(req)
-      .then((networkResp) => {
-        if (networkResp && networkResp.ok && (url.origin === self.location.origin || url.hostname.includes("cdnjs.cloudflare.com") || url.hostname.includes("cdn.jsdelivr.net"))) {
-          const respClone = networkResp.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(req, respClone).catch(() => {});
-          });
-        }
-        return networkResp;
-      })
-      .catch(() => {
-        return caches.match(req).then((cached) => {
-          if (cached) return cached;
-          if (req.mode === "navigate") {
-            return caches.match("./index.html") || caches.match("./");
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached =
+        (await cache.match(req, { ignoreSearch: req.mode === "navigate" })) ||
+        (req.mode === "navigate" ? await cache.match("./index.html") || await cache.match("./") : null);
+
+      const networkUpdate = fetch(req)
+        .then((resp) => {
+          if (resp && resp.ok) {
+            cache.put(req, resp.clone()).catch(() => {});
           }
-          return new Response("Offline", { status: 503 });
-        });
-      })
+          return resp;
+        })
+        .catch(() => null);
+
+      if (cached) {
+        event.waitUntil(networkUpdate);
+        return cached;
+      }
+      const fresh = await networkUpdate;
+      return fresh || new Response("Offline", { status: 503 });
+    })
   );
 });
 
