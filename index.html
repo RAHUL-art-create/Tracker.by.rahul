@@ -4381,10 +4381,11 @@
           return false;
         }
 
+        const appIconUrl = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png";
         const options = {
           body: body,
-          icon: "icon.svg",
-          badge: "icon.svg",
+          icon: appIconUrl,
+          badge: appIconUrl,
           tag: tag || "personal-tracker-" + Date.now(),
           vibrate: [150, 70, 150],
           data: data || { action: "open" }

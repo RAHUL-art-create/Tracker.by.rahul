@@ -1,12 +1,13 @@
 // Service Worker for Personal Tracker PWA
 // Provides safe Network-First offline caching and Smart Native Notifications
 
+const APP_ICON_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png";
 const CACHE_NAME = "personal-tracker-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon.svg",
+  APP_ICON_URL,
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js",
   "https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"
@@ -232,8 +233,8 @@ async function evaluateBackgroundNotifications() {
       const billLabel = milkBillType === "2~MB" ? "1st & 2nd milk bills" : "milk bill";
       await self.registration.showNotification("Milk Bill Reminder (5:00 PM)", {
         body: `It's past 5:00 PM and today's ${billLabel} (${now.toLocaleDateString()}) isn't marked yet. Tap to log now.`,
-        icon: "icon.svg",
-        badge: "icon.svg",
+        icon: APP_ICON_URL,
+        badge: APP_ICON_URL,
         tag: logKey,
         renotify: true,
         data: { action: "mark-milk", date: todayStr }
@@ -277,8 +278,8 @@ async function evaluateBackgroundNotifications() {
           }
           await self.registration.showNotification(title, {
             body,
-            icon: "icon.svg",
-            badge: "icon.svg",
+            icon: APP_ICON_URL,
+            badge: APP_ICON_URL,
             tag: ymKey,
             data: { action: "milk-summary", year: targetYear, month: targetMonth }
           });
@@ -306,8 +307,8 @@ async function evaluateBackgroundNotifications() {
         if (!notifLog[key]) {
           await self.registration.showNotification(`Today: ${ev.name}'s ${ev.type}`, {
             body: `Don't forget to wish ${ev.name} on their ${ev.type} today.`,
-            icon: "icon.svg",
-            badge: "icon.svg",
+            icon: APP_ICON_URL,
+            badge: APP_ICON_URL,
             tag: key,
             data: { action: "events" }
           });
@@ -319,8 +320,8 @@ async function evaluateBackgroundNotifications() {
         if (!notifLog[key]) {
           await self.registration.showNotification(`Tomorrow: ${ev.name}'s ${ev.type}`, {
             body: `Reminder: ${ev.name}'s ${ev.type} is tomorrow.`,
-            icon: "icon.svg",
-            badge: "icon.svg",
+            icon: APP_ICON_URL,
+            badge: APP_ICON_URL,
             tag: key,
             data: { action: "events" }
           });
@@ -351,8 +352,8 @@ self.addEventListener("message", (event) => {
     if (title) {
       event.waitUntil(
         self.registration.showNotification(title, Object.assign({
-          icon: "icon.svg",
-          badge: "icon.svg"
+          icon: APP_ICON_URL,
+          badge: APP_ICON_URL
         }, options || {}))
       );
     }
