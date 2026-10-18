@@ -2,7 +2,7 @@
 // Provides safe Network-First offline caching and Smart Native Notifications
 
 const APP_ICON_URL = "./icon-192.png";
-const CACHE_NAME = "personal-tracker-v7";
+const CACHE_NAME = "personal-tracker-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -64,6 +64,24 @@ self.addEventListener("fetch", (event) => {
     url.hostname.includes("cdnjs.cloudflare.com") ||
     url.hostname.includes("cdn.jsdelivr.net");
   if (!cacheable) return;
+
+  // Manifest and icons go network-first so Chrome's installed-app update check
+  // always sees the latest icon/name and can update the home-screen app without a reinstall.
+  const isAppIdentityFile = /\/manifest\.json$|\.png$/i.test(url.pathname) && url.origin === self.location.origin;
+  if (isAppIdentityFile) {
+    event.respondWith(
+      fetch(req)
+        .then((resp) => {
+          if (resp && resp.ok) {
+            const copy = resp.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
+          }
+          return resp;
+        })
+        .catch(() => caches.match(req, { ignoreSearch: true }).then((c) => c || new Response("Offline", { status: 503 })))
+    );
+    return;
+  }
 
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
