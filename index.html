@@ -4518,11 +4518,12 @@
           return false;
         }
 
-        const appIconUrl = "icon-192.png";
+        const appIconUrl = "icon-192.png?v=2";
+        const appBadgeUrl = "badge-96.png?v=2";
         const options = {
           body: body,
           icon: appIconUrl,
-          badge: appIconUrl,
+          badge: appBadgeUrl,
           tag: tag || "personal-tracker-" + Date.now(),
           vibrate: [150, 70, 150],
           data: data || { action: "open" }

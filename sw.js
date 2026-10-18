@@ -1,13 +1,15 @@
 // Service Worker for Personal Tracker PWA
 // Provides safe Network-First offline caching and Smart Native Notifications
 
-const APP_ICON_URL = "./icon-192.png";
-const CACHE_NAME = "personal-tracker-v8";
+const APP_ICON_URL = "./icon-192.png?v=2";
+const APP_BADGE_URL = "./badge-96.png?v=2";
+const CACHE_NAME = "personal-tracker-v9";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   APP_ICON_URL,
+  APP_BADGE_URL,
   "./icon-512.png",
   "./icon-any-192.png",
   "./icon-any-512.png",
@@ -266,7 +268,7 @@ async function evaluateBackgroundNotifications() {
       await self.registration.showNotification("Milk Bill Reminder (5:00 PM)", {
         body: `It's past 5:00 PM and today's ${billLabel} (${now.toLocaleDateString()}) isn't marked yet. Tap to log now.`,
         icon: APP_ICON_URL,
-        badge: APP_ICON_URL,
+        badge: APP_BADGE_URL,
         tag: logKey,
         renotify: true,
         data: { action: "mark-milk", date: todayStr }
@@ -311,7 +313,7 @@ async function evaluateBackgroundNotifications() {
           await self.registration.showNotification(title, {
             body,
             icon: APP_ICON_URL,
-            badge: APP_ICON_URL,
+            badge: APP_BADGE_URL,
             tag: ymKey,
             data: { action: "milk-summary", year: targetYear, month: targetMonth }
           });
@@ -340,7 +342,7 @@ async function evaluateBackgroundNotifications() {
           await self.registration.showNotification(`Today: ${ev.name}'s ${ev.type}`, {
             body: `Don't forget to wish ${ev.name} on their ${ev.type} today.`,
             icon: APP_ICON_URL,
-            badge: APP_ICON_URL,
+            badge: APP_BADGE_URL,
             tag: key,
             data: { action: "events" }
           });
@@ -353,7 +355,7 @@ async function evaluateBackgroundNotifications() {
           await self.registration.showNotification(`Tomorrow: ${ev.name}'s ${ev.type}`, {
             body: `Reminder: ${ev.name}'s ${ev.type} is tomorrow.`,
             icon: APP_ICON_URL,
-            badge: APP_ICON_URL,
+            badge: APP_BADGE_URL,
             tag: key,
             data: { action: "events" }
           });
@@ -385,7 +387,7 @@ self.addEventListener("message", (event) => {
       event.waitUntil(
         self.registration.showNotification(title, Object.assign({
           icon: APP_ICON_URL,
-          badge: APP_ICON_URL
+          badge: APP_BADGE_URL
         }, options || {}))
       );
     }
