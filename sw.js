@@ -2,7 +2,7 @@
 // Provides safe Network-First offline caching and Smart Native Notifications
 
 const APP_ICON_URL = "./icon-192.png";
-const CACHE_NAME = "personal-tracker-v5";
+const CACHE_NAME = "personal-tracker-v7";
 const APP_SHELL = [
   "./",
   "./index.html",
