@@ -1,13 +1,18 @@
 // Service Worker for Personal Tracker PWA
 // Provides safe Network-First offline caching and Smart Native Notifications
 
-const APP_ICON_URL = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-ctrtowvfDRevVOoYjHO7798kcChbEY.png";
-const CACHE_NAME = "personal-tracker-v3";
+const APP_ICON_URL = "./icon-192.png";
+const CACHE_NAME = "personal-tracker-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.json",
   APP_ICON_URL,
+  "./icon-512.png",
+  "./icon-maskable-192.png",
+  "./icon-maskable-512.png",
+  "./apple-touch-icon.png",
+  "./favicon.png",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js",
   "https://cdn.jsdelivr.net/npm/localforage@1.10.0/dist/localforage.min.js"
@@ -55,8 +60,7 @@ self.addEventListener("fetch", (event) => {
   const cacheable =
     url.origin === self.location.origin ||
     url.hostname.includes("cdnjs.cloudflare.com") ||
-    url.hostname.includes("cdn.jsdelivr.net") ||
-    req.url === APP_ICON_URL;
+    url.hostname.includes("cdn.jsdelivr.net");
   if (!cacheable) return;
 
   event.respondWith(
