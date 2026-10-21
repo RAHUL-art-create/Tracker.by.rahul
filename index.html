@@ -536,28 +536,29 @@
         flex-wrap: wrap;
       }
       .quick-type-chip {
-        background: #f1f5f9;
-        color: #334155;
-        border: 1px solid #cbd5e1;
+        background-color: #fff1f2;
+        color: #be123c;
+        border: 1.5px solid #fecdd3;
         border-radius: 20px;
         padding: 5px 14px;
-        font-size: 12.5px;
-        font-weight: 500;
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
-        box-shadow: none;
-        margin-bottom: 0;
-        outline: none !important;
         transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        margin: 0;
+        outline: none !important;
+        box-shadow: 0 1px 2px rgba(225, 29, 72, 0.08);
         -webkit-tap-highlight-color: transparent !important;
       }
       .quick-type-chip:hover {
-        background: #e2e8f0;
-        color: #0f172a;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        background-color: #ffe4e6;
+        border-color: #fda4af;
+        color: #9f1239;
+        transform: translateY(-1.5px);
+        box-shadow: 0 3px 6px rgba(225, 29, 72, 0.18);
       }
       .quick-type-chip:active {
-        transform: scale(0.96);
+        transform: scale(0.97);
       }
       table {
         width: 100%;
@@ -3350,10 +3351,10 @@
             typeAvatarHtml = `
               <div class="event-type-avatar" title="Wedding Anniversary">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="8.5" cy="13.5" r="5.5" stroke-width="2"></circle>
-                  <circle cx="15.5" cy="11.5" r="5.5" stroke-width="2"></circle>
-                  <path d="M14 3.5l1.5-1.5L17 3.5l-1.5 1.5z" fill="currentColor"></path>
-                  <line x1="15.5" y1="2" x2="15.5" y2="6"></line>
+                  <circle cx="8" cy="14" r="5.5"></circle>
+                  <path d="M6.5 7.5L8 6l1.5 1.5L8 9z" fill="currentColor"></path>
+                  <circle cx="15.5" cy="12.5" r="5.5"></circle>
+                  <path d="M14 5l1.5-1.5L17 5l-1.5 1.5z" fill="currentColor"></path>
                 </svg>
               </div>
             `;
