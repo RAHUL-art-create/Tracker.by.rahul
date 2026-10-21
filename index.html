@@ -257,33 +257,39 @@
       .event-card-item:active {
         transform: scale(0.995);
       }
-      /* Tonal palette surfaces for event types */
+
+      /* Tonal palette surfaces for event types - Transitioning from dull to bright */
       .event-card-item.event-type-birthday {
-        background: linear-gradient(135deg, #fff5f6 0%, #ffffff 85%);
-        border-color: rgba(244, 63, 94, 0.22);
+        background: linear-gradient(105deg, #fdf4f5 0%, #fff1f3 40%, #ffe4e8 100%);
+        border: 1px solid #fecdd3;
+        border-left: 4.5px solid #f43f5e;
       }
       .event-card-item.event-type-birthday .event-type-avatar {
-        background: #ffe4e6;
-        color: #e11d48;
-        border: 1px solid rgba(225, 29, 72, 0.15);
+        background: linear-gradient(135deg, #fda4af 0%, #e11d48 100%);
+        color: #ffffff;
+        box-shadow: 0 2px 5px rgba(225, 29, 72, 0.25);
       }
+
       .event-card-item.event-type-anniversary {
-        background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 85%);
-        border-color: rgba(16, 185, 129, 0.22);
+        background: linear-gradient(105deg, #f4faf6 0%, #ecfdf5 40%, #d1fae5 100%);
+        border: 1px solid #a7f3d0;
+        border-left: 4.5px solid #10b981;
       }
       .event-card-item.event-type-anniversary .event-type-avatar {
-        background: #dcfce7;
-        color: #059669;
-        border: 1px solid rgba(5, 150, 105, 0.15);
+        background: linear-gradient(135deg, #6ee7b7 0%, #059669 100%);
+        color: #ffffff;
+        box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
       }
+
       .event-card-item.event-type-other {
-        background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 85%);
-        border-color: rgba(14, 165, 233, 0.22);
+        background: linear-gradient(105deg, #f4f8fb 0%, #f0f9ff 40%, #bae6fd 100%);
+        border: 1px solid #bae6fd;
+        border-left: 4.5px solid #0284c7;
       }
       .event-card-item.event-type-other .event-type-avatar {
-        background: #e0f2fe;
-        color: #0284c7;
-        border: 1px solid rgba(2, 132, 199, 0.15);
+        background: linear-gradient(135deg, #7dd3fc 0%, #0284c7 100%);
+        color: #ffffff;
+        box-shadow: 0 2px 5px rgba(2, 132, 199, 0.25);
       }
 
       /* Card Left: Avatar + Details */
@@ -295,16 +301,14 @@
         min-width: 0;
       }
       .event-type-avatar {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        border-radius: 12px;
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
         flex-shrink: 0;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
       }
       .event-card-item:hover .event-type-avatar {
@@ -337,25 +341,26 @@
       .event-pill-badge {
         display: inline-flex;
         align-items: center;
-        gap: 3px;
-        padding: 2px 7px;
+        gap: 2px;
+        padding: 1px 7px;
         border-radius: 999px;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
-        letter-spacing: 0.02em;
-        line-height: 1.2;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        line-height: 1.3;
         flex-shrink: 0;
       }
       .event-pill-badge.badge-today {
         background: #fee2e2;
         color: #b91c1c;
-        border: 1px solid rgba(185, 28, 28, 0.2);
+        border: 1px solid rgba(185, 28, 28, 0.25);
         animation: subtleBadgePulse 2.2s ease-in-out infinite;
       }
       .event-pill-badge.badge-tomorrow {
         background: #fef3c7;
         color: #b45309;
-        border: 1px solid rgba(180, 83, 9, 0.2);
+        border: 1px solid rgba(180, 83, 9, 0.25);
       }
       @keyframes subtleBadgePulse {
         0%, 100% {
@@ -392,7 +397,7 @@
       .event-card-actions {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         flex-shrink: 0;
       }
       .event-checkbox-wrapper {
@@ -416,9 +421,9 @@
         pointer-events: none;
       }
       .event-checkbox-control {
-        width: 22px;
-        height: 22px;
-        border-radius: 7px;
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
         border: 2px solid #94a3b8;
         background: #ffffff;
         display: flex;
@@ -428,8 +433,8 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
       }
       .event-check-icon {
-        width: 14px;
-        height: 14px;
+        width: 13px;
+        height: 13px;
         color: white;
         opacity: 0;
         transform: scale(0.6);
@@ -446,53 +451,57 @@
       .event-checkbox-wrapper:hover .event-checkbox-control {
         border-color: #64748b;
       }
-      .event-checkbox-input:checked:hover + .event-checkbox-control {
-        background: #059669;
-        border-color: #059669;
-      }
+
+      /* Bin / Trash Button: NO BACKGROUND COLOR */
       .event-delete-btn {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
         padding: 0;
         margin: 0;
-        border-radius: 50%;
-        background: transparent;
+        background: transparent !important;
+        background-color: transparent !important;
         color: #94a3b8;
-        border: none;
+        border: none !important;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        box-shadow: none;
+        box-shadow: none !important;
         outline: none !important;
-        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), color 0.2s ease;
         -webkit-tap-highlight-color: transparent !important;
       }
       .event-delete-btn:hover {
-        background-color: #fee2e2;
+        background: transparent !important;
+        background-color: transparent !important;
         color: #ef4444;
-        transform: scale(1.08);
-        box-shadow: none;
+        transform: scale(1.18);
+        box-shadow: none !important;
       }
       .event-delete-btn:active {
+        background: transparent !important;
+        background-color: transparent !important;
+        color: #dc2626;
         transform: scale(0.92);
-        background-color: #fecaca;
+        box-shadow: none !important;
       }
 
-      /* Celebrated status */
+      /* Celebrated status - Muted / dull tone */
       .event-card-item.is-celebrated {
-        opacity: 0.62;
+        opacity: 0.52;
         background: #f8fafc !important;
         border-color: #e2e8f0 !important;
+        border-left: 4.5px solid #cbd5e1 !important;
       }
       .event-card-item.is-celebrated .event-name {
         text-decoration: line-through;
         color: #94a3b8;
       }
       .event-card-item.is-celebrated .event-type-avatar {
-        filter: grayscale(40%);
-        opacity: 0.75;
+        background: #e2e8f0 !important;
+        color: #94a3b8 !important;
+        box-shadow: none !important;
       }
 
       /* Empty State */
@@ -505,8 +514,9 @@
         margin-top: 10px;
       }
       .events-empty-icon {
-        font-size: 32px;
         margin-bottom: 6px;
+        display: flex;
+        justify-content: center;
       }
       .events-empty-title {
         font-weight: 600;
@@ -535,7 +545,7 @@
         color: #334155;
         border: 1px solid #cbd5e1;
         border-radius: 20px;
-        padding: 5px 12px;
+        padding: 5px 14px;
         font-size: 12.5px;
         font-weight: 500;
         cursor: pointer;
@@ -911,31 +921,42 @@
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
       }
+      /* WhatsApp Message Bubble Style for Event Reminder */
       .event-reminder {
         position: fixed;
         top: 24px;
         right: 24px;
         left: auto;
-        max-width: 380px;
+        max-width: 360px;
         width: calc(100vw - 32px);
-        background: #0f172a;
-        color: #f8fafc;
-        padding: 16px 18px;
-        border-radius: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        background: #ffffff;
+        color: #111827;
+        padding: 14px 16px 12px 18px;
+        border-radius: 0 16px 16px 16px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
         z-index: 10000;
         display: none;
         animation: eventReminderSlideIn 0.3s cubic-bezier(0.2, 0, 0, 1);
         box-sizing: border-box;
       }
+      .event-reminder::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -8px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 8px 12px 0;
+        border-color: transparent #ffffff transparent transparent;
+        filter: drop-shadow(-2px 1px 1px rgba(0, 0, 0, 0.04));
+      }
       @media (max-width: 600px) {
         .event-reminder {
-          top: 16px;
-          left: 16px;
-          right: 16px;
+          top: 14px;
+          left: 20px;
+          right: 14px;
           width: auto;
           max-width: none;
         }
@@ -953,89 +974,92 @@
       .event-reminder-header {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #f1f5f9;
       }
-      .event-reminder-header .reminder-icon {
-        font-size: 20px;
-      }
-      .event-reminder-header h3 {
+      .whatsapp-sender-title {
         margin: 0;
-        color: #ffffff;
-        font-size: 15px;
+        color: #0f172a;
+        font-size: 13.5px;
         font-weight: 700;
-        letter-spacing: -0.01em;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
       }
       .event-reminder-content {
-        margin-bottom: 14px;
+        margin-bottom: 10px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
       }
       .event-reminder-item {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 8px 12px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         font-size: 13.5px;
+        color: #334155;
+        line-height: 1.4;
       }
       .event-reminder-item strong {
-        color: #ffffff;
+        color: #0f172a;
         font-weight: 600;
       }
       .event-reminder-item .reminder-item-tag {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 700;
-        padding: 2px 7px;
-        border-radius: 999px;
+        padding: 2px 6px;
+        border-radius: 6px;
         text-transform: uppercase;
         letter-spacing: 0.03em;
         flex-shrink: 0;
       }
       .event-reminder-item .tag-today {
         background: #fee2e2;
-        color: #991b1b;
+        color: #b91c1c;
+        border: 1px solid rgba(185, 28, 28, 0.15);
       }
       .event-reminder-item .tag-tomorrow {
         background: #fef3c7;
         color: #92400e;
+        border: 1px solid rgba(180, 83, 9, 0.15);
       }
       .event-reminder-actions {
         display: flex;
         gap: 8px;
         justify-content: flex-end;
+        align-items: center;
+        padding-top: 6px;
       }
       .event-reminder-actions button {
         margin: 0;
-        padding: 8px 14px;
-        border-radius: 12px;
-        font-size: 13px;
+        padding: 6px 14px;
+        border-radius: 16px;
+        font-size: 12px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
         box-shadow: none;
+        border: none;
         outline: none !important;
         -webkit-tap-highlight-color: transparent !important;
       }
       .event-reminder-actions .btn-dismiss {
-        background: rgba(255, 255, 255, 0.12);
-        color: #f1f5f9;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: #f1f5f9;
+        color: #475569;
       }
       .event-reminder-actions .btn-dismiss:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: #ffffff;
+        background: #e2e8f0;
+        color: #0f172a;
       }
       .event-reminder-actions .btn-snooze {
-        background: #3b82f6;
-        color: white;
-        border: none;
+        background: #25d366;
+        color: #ffffff;
+        box-shadow: 0 1px 3px rgba(37, 211, 102, 0.3);
       }
       .event-reminder-actions .btn-snooze:hover {
-        background: #2563eb;
+        background: #20ba5a;
+        box-shadow: 0 2px 6px rgba(37, 211, 102, 0.4);
       }
       .milk-bill-type {
         display: flex;
@@ -2186,8 +2210,7 @@
     </div>
     <div id="eventReminder" class="event-reminder">
       <div class="event-reminder-header">
-        <span class="reminder-icon">🎉</span>
-        <h3>Upcoming Celebrations</h3>
+        <span class="whatsapp-sender-title">Upcoming Celebrations</span>
       </div>
       <div id="eventReminderContent" class="event-reminder-content"></div>
       <div class="event-reminder-actions">
@@ -2211,8 +2234,8 @@
           </select>
         </div>
         <div class="quick-event-types">
-          <button type="button" class="quick-type-chip" onclick="setQuickEventType('Birthday')">🎂 Birthday</button>
-          <button type="button" class="quick-type-chip" onclick="setQuickEventType('Wedding Anniversary')">💍 Anniversary</button>
+          <button type="button" class="quick-type-chip" onclick="setQuickEventType('Birthday')">Birthday</button>
+          <button type="button" class="quick-type-chip" onclick="setQuickEventType('Wedding Anniversary')">Wedding Anniversary</button>
         </div>
         <div class="input-group">
           <label for="eventDate">Event Date</label>
@@ -3254,7 +3277,6 @@
           nameInput.value = "";
           typeSelect.value = "";
           dateInput.value = "";
-          showEmojiAnimation("🎉", document.querySelector(".event-btn") || nameInput);
           SoundEffects.play("event-add");
         } else {
           if (!name) nameInput.focus();
@@ -3271,7 +3293,14 @@
         if (!events || events.length === 0) {
           list.innerHTML = `
             <div class="events-empty-state">
-              <div class="events-empty-icon">🎈</div>
+              <div class="events-empty-icon">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </div>
               <div class="events-empty-title">No events added yet</div>
               <div class="events-empty-sub">Add birthdays or anniversaries above to get timely reminders and track celebrations!</div>
             </div>
@@ -3307,20 +3336,41 @@
           }
 
           let typeClass = "event-type-other";
-          let typeIcon = "📅";
+          let typeSvg = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          `;
+
           if (event.type === "Birthday") {
             typeClass = "event-type-birthday";
-            typeIcon = "🎂";
+            typeSvg = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="8" width="18" height="4" rx="1"></rect>
+                <path d="M12 8v13"></path>
+                <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path>
+                <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path>
+              </svg>
+            `;
           } else if (event.type === "Wedding Anniversary") {
             typeClass = "event-type-anniversary";
-            typeIcon = "💍";
+            typeSvg = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="14" r="5"></circle>
+                <circle cx="15" cy="10" r="5"></circle>
+                <path d="M12 5l1.5 2L15 6l-1 2.5"></path>
+              </svg>
+            `;
           }
 
           let timingBadge = "";
           if (isEventToday) {
-            timingBadge = `<span class="event-pill-badge badge-today">🎉 Today</span>`;
+            timingBadge = `<span class="event-pill-badge badge-today">TODAY</span>`;
           } else if (isEventTomorrow) {
-            timingBadge = `<span class="event-pill-badge badge-tomorrow">⏳ Tomorrow</span>`;
+            timingBadge = `<span class="event-pill-badge badge-tomorrow">TOMORROW</span>`;
           }
 
           const li = document.createElement("li");
@@ -3330,7 +3380,7 @@
 
           li.innerHTML = `
             <div class="event-card-left">
-              <div class="event-type-avatar" title="${escapeHtml(event.type)}">${typeIcon}</div>
+              <div class="event-type-avatar" title="${escapeHtml(event.type)}">${typeSvg}</div>
               <div class="event-card-info">
                 <div class="event-title-row">
                   <span class="event-name" title="${escapeHtml(event.name)}">${escapeHtml(event.name)}</span>
@@ -3352,8 +3402,8 @@
                   </svg>
                 </span>
               </label>
-              <button class="event-delete-btn remove-btn" onclick="removeEvent(${index})" title="Delete event" aria-label="Delete event">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <button class="event-delete-btn" onclick="removeEvent(${index})" title="Delete event" aria-label="Delete event">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"></polyline>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                   <line x1="10" y1="11" x2="10" y2="17"></line>
@@ -3436,21 +3486,19 @@
         let reminderHTML = '';
 
         todayEvents.forEach(event => {
-          const icon = event.type === "Birthday" ? "🎂" : (event.type === "Wedding Anniversary" ? "💍" : "📅");
           reminderHTML += `
             <div class="event-reminder-item">
-              <span class="reminder-item-tag tag-today">Today</span>
-              <span>${icon} <strong>${escapeHtml(event.name)}</strong>'s ${escapeHtml(event.type)}</span>
+              <span class="reminder-item-tag tag-today">TODAY</span>
+              <span><strong>${escapeHtml(event.name)}</strong>'s ${escapeHtml(event.type)}</span>
             </div>
           `;
         });
 
         tomorrowEvents.forEach(event => {
-          const icon = event.type === "Birthday" ? "🎂" : (event.type === "Wedding Anniversary" ? "💍" : "📅");
           reminderHTML += `
             <div class="event-reminder-item">
-              <span class="reminder-item-tag tag-tomorrow">Tomorrow</span>
-              <span>${icon} <strong>${escapeHtml(event.name)}</strong>'s ${escapeHtml(event.type)}</span>
+              <span class="reminder-item-tag tag-tomorrow">TOMORROW</span>
+              <span><strong>${escapeHtml(event.name)}</strong>'s ${escapeHtml(event.type)}</span>
             </div>
           `;
         });
@@ -3474,19 +3522,15 @@
 
       function toggleCelebrated(index) {
         if (!events[index]) return;
-        const card = document.getElementById(`event-card-${index}`) || document.querySelector(`[data-event-index="${index}"]`);
         events[index].celebrated = !events[index].celebrated;
         saveEvents();
-        if (card) showEmojiAnimation("🎈", card);
         SoundEffects.play(events[index].celebrated ? "event-celebrate" : "event-delete");
       }
 
       function removeEvent(index) {
         if (!events[index]) return;
-        const card = document.getElementById(`event-card-${index}`) || document.querySelector(`[data-event-index="${index}"]`);
         events.splice(index, 1);
         saveEvents();
-        if (card) showEmojiAnimation("🗑️", card);
         SoundEffects.play("event-delete");
       }
 
