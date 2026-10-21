@@ -271,25 +271,20 @@
       }
 
       .event-card-item.event-type-anniversary {
-        background: linear-gradient(105deg, #f4faf6 0%, #ecfdf5 40%, #d1fae5 100%);
-        border: 1px solid #a7f3d0;
-        border-left: 4.5px solid #10b981;
+        background: linear-gradient(105deg, #f0fbfb 0%, #e6f7f8 40%, #cbf2f5 100%);
+        border: 1px solid #a5f3fc;
+        border-left: 4.5px solid #0891b2;
       }
       .event-card-item.event-type-anniversary .event-type-avatar {
-        background: linear-gradient(135deg, #6ee7b7 0%, #059669 100%);
+        background: linear-gradient(135deg, #38bdf8 0%, #06b6d4 50%, #0d9488 100%);
         color: #ffffff;
-        box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
+        box-shadow: 0 2px 6px rgba(8, 145, 178, 0.28);
       }
 
       .event-card-item.event-type-other {
-        background: linear-gradient(105deg, #f4f8fb 0%, #f0f9ff 40%, #bae6fd 100%);
-        border: 1px solid #bae6fd;
-        border-left: 4.5px solid #0284c7;
-      }
-      .event-card-item.event-type-other .event-type-avatar {
-        background: linear-gradient(135deg, #7dd3fc 0%, #0284c7 100%);
-        color: #ffffff;
-        box-shadow: 0 2px 5px rgba(2, 132, 199, 0.25);
+        background: linear-gradient(105deg, #f8fafc 0%, #f1f5f9 45%, #e2e8f0 100%);
+        border: 1px solid #e2e8f0;
+        border-left: 4.5px solid #64748b;
       }
 
       /* Card Left: Avatar + Details */
@@ -3336,34 +3331,35 @@
           }
 
           let typeClass = "event-type-other";
-          let typeSvg = `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-          `;
+          let typeAvatarHtml = "";
 
           if (event.type === "Birthday") {
             typeClass = "event-type-birthday";
-            typeSvg = `
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="8" width="18" height="4" rx="1"></rect>
-                <path d="M12 8v13"></path>
-                <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path>
-                <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path>
-              </svg>
+            typeAvatarHtml = `
+              <div class="event-type-avatar" title="Birthday">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="9" rx="6.5" ry="7.5" fill="currentColor" fill-opacity="0.25"></ellipse>
+                  <path d="M9.5 5.5a4 4 0 0 1 3.5-0.5" stroke-width="1.6" stroke-linecap="round"></path>
+                  <polygon points="12 16.5 10 18.5 14 18.5" fill="currentColor"></polygon>
+                  <path d="M12 18.5c-0.8 1.5-1.2 2.5 0 3.5s1 1 0 1.5"></path>
+                </svg>
+              </div>
             `;
           } else if (event.type === "Wedding Anniversary") {
             typeClass = "event-type-anniversary";
-            typeSvg = `
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="14" r="5"></circle>
-                <circle cx="15" cy="10" r="5"></circle>
-                <path d="M12 5l1.5 2L15 6l-1 2.5"></path>
-              </svg>
+            typeAvatarHtml = `
+              <div class="event-type-avatar" title="Wedding Anniversary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8.5" cy="13.5" r="5.5" stroke-width="2"></circle>
+                  <circle cx="15.5" cy="11.5" r="5.5" stroke-width="2"></circle>
+                  <path d="M14 3.5l1.5-1.5L17 3.5l-1.5 1.5z" fill="currentColor"></path>
+                  <line x1="15.5" y1="2" x2="15.5" y2="6"></line>
+                </svg>
+              </div>
             `;
+          } else {
+            typeClass = "event-type-other";
+            typeAvatarHtml = "";
           }
 
           let timingBadge = "";
@@ -3380,7 +3376,7 @@
 
           li.innerHTML = `
             <div class="event-card-left">
-              <div class="event-type-avatar" title="${escapeHtml(event.type)}">${typeSvg}</div>
+              ${typeAvatarHtml}
               <div class="event-card-info">
                 <div class="event-title-row">
                   <span class="event-name" title="${escapeHtml(event.name)}">${escapeHtml(event.name)}</span>
