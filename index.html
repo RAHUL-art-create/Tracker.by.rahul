@@ -202,7 +202,12 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
       }
       .event-btn {
-        background-color: var(--event-color);
+        background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+        box-shadow: 0 2px 6px rgba(225, 29, 72, 0.25);
+      }
+      .event-btn:hover {
+        background: linear-gradient(135deg, #be123c 0%, #9f1239 100%);
+        box-shadow: 0 4px 10px rgba(225, 29, 72, 0.35);
       }
       .salary-btn {
         background-color: var(--salary-color);
@@ -220,74 +225,334 @@
         list-style-type: none;
         padding: 0;
       }
-      li {
-        margin-bottom: 8px;
-        padding: 10px 14px;
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
-      }
-      li:hover {
-        background: #f1f5f9;
-        border-color: #cbd5e1;
-      }
-      .event-item {
-        flex-grow: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 5px 10px;
-        border-radius: 5px;
-      }
-      .event-details {
+      /* Material Design 3 (MD3) Events of the Day Styling */
+      #eventList {
+        list-style-type: none;
+        padding: 0;
+        margin: 16px 0 0 0;
         display: flex;
         flex-direction: column;
+        gap: 10px;
+      }
+      .event-card-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, opacity 0.2s ease;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      .event-card-item:hover {
+        transform: translateY(-1.5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+      }
+      .event-card-item:active {
+        transform: scale(0.995);
+      }
+      /* Tonal palette surfaces for event types */
+      .event-card-item.event-type-birthday {
+        background: linear-gradient(135deg, #fff5f6 0%, #ffffff 85%);
+        border-color: rgba(244, 63, 94, 0.22);
+      }
+      .event-card-item.event-type-birthday .event-type-avatar {
+        background: #ffe4e6;
+        color: #e11d48;
+        border: 1px solid rgba(225, 29, 72, 0.15);
+      }
+      .event-card-item.event-type-anniversary {
+        background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 85%);
+        border-color: rgba(16, 185, 129, 0.22);
+      }
+      .event-card-item.event-type-anniversary .event-type-avatar {
+        background: #dcfce7;
+        color: #059669;
+        border: 1px solid rgba(5, 150, 105, 0.15);
+      }
+      .event-card-item.event-type-other {
+        background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 85%);
+        border-color: rgba(14, 165, 233, 0.22);
+      }
+      .event-card-item.event-type-other .event-type-avatar {
+        background: #e0f2fe;
+        color: #0284c7;
+        border: 1px solid rgba(2, 132, 199, 0.15);
+      }
+
+      /* Card Left: Avatar + Details */
+      .event-card-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-grow: 1;
+        min-width: 0;
+      }
+      .event-type-avatar {
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
+      .event-card-item:hover .event-type-avatar {
+        transform: scale(1.06);
+      }
+      .event-card-info {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        min-width: 0;
         flex-grow: 1;
       }
+      .event-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
       .event-name {
-        font-weight: bold;
+        font-weight: 600;
+        font-size: 15px;
+        color: #1e293b;
+        letter-spacing: -0.01em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+        line-height: 1.3;
       }
-      .event-type-date {
-        font-size: 0.9em;
-        opacity: 0.8;
+      .event-pill-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+        flex-shrink: 0;
       }
-      .event-checkbox {
-        margin-left: 10px;
+      .event-pill-badge.badge-today {
+        background: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid rgba(185, 28, 28, 0.2);
+        animation: subtleBadgePulse 2.2s ease-in-out infinite;
       }
-      .celebrated {
+      .event-pill-badge.badge-tomorrow {
+        background: #fef3c7;
+        color: #b45309;
+        border: 1px solid rgba(180, 83, 9, 0.2);
+      }
+      @keyframes subtleBadgePulse {
+        0%, 100% {
+          box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.35);
+        }
+        50% {
+          box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+        }
+      }
+      .event-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        color: #64748b;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .event-type-label {
+        color: #475569;
+        font-weight: 500;
+      }
+      .event-dot-sep {
+        color: #cbd5e1;
+        font-size: 10px;
+      }
+      .event-date-label {
+        color: #64748b;
+      }
+
+      /* Card Actions: Checkbox & Delete button */
+      .event-card-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .event-checkbox-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 4px;
+        margin: 0;
+        border-radius: 8px;
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      .event-checkbox-input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+        margin: 0;
+        pointer-events: none;
+      }
+      .event-checkbox-control {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        border: 2px solid #94a3b8;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
+      .event-check-icon {
+        width: 14px;
+        height: 14px;
+        color: white;
+        opacity: 0;
+        transform: scale(0.6);
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
+      .event-checkbox-input:checked + .event-checkbox-control {
+        background: #10b981;
+        border-color: #10b981;
+      }
+      .event-checkbox-input:checked + .event-checkbox-control .event-check-icon {
+        opacity: 1;
+        transform: scale(1);
+      }
+      .event-checkbox-wrapper:hover .event-checkbox-control {
+        border-color: #64748b;
+      }
+      .event-checkbox-input:checked:hover + .event-checkbox-control {
+        background: #059669;
+        border-color: #059669;
+      }
+      .event-delete-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        padding: 0;
+        margin: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #94a3b8;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: none;
+        outline: none !important;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      .event-delete-btn:hover {
+        background-color: #fee2e2;
+        color: #ef4444;
+        transform: scale(1.08);
+        box-shadow: none;
+      }
+      .event-delete-btn:active {
+        transform: scale(0.92);
+        background-color: #fecaca;
+      }
+
+      /* Celebrated status */
+      .event-card-item.is-celebrated {
+        opacity: 0.62;
+        background: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+      }
+      .event-card-item.is-celebrated .event-name {
         text-decoration: line-through;
+        color: #94a3b8;
       }
-      .event-today {
-        animation: blink 1s infinite;
+      .event-card-item.is-celebrated .event-type-avatar {
+        filter: grayscale(40%);
+        opacity: 0.75;
       }
-      .event-tomorrow {
-        animation: pulse 2s infinite;
+
+      /* Empty State */
+      .events-empty-state {
+        text-align: center;
+        padding: 24px 16px;
+        background: #f8fafc;
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 16px;
+        margin-top: 10px;
       }
-      @keyframes blink {
-        0% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
-        100% {
-          opacity: 1;
-        }
+      .events-empty-icon {
+        font-size: 32px;
+        margin-bottom: 6px;
       }
-      @keyframes pulse {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.05);
-        }
-        100% {
-          transform: scale(1);
-        }
+      .events-empty-title {
+        font-weight: 600;
+        font-size: 14.5px;
+        color: #475569;
+        margin-bottom: 4px;
+      }
+      .events-empty-sub {
+        font-size: 12.5px;
+        color: #94a3b8;
+        line-height: 1.4;
+        max-width: 280px;
+        margin: 0 auto;
+      }
+
+      /* Quick Event Type Chips */
+      .quick-event-types {
+        display: flex;
+        gap: 8px;
+        margin-top: -4px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .quick-type-chip {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #cbd5e1;
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 12.5px;
+        font-weight: 500;
+        cursor: pointer;
+        box-shadow: none;
+        margin-bottom: 0;
+        outline: none !important;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        -webkit-tap-highlight-color: transparent !important;
+      }
+      .quick-type-chip:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      }
+      .quick-type-chip:active {
+        transform: scale(0.96);
       }
       table {
         width: 100%;
@@ -648,52 +913,129 @@
       }
       .event-reminder {
         position: fixed;
-        top: 20px;
-        left: 20px;
-        background-color: var(--event-color);
-        color: white;
-        padding: 15px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        z-index: 1000;
-        max-width: 350px;
+        top: 24px;
+        right: 24px;
+        left: auto;
+        max-width: 380px;
+        width: calc(100vw - 32px);
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 16px 18px;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        z-index: 10000;
         display: none;
+        animation: eventReminderSlideIn 0.3s cubic-bezier(0.2, 0, 0, 1);
+        box-sizing: border-box;
+      }
+      @media (max-width: 600px) {
+        .event-reminder {
+          top: 16px;
+          left: 16px;
+          right: 16px;
+          width: auto;
+          max-width: none;
+        }
+      }
+      @keyframes eventReminderSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-16px) scale(0.96);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .event-reminder-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .event-reminder-header .reminder-icon {
+        font-size: 20px;
+      }
+      .event-reminder-header h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
       }
       .event-reminder-content {
-        margin-bottom: 15px;
+        margin-bottom: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .event-reminder-item {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13.5px;
+      }
+      .event-reminder-item strong {
+        color: #ffffff;
+        font-weight: 600;
+      }
+      .event-reminder-item .reminder-item-tag {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        flex-shrink: 0;
+      }
+      .event-reminder-item .tag-today {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .event-reminder-item .tag-tomorrow {
+        background: #fef3c7;
+        color: #92400e;
       }
       .event-reminder-actions {
         display: flex;
-        gap: 10px;
+        gap: 8px;
         justify-content: flex-end;
       }
       .event-reminder-actions button {
-        background-color: white;
-        color: black;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 5px;
+        margin: 0;
+        padding: 8px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
-        font-size: 14px;
-        min-width: 100px;
-        transition: background-color 0.3s;
-        font-weight: bold;
+        transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+        box-shadow: none;
+        outline: none !important;
+        -webkit-tap-highlight-color: transparent !important;
       }
-      .event-reminder-actions button:hover {
-        background-color: #f0f0f0;
-        color: black;
+      .event-reminder-actions .btn-dismiss {
+        background: rgba(255, 255, 255, 0.12);
+        color: #f1f5f9;
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
-      .event-reminder h3 {
+      .event-reminder-actions .btn-dismiss:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+      }
+      .event-reminder-actions .btn-snooze {
+        background: #3b82f6;
         color: white;
-        margin-bottom: 10px;
-        font-size: 16px;
+        border: none;
       }
-      .event-reminder p {
-        margin: 8px 0;
-        font-size: 14px;
-      }
-      .event-reminder strong {
-        font-weight: bold;
+      .event-reminder-actions .btn-snooze:hover {
+        background: #2563eb;
       }
       .milk-bill-type {
         display: flex;
@@ -1843,10 +2185,14 @@
       <button onclick="uploadData()" class="export-btn">Upload Data</button>
     </div>
     <div id="eventReminder" class="event-reminder">
+      <div class="event-reminder-header">
+        <span class="reminder-icon">🎉</span>
+        <h3>Upcoming Celebrations</h3>
+      </div>
       <div id="eventReminderContent" class="event-reminder-content"></div>
       <div class="event-reminder-actions">
-        <button onclick="dismissReminder()">Dismiss</button>
-        <button onclick="snoozeReminder()">Snooze (1 hour)</button>
+        <button class="btn-dismiss" onclick="dismissReminder()">Dismiss</button>
+        <button class="btn-snooze" onclick="snoozeReminder()">Snooze (1h)</button>
       </div>
     </div>
     <div class="container">
@@ -1863,6 +2209,10 @@
             <option value="Birthday">Birthday</option>
             <option value="Wedding Anniversary">Wedding Anniversary</option>
           </select>
+        </div>
+        <div class="quick-event-types">
+          <button type="button" class="quick-type-chip" onclick="setQuickEventType('Birthday')">🎂 Birthday</button>
+          <button type="button" class="quick-type-chip" onclick="setQuickEventType('Wedding Anniversary')">💍 Anniversary</button>
         </div>
         <div class="input-group">
           <label for="eventDate">Event Date</label>
@@ -2858,24 +3208,77 @@
         await initCloudSync();
       }
 
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function formatEventDate(dateStr) {
+        if (!dateStr) return "";
+        try {
+          const parts = dateStr.split('-');
+          if (parts.length === 3) {
+            const d = new Date(parts[0], parts[1] - 1, parts[2]);
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+          }
+          return new Date(dateStr).toLocaleDateString();
+        } catch (e) {
+          return dateStr;
+        }
+      }
+
+      function setQuickEventType(type) {
+        const select = document.getElementById("eventType");
+        if (select) {
+          select.value = type;
+          SoundEffects.play("button-click");
+        }
+      }
+
       function addEvent() {
-        const name = document.getElementById("eventName").value;
-        const type = document.getElementById("eventType").value;
-        const date = document.getElementById("eventDate").value;
+        const nameInput = document.getElementById("eventName");
+        const typeSelect = document.getElementById("eventType");
+        const dateInput = document.getElementById("eventDate");
+        const name = (nameInput.value || "").trim();
+        const type = (typeSelect.value || "").trim();
+        const date = (dateInput.value || "").trim();
+
         if (name && type && date) {
           events.push({ name, type, date, celebrated: false });
           saveEvents();
-          document.getElementById("eventName").value = "";
-          document.getElementById("eventType").value = "";
-          document.getElementById("eventDate").value = "";
-          showEmojiAnimation("🎉", document.querySelector(".event-btn"));
+          nameInput.value = "";
+          typeSelect.value = "";
+          dateInput.value = "";
+          showEmojiAnimation("🎉", document.querySelector(".event-btn") || nameInput);
           SoundEffects.play("event-add");
+        } else {
+          if (!name) nameInput.focus();
+          else if (!type) typeSelect.focus();
+          else if (!date) dateInput.focus();
         }
       }
 
       function displayEvents() {
         const list = document.getElementById("eventList");
+        if (!list) return;
         list.innerHTML = "";
+
+        if (!events || events.length === 0) {
+          list.innerHTML = `
+            <div class="events-empty-state">
+              <div class="events-empty-icon">🎈</div>
+              <div class="events-empty-title">No events added yet</div>
+              <div class="events-empty-sub">Add birthdays or anniversaries above to get timely reminders and track celebrations!</div>
+            </div>
+          `;
+          return;
+        }
+
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -2884,32 +3287,81 @@
         const otherEvents = [];
 
         events.forEach((event, index) => {
-          const eventDate = new Date(event.date);
-          const isEventToday = (
-            today.getDate() === eventDate.getDate() && 
-            today.getMonth() === eventDate.getMonth()
-          );
-          const isEventTomorrow = (
-            tomorrow.getDate() === eventDate.getDate() && 
-            tomorrow.getMonth() === eventDate.getMonth()
-          );
+          let isEventToday = false;
+          let isEventTomorrow = false;
+
+          if (event.date) {
+            const parts = event.date.split('-');
+            const eventDate = parts.length === 3 
+              ? new Date(parts[0], parts[1] - 1, parts[2]) 
+              : new Date(event.date);
+
+            isEventToday = (
+              today.getDate() === eventDate.getDate() && 
+              today.getMonth() === eventDate.getMonth()
+            );
+            isEventTomorrow = (
+              tomorrow.getDate() === eventDate.getDate() && 
+              tomorrow.getMonth() === eventDate.getMonth()
+            );
+          }
+
+          let typeClass = "event-type-other";
+          let typeIcon = "📅";
+          if (event.type === "Birthday") {
+            typeClass = "event-type-birthday";
+            typeIcon = "🎂";
+          } else if (event.type === "Wedding Anniversary") {
+            typeClass = "event-type-anniversary";
+            typeIcon = "💍";
+          }
+
+          let timingBadge = "";
+          if (isEventToday) {
+            timingBadge = `<span class="event-pill-badge badge-today">🎉 Today</span>`;
+          } else if (isEventTomorrow) {
+            timingBadge = `<span class="event-pill-badge badge-tomorrow">⏳ Tomorrow</span>`;
+          }
 
           const li = document.createElement("li");
+          li.className = `event-card-item ${typeClass} ${isEventToday ? "event-today" : ""} ${isEventTomorrow ? "event-tomorrow" : ""} ${event.celebrated ? "is-celebrated" : ""}`;
+          li.id = `event-card-${index}`;
+          li.setAttribute("data-event-index", String(index));
+
           li.innerHTML = `
-            <div class="event-item ${isEventToday ? "event-today" : ""} 
-                ${isEventTomorrow ? "event-tomorrow" : ""}" 
-                style="background-color: ${getEventColor(event.type)}; 
-                color: ${getContrastColor(getEventColor(event.type))};">
-                <div class="event-details ${event.celebrated ? "celebrated" : ""}">
-                    <span class="event-name">${event.name}</span>
-                    <span class="event-type-date">${event.type} - ${new Date(event.date).toLocaleDateString()}</span>
+            <div class="event-card-left">
+              <div class="event-type-avatar" title="${escapeHtml(event.type)}">${typeIcon}</div>
+              <div class="event-card-info">
+                <div class="event-title-row">
+                  <span class="event-name" title="${escapeHtml(event.name)}">${escapeHtml(event.name)}</span>
+                  ${timingBadge}
                 </div>
-                <input type="checkbox" class="event-checkbox" 
-                    ${event.celebrated ? "checked" : ""} 
-                    onchange="toggleCelebrated(${index})">
-                <button class="remove-btn" onclick="removeEvent(${index})">X</button>
+                <div class="event-meta-row">
+                  <span class="event-type-label">${escapeHtml(event.type)}</span>
+                  <span class="event-dot-sep">•</span>
+                  <span class="event-date-label">${formatEventDate(event.date)}</span>
+                </div>
+              </div>
             </div>
-        `;
+            <div class="event-card-actions">
+              <label class="event-checkbox-wrapper" title="${event.celebrated ? 'Celebrated! Tap to uncheck' : 'Mark as celebrated'}">
+                <input type="checkbox" class="event-checkbox-input" ${event.celebrated ? "checked" : ""} onchange="toggleCelebrated(${index})">
+                <span class="event-checkbox-control">
+                  <svg viewBox="0 0 16 16" class="event-check-icon">
+                    <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2.5-2.5a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" fill="currentColor"/>
+                  </svg>
+                </span>
+              </label>
+              <button class="event-delete-btn remove-btn" onclick="removeEvent(${index})" title="Delete event" aria-label="Delete event">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </button>
+            </div>
+          `;
 
           if (isEventToday) {
             todayEvents.push(li);
@@ -2939,10 +3391,10 @@
       }
 
       function getContrastColor(hexcolor) {
-        hexcolor = hexcolor.replace("#", "");
-        var r = parseInt(hexcolor.substr(0, 2), 16);
-        var g = parseInt(hexcolor.substr(2, 2), 16);
-        var b = parseInt(hexcolor.substr(4, 2), 16);
+        hexcolor = (hexcolor || "").replace("#", "");
+        var r = parseInt(hexcolor.substr(0, 2), 16) || 0;
+        var g = parseInt(hexcolor.substr(2, 2), 16) || 0;
+        var b = parseInt(hexcolor.substr(4, 2), 16) || 0;
         var yiq = (r * 299 + g * 587 + b * 114) / 1000;
         return yiq >= 128 ? "black" : "white";
       }
@@ -2953,7 +3405,9 @@
         tomorrow.setDate(tomorrow.getDate() + 1);
 
         const todayEvents = events.filter(event => {
-          const eventDate = new Date(event.date);
+          if (!event || !event.date) return false;
+          const parts = event.date.split('-');
+          const eventDate = parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date(event.date);
           return (
             today.getDate() === eventDate.getDate() &&
             today.getMonth() === eventDate.getMonth() &&
@@ -2962,7 +3416,9 @@
         });
 
         const tomorrowEvents = events.filter(event => {
-          const eventDate = new Date(event.date);
+          if (!event || !event.date) return false;
+          const parts = event.date.split('-');
+          const eventDate = parts.length === 3 ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date(event.date);
           return (
             tomorrow.getDate() === eventDate.getDate() &&
             tomorrow.getMonth() === eventDate.getMonth()
@@ -2976,24 +3432,37 @@
 
       function showEventReminder(todayEvents, tomorrowEvents) {
         const reminderContent = document.getElementById('eventReminderContent');
+        if (!reminderContent) return;
         let reminderHTML = '';
 
-        if (todayEvents.length > 0) {
-          reminderHTML += '<h3>Today\'s Events:</h3>';
-          reminderHTML += todayEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
-        }
+        todayEvents.forEach(event => {
+          const icon = event.type === "Birthday" ? "🎂" : (event.type === "Wedding Anniversary" ? "💍" : "📅");
+          reminderHTML += `
+            <div class="event-reminder-item">
+              <span class="reminder-item-tag tag-today">Today</span>
+              <span>${icon} <strong>${escapeHtml(event.name)}</strong>'s ${escapeHtml(event.type)}</span>
+            </div>
+          `;
+        });
 
-        if (tomorrowEvents.length > 0) {
-          reminderHTML += '<h3>Tomorrow\'s Events:</h3>';
-          reminderHTML += tomorrowEvents.map(event => `<p>• <strong>${event.name}'s ${event.type}</p>`).join('');
-        }
+        tomorrowEvents.forEach(event => {
+          const icon = event.type === "Birthday" ? "🎂" : (event.type === "Wedding Anniversary" ? "💍" : "📅");
+          reminderHTML += `
+            <div class="event-reminder-item">
+              <span class="reminder-item-tag tag-tomorrow">Tomorrow</span>
+              <span>${icon} <strong>${escapeHtml(event.name)}</strong>'s ${escapeHtml(event.type)}</span>
+            </div>
+          `;
+        });
 
         reminderContent.innerHTML = reminderHTML;
-        document.getElementById('eventReminder').style.display = 'block';
+        const banner = document.getElementById('eventReminder');
+        if (banner) banner.style.display = 'block';
       }
 
       function dismissReminder() {
-        document.getElementById("eventReminder").style.display = "none";
+        const banner = document.getElementById("eventReminder");
+        if (banner) banner.style.display = "none";
       }
 
       function snoozeReminder() {
@@ -3004,16 +3473,20 @@
       }
 
       function toggleCelebrated(index) {
+        if (!events[index]) return;
+        const card = document.getElementById(`event-card-${index}`) || document.querySelector(`[data-event-index="${index}"]`);
         events[index].celebrated = !events[index].celebrated;
         saveEvents();
-        showEmojiAnimation("🎈", document.querySelectorAll("li")[index]);
+        if (card) showEmojiAnimation("🎈", card);
         SoundEffects.play(events[index].celebrated ? "event-celebrate" : "event-delete");
       }
 
       function removeEvent(index) {
+        if (!events[index]) return;
+        const card = document.getElementById(`event-card-${index}`) || document.querySelector(`[data-event-index="${index}"]`);
         events.splice(index, 1);
         saveEvents();
-        showEmojiAnimation("🗑️", document.querySelectorAll("li")[index]);
+        if (card) showEmojiAnimation("🗑️", card);
         SoundEffects.play("event-delete");
       }
 
