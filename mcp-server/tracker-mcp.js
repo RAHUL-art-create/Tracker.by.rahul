@@ -261,15 +261,47 @@ function unmarkedDays(data, ym) {
 
 // ---------------------------------------------------------------- salary logic
 
+// The app names salary months with the phone's language (toLocaleString('default')),
+// so match whatever language the saved months already use instead of assuming English.
+const MONTH_LOCALES = ["en-US", "hi-IN", "te-IN", "ta-IN", "kn-IN", "ml-IN", "mr-IN", "gu-IN", "bn-IN", "pa-IN", "ur-IN", "or-IN"];
+
+function localMonthName(locale, monthIndex) {
+  try {
+    return new Date(Date.UTC(2026, monthIndex, 15)).toLocaleString(locale, { month: "long", timeZone: "UTC" });
+  } catch (e) {
+    return MONTHS[monthIndex];
+  }
+}
+
+function detectSalaryLocale(data) {
+  const keys = Object.keys(data.salaryData || {});
+  if (!keys.length) return "en-US";
+  for (const loc of MONTH_LOCALES) {
+    const names = new Set(Array.from({ length: 12 }, (_, i) => localMonthName(loc, i)));
+    if (keys.some((k) => names.has(k))) return loc;
+  }
+  return "en-US";
+}
+
+function salaryMonthKey(data, ym) {
+  const idx = Number(ym.slice(5, 7)) - 1;
+  for (const loc of MONTH_LOCALES) {
+    const name = localMonthName(loc, idx);
+    if (data.salaryData && data.salaryData[name]) return name;
+  }
+  return localMonthName(detectSalaryLocale(data), idx);
+}
+
 function salaryAmount(v) { return typeof v === "object" && v ? Number(v.amount) || 0 : Number(v) || 0; }
 function findKeyCI(obj, name) { const n = String(name).trim().toLowerCase(); return Object.keys(obj || {}).find((k) => k.trim().toLowerCase() === n); }
 
 function salaryMonthReport(data, ym) {
-  const name = monthName(ym);
-  const students = data.salaryData[name] || {};
+  const key = salaryMonthKey(data, ym);
+  const name = key;
+  const students = data.salaryData[key] || {};
   const entries = Object.entries(students).map(([s, v]) => ({ student: s, amount: salaryAmount(v), date: typeof v === "object" && v ? v.date || "" : "" }));
   const total = entries.reduce((a, e) => a + e.amount, 0);
-  const prev = data.salaryData[monthName(shiftMonth(ym, -1))] || {};
+  const prev = data.salaryData[salaryMonthKey(data, shiftMonth(ym, -1))] || {};
   const paidSet = new Set(Object.keys(students).map((s) => s.trim().toLowerCase()));
   const pending = Object.keys(prev).filter((s) => !paidSet.has(s.trim().toLowerCase()));
   return { name, entries, total, pending };
@@ -461,13 +493,17 @@ const TOOLS = [
       const list = priceList(data, bill);
       const item = list.find((i) => Number(i.quantity) === q);
       const old = item ? Number(item.price) : null;
-      if (item) item.price = p; else { list.push({ quantity: q, price: p }); list.sort((x, y) => Number(x.quantity) - Number(y.quantity)); }
+      if (!item) {
+        list.push({ quantity: q, price: p });
+        return `Bill ${bill}: added ${liters(q)} at ${rupees(p)}.`;
+      }
+      item.price = p;
       let updated = 0;
       for (const e of Object.values(data.milkData)) {
         if (data.milkBillType === "1~MB" && bill === 1) { if (Number(e.quantity) === q) { e.cost = p; updated++; } }
         else if (Number(e[`quantity${bill}`]) === q) { e[`cost${bill}`] = p; updated++; }
       }
-      return item ? `Bill ${bill}: ${liters(q)} price changed from ${rupees(old)} to ${rupees(p)}; updated ${updated} existing entr${updated === 1 ? "y" : "ies"}.` : `Bill ${bill}: added ${liters(q)} at ${rupees(p)}.`;
+      return `Bill ${bill}: ${liters(q)} price changed from ${rupees(old)} to ${rupees(p)}; updated ${updated} existing entr${updated === 1 ? "y" : "ies"}.`;
     })
   },
   {
@@ -490,7 +526,7 @@ const TOOLS = [
       const amount = Number(a.amount);
       if (!(amount > 0)) throw new ToolError("amount must be greater than 0.");
       const date = parseDate(a.date);
-      const mName = monthName(date.slice(0, 7));
+      const mName = salaryMonthKey(data, date.slice(0, 7));
       data.salaryData[mName] = data.salaryData[mName] || {};
       // Reuse the spelling already used for this student in any month
       const knownName = Object.values(data.salaryData).map((m) => findKeyCI(m, student)).find(Boolean);
@@ -525,7 +561,7 @@ const TOOLS = [
     },
     annotations: { readOnlyHint: false, destructiveHint: true },
     run: (env, uid, a) => mutate(env, uid, (data) => {
-      const mName = monthName(parseMonth(a.month));
+      const mName = salaryMonthKey(data, parseMonth(a.month));
       const key = findKeyCI(data.salaryData[mName], a.student);
       if (!key) throw new ToolError(`No payment from "${a.student}" in ${mName}.`);
       delete data.salaryData[mName][key];
