@@ -1,9 +1,9 @@
 // Service Worker for Personal Tracker PWA
-// Provides safe Network-First offline caching and Smart Native Notifications
+// Offline caching that still loads updates right away, plus smart notifications
 
 const APP_ICON_URL = "./icon-192.png?v=2";
 const APP_BADGE_URL = "./badge-96.png?v=2";
-const CACHE_NAME = "personal-tracker-v9";
+const CACHE_NAME = "personal-tracker-v10";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -27,7 +27,8 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return Promise.allSettled(
-        APP_SHELL.map((url) => cache.add(url).catch(() => null))
+        // cache: "reload" skips the HTTP cache so a new install never stores stale files
+        APP_SHELL.map((url) => cache.add(new Request(url, { cache: "reload" })).catch(() => null))
       );
     })
   );
@@ -50,66 +51,79 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Cache-first with background refresh (stale-while-revalidate): the installed app opens
-// from the on-device copy without waiting on the network, so the launch splash ends fast.
-// Fresh files are fetched in the background and used on the next open.
-// /api/sync is never intercepted.
+// App pages: network-first with a short timeout. Online, the latest version always loads
+// (cache: "no-store" skips any HTTP caching by the host); on a slow or missing connection
+// the saved copy is shown after NAV_TIMEOUT_MS so opening stays quick.
+// Other app files revalidate in the background. /api/sync is never intercepted.
+const NAV_TIMEOUT_MS = 2500;
+
+function putInCache(req, resp) {
+  if (resp && resp.ok) {
+    const copy = resp.clone();
+    caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
+  }
+  return resp;
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-  if (url.pathname.includes("/api/sync")) return;
+  if (url.pathname.includes("/api/sync") || url.pathname.includes("/api/mcp-link") || url.pathname.startsWith("/mcp/")) return;
 
-  const cacheable =
-    url.origin === self.location.origin ||
-    url.hostname.includes("cdnjs.cloudflare.com") ||
-    url.hostname.includes("cdn.jsdelivr.net");
-  if (!cacheable) return;
+  const sameOrigin = url.origin === self.location.origin;
+  const isCdn = url.hostname.includes("cdnjs.cloudflare.com") || url.hostname.includes("cdn.jsdelivr.net");
+  if (!sameOrigin && !isCdn) return;
 
-  // Manifest and icons go network-first so Chrome's installed-app update check
-  // always sees the latest icon/name and can update the home-screen app without a reinstall.
-  const isAppIdentityFile = /\/manifest\.json$|\.png$/i.test(url.pathname) && url.origin === self.location.origin;
-  if (isAppIdentityFile) {
+  // Versioned CDN libraries never change: cache-first
+  if (isCdn) {
     event.respondWith(
-      fetch(req)
-        .then((resp) => {
-          if (resp && resp.ok) {
-            const copy = resp.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
-          }
-          return resp;
-        })
-        .catch(() => caches.match(req, { ignoreSearch: true }).then((c) => c || new Response("Offline", { status: 503 })))
+      caches.match(req).then((cached) => cached || fetch(req).then((resp) => putInCache(req, resp)))
     );
     return;
   }
 
+  const isPage = req.mode === "navigate" || url.pathname.endsWith("/") || url.pathname.endsWith(".html");
+  const isAppIdentityFile = /\/manifest\.json$|\.png$/i.test(url.pathname);
+
+  if (isPage || isAppIdentityFile) {
+    const network = fetch(req, { cache: "no-store" }).then((resp) => putInCache(req, resp));
+    event.waitUntil(network.catch(() => {}));
+    const fallback = () =>
+      caches.match(req, { ignoreSearch: true })
+        .then((c) => c || (isPage ? caches.match("./index.html").then((i) => i || caches.match("./")) : null));
+
+    if (!isPage) {
+      event.respondWith(network.catch(() => fallback().then((c) => c || new Response("Offline", { status: 503 }))));
+      return;
+    }
+
+    event.respondWith(
+      new Promise((resolve) => {
+        let settled = false;
+        const finish = (resp) => { if (!settled && resp) { settled = true; resolve(resp); } };
+        const timer = setTimeout(() => fallback().then(finish), NAV_TIMEOUT_MS);
+        network
+          .then((resp) => { clearTimeout(timer); finish(resp); })
+          .catch(() => { clearTimeout(timer); fallback().then((c) => { finish(c || new Response("Offline", { status: 503 })); }); });
+      })
+    );
+    return;
+  }
+
+  // Other same-origin files: serve saved copy, refresh it in the background
   event.respondWith(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      const cached =
-        (await cache.match(req, { ignoreSearch: req.mode === "navigate" })) ||
-        (req.mode === "navigate" ? await cache.match("./index.html") || await cache.match("./") : null);
-
-      const networkUpdate = fetch(req)
-        .then((resp) => {
-          if (resp && resp.ok) {
-            cache.put(req, resp.clone()).catch(() => {});
-          }
-          return resp;
-        })
-        .catch(() => null);
-
+    caches.match(req).then((cached) => {
+      const network = fetch(req, { cache: "no-cache" }).then((resp) => putInCache(req, resp)).catch(() => null);
       if (cached) {
-        event.waitUntil(networkUpdate);
+        event.waitUntil(network);
         return cached;
       }
-      const fresh = await networkUpdate;
-      return fresh || new Response("Offline", { status: 503 });
+      return network.then((resp) => resp || new Response("Offline", { status: 503 }));
     })
   );
 });
-
 // Helper: Read & Write localForage's IndexedDB ("PersonalTracker" -> "tracker_data") from Service Worker
 function openTrackerDB() {
   return new Promise((resolve, reject) => {
