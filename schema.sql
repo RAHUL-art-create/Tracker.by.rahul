@@ -13,3 +13,10 @@ CREATE TABLE IF NOT EXISTS user_backups (
 CREATE INDEX IF NOT EXISTS idx_user_backups_user_id ON user_backups(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_backups_pin ON user_backups(pin);
 CREATE INDEX IF NOT EXISTS idx_user_backups_user_name ON user_backups(user_name);
+
+-- Secret AI assistant (MCP) links: one per user, replaced from Settings > AI Assistant > New link
+CREATE TABLE IF NOT EXISTS mcp_links (
+  secret TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL UNIQUE,
+  created_at INTEGER NOT NULL
+);

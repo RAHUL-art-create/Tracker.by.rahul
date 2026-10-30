@@ -66,6 +66,48 @@ This mechanism provides users with control over their data, ensuring that import
 - **Download Data**: Click the **Download Data** button to save your current data as a JSON file.
 - **Upload Data**: Click the **Upload Data** button to restore data from a previously saved JSON file.
 
+## AI Assistant (MCP)
+
+Manage the tracker by chatting with Claude, ChatGPT, Gemini CLI or any app that supports MCP (Model Context Protocol). Say things like "mark today 1.5 litre", "what's my October milk bill?", "Ravi paid 1000 today" or "any birthdays this week?".
+
+### Connect your AI app
+
+1. Open the app, tap the settings icon, and make sure cloud backup is on (name and 4-digit PIN saved).
+2. Under **AI Assistant**, tap **Copy link**.
+3. Paste the link into your AI app:
+   - **Claude** (web, desktop, mobile): Settings > Connectors > Add custom connector > paste the link. Leave authentication empty.
+   - **ChatGPT**: Settings > Apps & Connectors > Advanced > turn on Developer mode, then create a connector with the link and choose **No authentication**.
+   - **Gemini CLI**: add to `~/.gemini/settings.json`:
+     ```json
+     { "mcpServers": { "tracker": { "httpUrl": "PASTE_LINK_HERE" } } }
+     ```
+   - **Cursor / VS Code / Claude Code**: add a remote (HTTP) MCP server with the link.
+
+Menu names change over time in these apps; look for "connectors" or "MCP servers".
+
+Optional: upload `mcp-server/SKILL.md` as a skill in apps that support skills so the assistant picks the right tool faster.
+
+### How the link is protected
+
+There is no login: the link itself contains a long random secret (`/mcp/<secret>`), which cannot be guessed. Treat it like a password. If it is ever shared by mistake, tap **New link** in Settings. The old link stops working immediately.
+
+### Syncing
+
+Changes made by the AI are saved to the cloud backup. The app picks them up quietly when it opens or comes back on screen, with no restore popup. If you edited something on the phone at the same time (for example while offline), both changes are kept per item.
+
+### Deploying
+
+Nothing extra to set up. The MCP server runs on the same Cloudflare project and D1 database as cloud backup:
+
+- `functions/mcp/[secret].js` serves `https://<your-app>.pages.dev/mcp/<secret>` (always HTTPS).
+- `functions/api/mcp-link.js` creates or replaces the secret link.
+- `mcp-server/tracker-mcp.js` holds the tools (no npm packages needed).
+- The `mcp_links` table is created automatically on first use.
+
+Push to GitHub and Cloudflare Pages deploys it. If you deploy with `npx wrangler deploy` instead, `worker.js` routes the same paths.
+
+Test locally with `npx wrangler pages dev .` and the MCP Inspector (`npx @modelcontextprotocol/inspector`), using Streamable HTTP and your `/mcp/<secret>` link.
+
 ## Tech Stack
 
 - **Frontend**: HTML, CSS, JavaScript

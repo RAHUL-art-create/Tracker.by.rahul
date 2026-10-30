@@ -1390,6 +1390,19 @@
         transform: none;
         box-shadow: none;
       }
+      .ai-link-box {
+        margin-top: 8px;
+        gap: 6px;
+      }
+      .ai-link-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .ai-link-reset {
+        background: #f8fafc;
+        color: #64748b;
+        border-color: #e2e8f0;
+      }
       .pin-label-row {
         display: flex;
         align-items: center;
@@ -2164,6 +2177,14 @@
             <button type="button" class="pwa-notif-test-btn" onclick="sendInstantSummaryNotification()" title="Send current summary notification now">Summary</button>
           </div>
         </div>
+        <div class="pwa-notif-box ai-link-box">
+          <div class="pwa-notif-title">AI Assistant</div>
+          <div class="pwa-notif-sub">Paste this link into Claude, ChatGPT or Gemini to mark milk, add salary and events by chatting.</div>
+          <div class="ai-link-actions">
+            <button type="button" class="pwa-notif-test-btn" onclick="copyAiLink(false)">Copy link</button>
+            <button type="button" class="pwa-notif-test-btn ai-link-reset" onclick="copyAiLink(true)">New link</button>
+          </div>
+        </div>
         <div id="modalCloudStatus" style="font-size: 12px; color: #7f8c8d; margin: 14px 0 6px 0; font-weight: 500; text-align: center;">
           Status: Ready
         </div>
@@ -2617,7 +2638,7 @@
           localStorage.setItem(key, typeof value === "string" ? value : JSON.stringify(value));
         } catch (e) {}
 
-        lastModified = Date.now();
+        lastModified = Math.max(Date.now(), (Number(lastModified) || 0) + 1);
         try {
           await localforage.setItem("lastModified", lastModified);
           localStorage.setItem("lastModified", String(lastModified));
@@ -2843,6 +2864,148 @@
         }, 1500);
       }
 
+      // ---- Quiet cloud sync: 3-way merge so changes from the AI assistant (or another device)
+      // appear without a Restore popup, while unsynced edits made here are kept.
+      let lastSyncedData = null;
+      let lastCloudCheckAt = 0;
+
+      function currentSyncData() {
+        return { events, salaryData, milkData, milkQuantities, milkQuantities2, milkBillType, selectedCategories, quickAmounts, quickQuantities };
+      }
+
+      function sameJson(a, b) {
+        return JSON.stringify(a) === JSON.stringify(b);
+      }
+
+      function isPlainObj(v) {
+        return v !== null && typeof v === "object" && !Array.isArray(v);
+      }
+
+      async function saveSyncBase(data) {
+        lastSyncedData = JSON.parse(JSON.stringify(data || {}));
+        try { await localforage.setItem("lastSyncedData", lastSyncedData); } catch (e) {}
+      }
+
+      // Per key: if this device changed it since the last sync, keep ours; otherwise take the cloud's.
+      function mergeMap(base, local, remote, depth) {
+        base = isPlainObj(base) ? base : {};
+        local = isPlainObj(local) ? local : {};
+        remote = isPlainObj(remote) ? remote : {};
+        const out = {};
+        const keys = new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(remote)]);
+        keys.forEach((k) => {
+          const b = base[k], l = local[k], r = remote[k];
+          if (depth > 1 && isPlainObj(l) && isPlainObj(r)) {
+            const inner = mergeMap(b, l, r, depth - 1);
+            if (Object.keys(inner).length) out[k] = inner;
+            return;
+          }
+          const v = sameJson(l, b) ? r : l;
+          if (v !== undefined) out[k] = v;
+        });
+        return out;
+      }
+
+      function eventKey(e) {
+        return `${String((e && e.name) || "").trim().toLowerCase()}|${(e && e.type) || ""}|${(e && e.date) || ""}`;
+      }
+
+      function eventsToMap(list) {
+        const m = {};
+        (Array.isArray(list) ? list : []).forEach((e) => { m[eventKey(e)] = e; });
+        return m;
+      }
+
+      function mergeEvents(base, local, remote, hasBase) {
+        const lm = eventsToMap(local), rm = eventsToMap(remote);
+        const merged = hasBase ? mergeMap(eventsToMap(base), lm, rm, 1) : { ...lm, ...rm };
+        const order = [...Object.keys(lm), ...Object.keys(rm)];
+        const seen = new Set();
+        const out = [];
+        order.forEach((k) => {
+          if (!seen.has(k) && merged[k]) { seen.add(k); out.push(merged[k]); }
+        });
+        return out;
+      }
+
+      function mergeTrackerData(base, local, remote) {
+        const hasBase = isPlainObj(base);
+        const b = hasBase ? base : {};
+        const pickScalar = (k) => {
+          if (remote[k] === undefined) return local[k];
+          if (!hasBase) return remote[k];
+          return sameJson(local[k], b[k]) ? remote[k] : local[k];
+        };
+        return {
+          events: mergeEvents(b.events, local.events, remote.events, hasBase),
+          salaryData: hasBase
+            ? mergeMap(b.salaryData, local.salaryData, remote.salaryData, 2)
+            : mergeMap({}, remote.salaryData, local.salaryData, 2),
+          milkData: hasBase
+            ? mergeMap(b.milkData, local.milkData, remote.milkData, 1)
+            : { ...(local.milkData || {}), ...(remote.milkData || {}) },
+          milkQuantities: pickScalar("milkQuantities"),
+          milkQuantities2: pickScalar("milkQuantities2"),
+          milkBillType: pickScalar("milkBillType"),
+          selectedCategories: pickScalar("selectedCategories"),
+          quickAmounts: pickScalar("quickAmounts"),
+          quickQuantities: pickScalar("quickQuantities")
+        };
+      }
+
+      async function applySyncedDataSilently(d) {
+        events = Array.isArray(d.events) ? d.events : [];
+        salaryData = isPlainObj(d.salaryData) ? d.salaryData : {};
+        milkData = isPlainObj(d.milkData) ? d.milkData : {};
+        if (Array.isArray(d.milkQuantities)) milkQuantities = d.milkQuantities;
+        if (Array.isArray(d.milkQuantities2)) milkQuantities2 = d.milkQuantities2;
+        if (d.milkBillType === "1~MB" || d.milkBillType === "2~MB") milkBillType = d.milkBillType;
+        if (Array.isArray(d.selectedCategories) && d.selectedCategories.length) selectedCategories = d.selectedCategories;
+        if (Array.isArray(d.quickAmounts)) quickAmounts = d.quickAmounts;
+        if (Array.isArray(d.quickQuantities)) quickQuantities = d.quickQuantities;
+        const data = currentSyncData();
+        for (const k of Object.keys(data)) {
+          try { await localforage.setItem(k, data[k]); } catch (e) {}
+          try { localStorage.setItem(k, typeof data[k] === "string" ? data[k] : JSON.stringify(data[k])); } catch (e) {}
+        }
+        renderAllFromState();
+      }
+
+      async function setLastModified(value) {
+        lastModified = value;
+        try { await localforage.setItem("lastModified", lastModified); } catch (e) {}
+        try { localStorage.setItem("lastModified", String(lastModified)); } catch (e) {}
+      }
+
+      async function mergeAndApplyRemote(remote, cloudLastMod) {
+        remote = remote || {};
+        const local = currentSyncData();
+        const merged = mergeTrackerData(lastSyncedData, local, remote);
+        if (!sameJson(merged, local)) await applySyncedDataSilently(merged);
+        const needsPush = Object.keys(merged).some((k) => remote[k] === undefined || !sameJson(merged[k], remote[k]));
+        if (needsPush) {
+          // Our unsynced edits survived the merge; push them with a timestamp newer than the cloud's
+          await setLastModified(Math.max(Date.now(), cloudLastMod + 1));
+          await performCloudBackup();
+        } else {
+          await setLastModified(cloudLastMod);
+          await saveSyncBase(merged);
+          updateSyncStatusBadge("synced");
+        }
+      }
+
+      function checkCloudForUpdates() {
+        if (!userPin || String(userPin).trim().length !== 4) return;
+        if (Date.now() - lastCloudCheckAt < 15000) return;
+        lastCloudCheckAt = Date.now();
+        initCloudSync();
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkCloudForUpdates();
+      });
+      window.addEventListener("focus", checkCloudForUpdates);
+
       // Push current tracker state to Cloudflare D1 via /api/sync
       async function performCloudBackup(options) {
         if (!userPin || String(userPin).trim().length !== 4) {
@@ -2916,11 +3079,13 @@
           }
 
           if (result && result.cloudNewer) {
-            console.log("Cloud backup is newer than local data. Prompting restore.");
-            promptCloudRestore(result.cloudLastModified);
+            // Cloud changed since our last sync (e.g. the AI assistant): merge quietly, then retry
+            lastCloudCheckAt = 0;
+            await initCloudSync();
             return;
           }
 
+          await saveSyncBase(payload.data);
           updateSyncStatusBadge("synced");
         } catch (err) {
           // Offline or network error - strictly preserve local data
@@ -2996,6 +3161,7 @@
             lastModified = cloudLastMod;
             await localforage.setItem("lastModified", lastModified);
             try { localStorage.setItem("lastModified", String(lastModified)); } catch (e) {}
+            await saveSyncBase(cloudBackup);
             showToast(`Welcome back${userName ? ', ' + userName : ''}! Restored all data from cloud backup.`);
             updateSyncStatusBadge("synced");
             return;
@@ -3003,11 +3169,13 @@
 
           // RULE 2: Both local and cloud have data. Compare timestamps!
           if (cloudLastMod > lastModified) {
-            // Cloud has newer data
-            promptCloudRestore(cloudLastMod, cloudBackup);
-          } else {
-            // Local is newer or equal: push to cloud
+            // Cloud is newer: merge quietly, keeping any unsynced edits from this device
+            await mergeAndApplyRemote(cloudBackup, cloudLastMod);
+          } else if (cloudLastMod < lastModified || allowPinUpdate) {
             await performCloudBackup({ updatePin: allowPinUpdate });
+          } else {
+            if (!lastSyncedData) await saveSyncBase(cloudBackup);
+            updateSyncStatusBadge("synced");
           }
 
         } catch (err) {
@@ -3062,28 +3230,42 @@
         checkForEvents();
       }
 
-      // Prompt user if cloud is newer
-      function promptCloudRestore(cloudTimestamp, cloudBackupData) {
-        const dateStr = cloudTimestamp ? new Date(cloudTimestamp).toLocaleString() : "recently";
-        const doRestore = confirm(
-          `A newer cloud backup (${dateStr}) was found for ${userName || 'your tracker'}.\n\nDo you want to restore it now?\n\n• Click OK to Restore\n• Click Cancel to keep current local data`
-        );
-        if (doRestore) {
-          if (cloudBackupData) {
-            applyRestoredData(cloudBackupData);
-            lastModified = cloudTimestamp;
-            parallelSave("lastModified", lastModified);
-            showToast("Restored from latest cloud backup.");
-            updateSyncStatusBadge("synced");
-          } else {
-            manualRestoreFromCloud();
+      // Secret AI link: anyone with it can use the AI tools, so "New link" replaces it and disables the old one
+      async function copyAiLink(regenerate) {
+        const pin = String(userPin || "").trim();
+        if (!/^\d{4}$/.test(pin)) {
+          alert("Set your 4-digit backup PIN first, then create the AI link.");
+          return;
+        }
+        if (regenerate && !confirm("Create a new AI link? The old link will stop working, so you will need to paste the new one into your AI app.")) {
+          return;
+        }
+        try {
+          const res = await fetch(getSyncApiUrl("/api/mcp-link"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, userName: (userName || "").trim(), pin, regenerate: Boolean(regenerate) })
+          });
+          const result = await res.json().catch(() => null);
+          if (!res.ok || !result || !result.success) {
+            alert((result && result.error) || "Could not create the AI link. Check your internet and cloud backup.");
+            return;
           }
-        } else {
-          // Keep local data and push to cloud
-          performCloudBackup();
+          let copied = false;
+          try {
+            await navigator.clipboard.writeText(result.url);
+            copied = true;
+          } catch (e) {}
+          if (copied) {
+            SoundEffects.play("settings-save");
+            showToast(regenerate ? "New AI link copied. The old link no longer works." : "AI link copied. Paste it into your AI app.");
+          } else {
+            prompt("Copy this AI link:", result.url);
+          }
+        } catch (e) {
+          alert("Could not reach the cloud. Check your internet connection.");
         }
       }
-
       // Manual restore button handler in modal
       async function manualRestoreFromCloud(forceUpdatePin) {
         const nameInput = (document.getElementById("userName").value || "").trim() || userName;
@@ -3161,6 +3343,7 @@
           await applyRestoredData(result.data);
           lastModified = Number(result.lastModified) || Date.now();
           await localforage.setItem("lastModified", lastModified);
+          await saveSyncBase(result.data);
 
           document.getElementById("customizationModal").style.display = "none";
           showToast(`Data successfully restored from cloud${userName ? ' for ' + userName : ''}!`);
@@ -4466,6 +4649,7 @@
           selectedCategories = loadedCats;
           try { localStorage.setItem("selectedCategories", JSON.stringify(selectedCategories)); } catch (e) {}
         }
+        try { lastSyncedData = await localforage.getItem("lastSyncedData"); } catch (e) { lastSyncedData = null; }
         const loadedQA = await localforage.getItem("quickAmounts");
         if (loadedQA) quickAmounts = loadedQA;
         const loadedQQ = await localforage.getItem("quickQuantities");

@@ -1,5 +1,6 @@
 // Cloudflare Worker entrypoint: handles /api/sync with D1 database and serves static assets
 import { onRequestGet, onRequestPost, onRequestOptions } from "./functions/api/sync.js";
+import { handleMcp, handleMcpLink } from "./mcp-server/tracker-mcp.js";
 
 export default {
   async fetch(request, env, ctx) {
@@ -11,6 +12,15 @@ export default {
       if (request.method === "GET") return onRequestGet(context);
       if (request.method === "POST") return onRequestPost(context);
       return new Response("Method not allowed", { status: 405 });
+    }
+
+    if (url.pathname === "/api/mcp-link" || url.pathname === "/api/mcp-link/") {
+      return handleMcpLink(request, env);
+    }
+
+    const mcpMatch = url.pathname.match(/^\/mcp\/([A-Za-z0-9_-]+)\/?$/);
+    if (mcpMatch) {
+      return handleMcp(request, env, mcpMatch[1]);
     }
 
     // Serve static assets (index.html, etc.)
